@@ -147,6 +147,18 @@
       box-shadow: 0 0 8px rgba(229, 57, 53, 0.5);
     }
 
+    select:disabled {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      border-color: rgba(255, 255, 255, 0.08);
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .form-group.disabled label {
+      color: var(--text-muted);
+    }
+
     .summary-box {
       background: var(--input-bg);
       border: 1px solid var(--panel-border);
@@ -229,7 +241,7 @@
       
       <div class="form-group">
         <label for="endless">Endless Mode</label>
-        <select id="endless" onchange="updateSummary()">
+        <select id="endless" onchange="updateEndlessState(); updateSummary()">
           <option value="Off">Off</option>
           <option value="On">On</option>
         </select>
@@ -871,7 +883,20 @@
     document.getElementById('timeLimit').value = selectedTime;
   }
 
+  // Endless Mode runs the arena on an infinite loop, so a fixed Global
+  // Time Limit is meaningless while it's On — gray the field out (and
+  // stop it from being used in the summary/export) rather than leaving a
+  // number on screen that has no effect.
+  function updateEndlessState() {
+    const endlessOn = document.getElementById('endless').value === 'On';
+    const timeLimitSelect = document.getElementById('timeLimit');
+    timeLimitSelect.disabled = endlessOn;
+    const timeLimitGroup = timeLimitSelect.closest('.form-group');
+    if (timeLimitGroup) timeLimitGroup.classList.toggle('disabled', endlessOn);
+  }
+
   function updateSummary() {
+    updateEndlessState();
     const diffSelect = document.getElementById('difficulty');
     const selectedDifficultyText = diffSelect.options[diffSelect.selectedIndex].text;
 
@@ -879,7 +904,8 @@
     summary += `Intensity Level: ${selectedDifficultyText.toUpperCase()}\n`;
     summary += `Endless Mode: ${document.getElementById('endless').value}\n`;
     summary += `Continuous Spawning: ${document.getElementById('continuous').value}\n`;
-    summary += `Global Time Limit: ${document.getElementById('timeLimit').value}\n`;
+    const endlessOn = document.getElementById('endless').value === 'On';
+    summary += `Global Time Limit: ${endlessOn ? 'N/A (Endless Mode)' : document.getElementById('timeLimit').value}\n`;
     summary += `Total Campaign Rounds: ${roundsData.length}\n`;
     summary += `Health/Ammo Pickups: ${document.getElementById('healthAmmo').value}\n`;
     summary += `Berserk Powerup: ${document.getElementById('berserk').value}\n`;
