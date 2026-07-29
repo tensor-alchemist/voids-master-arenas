@@ -189,25 +189,6 @@
       transform: translateY(0);
     }
 
-    .btn-reset {
-      background: rgba(24, 24, 34, 0.9);
-      color: var(--text-muted);
-      border: 1px solid var(--panel-border);
-      padding: 10px 20px;
-      font-size: 0.95rem;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-
-    .btn-reset:hover {
-      background: #252535;
-      color: #ffffff;
-    }
-
     .difficulty-select {
       background: rgba(24, 24, 36, 0.9);
       color: var(--accent-gold);
@@ -235,7 +216,6 @@
       </select>
 
       <button class="btn-action" onclick="generateBalancedArena()">⚔️ Generate Master Arena</button>
-      <button class="btn-reset" onclick="resetAll()">🔄 Reset All</button>
     </div>
   </header>
 
@@ -335,10 +315,11 @@
 <script>
   let roundsData = [];
 
-  // NOTE on "combat" tags: best-effort classification of each enemy's
-  // primary engagement style (melee rushdown / ranged-hitscan-or-projectile
-  // / mixed). Used only for the role-mix guarantee below — tweak freely if
-  // any of these don't match how a specific enemy actually plays for you.
+  // NOTE on "combat"/"flying" tags: best-effort classification layered on
+  // top of the authoritative min/max/step values from the source sheet.
+  // "combat": melee / ranged / mixed engagement style.
+  // "flying": true for airborne enemies (Cacodemon Hybrid, Cosmic Elemental)
+  // — they contest vertical space, which the airspace tax below accounts for.
   const enemyData = {
     fodder: [
       { name: "Zombies", min: 0, max: 30, step: 10, role: "fodder", baseWeight: 1.0, combat: "melee" },
@@ -346,64 +327,64 @@
       { name: "Heated Metal Shield Soldier", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.5, combat: "ranged" },
       { name: "UnHeated Metal Shield Soldier", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.5, combat: "ranged" },
       { name: "Energy Shield Soldier", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.5, combat: "ranged" },
-      { name: "Chaingunner Solder", min: 0, max: 6, step: 1, role: "fodder", baseWeight: 1.5, combat: "ranged" },
-      { name: "Imp", min: 0, max: 15, step: 3, role: "fodder", baseWeight: 1.0, combat: "melee" },
-      { name: "Stone Imp", min: 0, max: 10, step: 2, role: "fodder", baseWeight: 1.5, combat: "melee" }
+      { name: "Chaingunner Solder", min: 0, max: 3, step: 1, role: "fodder", baseWeight: 1.5, combat: "ranged" },
+      { name: "Imp", min: 0, max: 9, step: 3, role: "fodder", baseWeight: 1.0, combat: "melee" },
+      { name: "Stone Imp", min: 0, max: 6, step: 2, role: "fodder", baseWeight: 1.5, combat: "melee" }
     ],
     heavy: [
       { name: "Imp Stalker", min: 0, max: 6, step: 2, role: "heavy", baseWeight: 2.5, combat: "melee" },
-      { name: "Nightmare Imp Stalker", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
-      { name: "Hell Knight", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
-      { name: "Battle Knight", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.5, combat: "melee" },
+      { name: "Nightmare Imp Stalker", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
+      { name: "Hell Knight", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
+      { name: "Battle Knight", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "melee" },
       { name: "Battle Knight Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "melee" },
-      { name: "Pinky Rider", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
+      { name: "Pinky Rider", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
       { name: "Pinky Rider Armoured", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "melee" },
       { name: "Pinky Rider Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "melee" },
-      { name: "Arachnotron", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.0, combat: "ranged" },
+      { name: "Arachnotron", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "ranged" },
       { name: "Armoured Arachnotron", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged" },
-      { name: "Mancubus", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
+      { name: "Mancubus", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
       { name: "Armoured Mancubus", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 5.0, combat: "ranged" },
-      { name: "Mortar Mancubus", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 4.0, combat: "ranged" },
+      { name: "Mortar Mancubus", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "ranged" },
       { name: "Mancubus Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged" },
-      { name: "Revenant", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.0, combat: "ranged" },
+      { name: "Revenant", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "ranged" },
       { name: "Revenant Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "ranged" },
-      { name: "Whiplash", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.0, combat: "mixed" },
-      { name: "Acolyte", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.0, combat: "ranged" },
+      { name: "Whiplash", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "mixed" },
+      { name: "Acolyte", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "ranged" },
       { name: "Acolyte Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "ranged" },
-      { name: "Cacodemon Hybrid", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.0, combat: "ranged" }
+      { name: "Cacodemon Hybrid", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "mixed", flying: true }
     ],
     superheavy: [
       { name: "Cyberdemon", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.0, combat: "ranged" },
-      { name: "Cyberdemon Leader", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 9.0, combat: "ranged" },
+      { name: "Cyberdemon Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.0, combat: "ranged" },
       { name: "Cosmic Baron", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.5, combat: "mixed" },
       { name: "Agaddon Hunter", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.5, combat: "ranged" },
-      { name: "Agaddon Leader", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 8.0, combat: "ranged" },
-      { name: "Agaddon Champion", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 9.5, combat: "ranged" },
-      { name: "Komodo", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.0, combat: "melee" },
-      { name: "Komodo Leader", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 8.0, combat: "melee" },
-      { name: "Komodo champion", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 9.0, combat: "melee" },
-      { name: "Vagary", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.0, combat: "ranged" },
-      { name: "Vagary Champion", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 8.5, combat: "ranged" }
+      { name: "Agaddon Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 8.0, combat: "ranged" },
+      { name: "Agaddon Champion", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.5, combat: "ranged" },
+      { name: "Komodo", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 6.0, combat: "melee" },
+      { name: "Komodo Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.0, combat: "melee" },
+      { name: "Komodo champion", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 9.0, combat: "melee" },
+      { name: "Vagary", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 6.0, combat: "ranged" },
+      { name: "Vagary Champion", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.5, combat: "ranged" }
     ],
     dlc: [
-      { name: "Blighted Zombies", min: 0, max: 20, step: 5, role: "fodder", baseWeight: 1.0, combat: "melee" },
-      { name: "Hallowed Zombies", min: 0, max: 15, step: 3, role: "fodder", baseWeight: 1.2, combat: "melee" },
-      { name: "Maykr Drone", min: 0, max: 20, step: 5, role: "fodder", baseWeight: 1.2, combat: "ranged" },
-      { name: "Blighted Hell Knight", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.5, combat: "melee" },
-      { name: "Buzzsaw", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
-      { name: "Nightmare Revenant", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
-      { name: "Nightmare Whiplash", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.5, combat: "mixed" },
-      { name: "Whiplash Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "mixed" },
+      { name: "Blighted Zombies", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.0, combat: "melee" },
+      { name: "Hallowed Zombies", min: 0, max: 9, step: 3, role: "fodder", baseWeight: 1.2, combat: "melee" },
+      { name: "Maykr Drone", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.2, combat: "ranged" },
+      { name: "Blighted Hell Knight", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "melee" },
+      { name: "Buzzsaw", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
+      { name: "Nightmare Revenant", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
+      { name: "Nightmare Whiplash", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "mixed" },
+      { name: "Whiplash  Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "mixed" },
       { name: "Agaddon Brute", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.5, combat: "ranged" },
-      { name: "Agaddon Brute Leader", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 9.0, combat: "ranged" },
-      { name: "Agaddon Brute Champion", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 10.0, combat: "ranged" },
+      { name: "Agaddon Brute Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.0, combat: "ranged" },
+      { name: "Agaddon Brute Champion", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 10.0, combat: "ranged" },
       { name: "Archvile", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 5.0, combat: "ranged" },
-      { name: "Armoured Archvile", min: 0, max: 2, step: 1, role: "heavy", baseWeight: 7.0, combat: "ranged" },
-      { name: "Cosmic Barron Leader", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 8.0, combat: "mixed" },
-      { name: "Cosmic Elemental", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
-      { name: "Warlock", min: 0, max: 4, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
+      { name: "Armoured Archvile", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 7.0, combat: "ranged" },
+      { name: "Cosmic Barron Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 5.5, combat: "mixed" },
+      { name: "Cosmic Elemental", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged", flying: true },
+      { name: "Warlock", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
       { name: "Warlock Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged" },
-      { name: "Vagary Leader", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 7.5, combat: "ranged" }
+      { name: "Vagary Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 7.5, combat: "ranged" }
     ]
   };
 
@@ -427,11 +408,25 @@
   // Flat durability "tax" added once per distinct Leader-type enemy present
   // in a round, representing the aura buff they give nearby demons (which
   // their own baseWeight doesn't capture — that only prices their own stat
-  // block). This eats into the budget left over for everything else.
+  // block).
   const LEADER_TAX = { heavy: 3.5, superheavy: 6 };
+
+  // Flat tax added when a SECOND distinct flying enemy type joins a round
+  // already containing one — two airborne threats compound verticality
+  // problems (shared airspace, harder to find safe ground) more than their
+  // raw weights alone capture.
+  const FLYING_TAX = 4;
 
   function isLeaderName(name) {
     return name.toLowerCase().includes('leader');
+  }
+
+  function isFlyingName(name) {
+    for (const cat in enemyData) {
+      const found = enemyData[cat].find(e => e.name === name);
+      if (found) return !!found.flying;
+    }
+    return false;
   }
 
   function getDemonWeight(enemy) {
@@ -506,7 +501,7 @@
     for (const [name, count] of Object.entries(roundEnemies)) {
       if (count > 0) {
         const lower = name.toLowerCase();
-        if (allSuperHeavies.includes(name) || lower.includes('brute') || lower.includes('archvile')) {
+        if (allSuperHeavies.includes(name) || lower.includes('brute') || lower.includes('archvile') || lower.includes('cosmic baron')) {
           return true;
         }
       }
@@ -515,9 +510,9 @@
   }
 
   // Phase 1: Endless Mode + Continuous Spawning are rolled before round
-  // generation because Continuous Spawning is now actually priced into
-  // the per-round budget (see generateBalancedArena) rather than being a
-  // cosmetic setting layered on afterward.
+  // generation because Continuous Spawning is actually priced into the
+  // per-round budget below (trimmed caps), rather than being a cosmetic
+  // toggle layered on afterward.
   function rollEndlessAndContinuous(difficultyKey) {
     document.getElementById('endless').value = Math.random() < 0.15 ? "On" : "Off";
     const contChance = (difficultyKey === 'sweaty' || difficultyKey === 'nightmare') ? 0.75 : 0.25;
@@ -526,31 +521,44 @@
     return continuousOn;
   }
 
-  // Phase 2: Health/Ammo pickups and Berserk are rolled AFTER rounds exist,
-  // biased by how loaded the generated campaign actually turned out to be
-  // (intensityScore), not just the nominal difficulty label. A round that
-  // rolled unusually heavy gets more generous resources so RNG can't stack
-  // "hardest possible enemies" with "stingiest possible pickups."
+  // Phase 2: resource settings are rolled AFTER rounds exist, using how
+  // loaded the campaign actually turned out (intensityScore) to bias two
+  // DIFFERENT directions on purpose:
+  //   - Health/Ammo (survival tools): generosity scales UP with intensity,
+  //     so unlucky RNG can't stack "hardest possible fight" with
+  //     "stingiest possible healing."
+  //   - Berserk/BFC/.93 Shotgun (one-shot, room-clearing super weapons):
+  //     generosity scales DOWN as intensity rises, so a carefully budgeted
+  //     hard round doesn't just get nuked away by the same pass of RNG.
+  //     These still get a floor so fights stay winnable, just not free.
   function rollResourceSettings(difficultyKey, intensityScore) {
-    const generosityBoost = Math.min(0.3, Math.max(0, intensityScore - 0.6) * 0.5);
+    const survivalBoost = Math.min(0.3, Math.max(0, intensityScore - 0.6) * 0.5);
+    const powerRestraint = Math.min(0.35, Math.max(0, intensityScore - 0.4) * 0.5);
 
     const haRoll = Math.random();
     let haVal = "Once";
-    if (haRoll < Math.max(0.05, 0.20 - generosityBoost)) haVal = "None";
+    if (haRoll < Math.max(0.05, 0.20 - survivalBoost)) haVal = "None";
     else if (haRoll < 0.70) haVal = "Once";
     else haVal = "Respawn";
     document.getElementById('healthAmmo').value = haVal;
 
     const bRoll = Math.random();
     let bVal = "Once";
-    if (bRoll < Math.max(0.10, 0.40 - generosityBoost)) bVal = "None";
-    else if (bRoll < 0.80) bVal = "Once";
-    else if (bRoll < 0.95) bVal = "Respawn";
+    if (bRoll < Math.min(0.55, 0.15 + powerRestraint)) bVal = "None";
+    else if (bRoll < 0.75) bVal = "Once";
+    else if (bRoll < 0.93 - powerRestraint) bVal = "Respawn";
     else bVal = "Endless";
     document.getElementById('berserk').value = bVal;
 
-    document.getElementById('bfcAmmo').value = Math.floor(Math.random() * 4);
-    document.getElementById('shotgunAmmo').value = Math.floor(Math.random() * 19);
+    // BFC (0-3) and .93 Shotgun (0-18) ammo pools: same restraint logic,
+    // biased toward the low end as the round gets heavier.
+    const bfcMax = Math.max(1, Math.round(3 * (1 - powerRestraint)));
+    document.getElementById('bfcAmmo').value = Math.floor(Math.random() * (bfcMax + 1));
+
+    const shotgunMax = Math.max(3, Math.round(18 * (1 - powerRestraint)));
+    document.getElementById('shotgunAmmo').value = Math.floor(Math.random() * (shotgunMax + 1));
+
+    return bVal;
   }
 
   function generateBalancedArena() {
@@ -591,25 +599,24 @@
 
       // Progressive ramp: round 1 is a fair warm-up, the final round
       // approaches (and can slightly exceed) the difficulty's nominal cap.
-      // With a single round, roundProgress defaults to a mid-high value
-      // so a one-round arena still feels appropriately dialed in.
       const roundProgress = totalRounds > 1 ? (r - 1) / (totalRounds - 1) : 0.85;
       const scaledMaxDurability = Math.round(capInfo.maxDurability * (0.7 + 0.4 * roundProgress) * continuousCapFactor);
       const scaledMaxDemonCount = Math.round(capInfo.maxDemonCount * (0.8 + 0.25 * roundProgress) * continuousCapFactor);
       const scaledSuperChance = capInfo.superChance * (0.5 + 0.5 * roundProgress);
-      // Variety also ramps: early rounds introduce fewer enemy types
-      // (easier to read), later rounds throw more types at once.
       const scaledHeavyVarieties = Math.max(1, Math.round(capInfo.heavyVarieties * (0.7 + 0.45 * roundProgress)));
       const scaledFodderVarieties = Math.max(1, Math.round(capInfo.fodderVarieties * (0.8 + 0.3 * roundProgress)));
 
-      let minRespawns = (difficultyKey === 'sweaty' || difficultyKey === 'nightmare') ? 2 : 1;
-      let roundRespawns = Math.floor(Math.random() * 3) + minRespawns;
+      // Wave respawns: widened to the full 1-10 range the game supports,
+      // instead of previously topping out around 3-4. High-threat rounds
+      // still get throttled back down below.
+      let minRespawns = (difficultyKey === 'sweaty' || difficultyKey === 'nightmare') ? 3 : 1;
+      let maxRespawns = (difficultyKey === 'sweaty' || difficultyKey === 'nightmare') ? 10 : 6;
+      let roundRespawns = minRespawns + Math.floor(Math.random() * (maxRespawns - minRespawns + 1));
 
-      // Superheavies: now supports multiple DISTINCT species in one round
-      // (up to maxSuperHeavyCount total bodies), instead of ever only
-      // allowing repeats of a single species. Each additional species slot
-      // rolls at half the base chance so mixing two superheavies is
-      // possible but not the norm.
+      // Superheavies: supports multiple DISTINCT species in one round (up
+      // to maxSuperHeavyCount total bodies). Each additional species slot
+      // rolls at half the base chance so mixing two is possible but not
+      // the norm.
       if ((r > 1 || difficultyKey === 'nightmare') && capInfo.maxSuperHeavyCount > 0) {
         let superheaviesUsed = 0;
         const superSpeciesUsed = new Set();
@@ -672,6 +679,12 @@
           if (isLeaderName(heavyCandidate.name)) {
             currentRoundDurability += LEADER_TAX.heavy;
           }
+          if (heavyCandidate.flying) {
+            const alreadyHasFlying = Object.keys(roundEnemies).some(n =>
+              n !== heavyCandidate.name && roundEnemies[n] > 0 && isFlyingName(n)
+            );
+            if (alreadyHasFlying) currentRoundDurability += FLYING_TAX;
+          }
         }
       }
 
@@ -700,7 +713,7 @@
 
       if (currentRoundDemonCount === 0) {
         const fallbackFodder = allFodder[Math.floor(Math.random() * allFodder.length)];
-        const fallbackCount = Math.max(fallbackFodder.step || 5, 10);
+        const fallbackCount = Math.min(fallbackFodder.max, Math.max(fallbackFodder.step || 5, 10));
         roundEnemies[fallbackFodder.name] = fallbackCount;
         currentRoundDurability += fallbackCount * getDemonWeight(fallbackFodder);
         currentRoundDemonCount += fallbackCount;
@@ -724,9 +737,8 @@
       }
 
       // Combat-role mix guarantee: if the round accidentally ended up
-      // entirely melee or entirely ranged, try to inject one cheap unit of
-      // the missing role (allowing a small 10% budget overflow if needed,
-      // since the round may already be near its cap).
+      // entirely melee or entirely ranged, inject one cheap unit of the
+      // missing role (allowing a small 10% budget overflow if needed).
       const rolesPresent = new Set(
         Object.keys(roundEnemies).filter(n => roundEnemies[n] > 0).map(getCombatRole)
       );
@@ -753,11 +765,15 @@
         }
       }
 
-      // High-threat rounds (superheavies, archviles) now genuinely pull
-      // respawns down instead of capping against a ceiling they never hit.
+      // High-threat rounds (superheavies, Cosmic Baron, Brutes, Archviles)
+      // get a soft dampening on respawns, not a hard ceiling — a roll of
+      // 9 or 10 can still land as a genuinely intense multi-wave gauntlet
+      // against a stacked round if that's what the dice give you. This
+      // just makes big respawn counts less likely, not impossible, so a
+      // single round can still be the whole (stressful, fun) show.
       if (hasHighThreatDemon(roundEnemies)) {
-        const highThreatCeiling = (difficultyKey === 'nightmare') ? 3 : 2;
-        roundRespawns = Math.max(1, Math.min(roundRespawns - 1, highThreatCeiling));
+        const dampening = 0.55 + Math.random() * 0.35; // 0.55x - 0.90x
+        roundRespawns = Math.max(1, Math.round(roundRespawns * dampening));
       }
 
       roundsData.push({
@@ -765,17 +781,14 @@
         enemies: roundEnemies
       });
 
-      // Track this round's roster (soft-demoted next round) and its
-      // intensity relative to the difficulty's nominal cap, used to bias
-      // resource generosity once all rounds are built.
       previousRoundEnemyNames = new Set(Object.keys(roundEnemies).filter(n => roundEnemies[n] > 0));
       campaignDurabilityFractions.push(currentRoundDurability / capInfo.maxDurability);
     }
 
     const intensityScore = campaignDurabilityFractions.reduce((a, b) => a + b, 0) / campaignDurabilityFractions.length;
-    rollResourceSettings(difficultyKey, intensityScore);
+    const berserkVal = rollResourceSettings(difficultyKey, intensityScore);
 
-    autoScaleTimeLimit(continuousOn);
+    autoScaleTimeLimit(continuousOn, berserkVal);
     updateSummary();
   }
 
@@ -787,43 +800,75 @@
     return 1.0;
   }
 
-  function autoScaleTimeLimit(continuousOn) {
+  function isHeavyOrAbove(name) {
+    for (const cat in enemyData) {
+      const found = enemyData[cat].find(e => e.name === name);
+      if (found) return found.role === "heavy" || found.role === "superheavy";
+    }
+    return false;
+  }
+
+  function autoScaleTimeLimit(continuousOn, berserkVal) {
     let totalWorkload = 0;
+    let heavyPlusSuperBodyPressure = 0;
 
     roundsData.forEach(r => {
       let roundDurability = 0;
       for (const [enemyName, count] of Object.entries(r.enemies)) {
         const weight = getEnemyWeightByName(enemyName);
         roundDurability += count * weight;
+        if (isHeavyOrAbove(enemyName)) {
+          heavyPlusSuperBodyPressure += count * r.respawns;
+        }
       }
       totalWorkload += roundDurability * r.respawns;
     });
 
-    const berserkVal = document.getElementById('berserk').value;
+    // Heavy/superheavy bodies get an explicit pressure term on top of the
+    // weighted-durability sum: two rounds with similar total "durability"
+    // don't feel the same if one of them is all fodder and the other is
+    // stacked with Hell Knights and Cyberdemons — the latter needs
+    // meaningfully more clock time regardless of what the abstract weight
+    // sum says.
+    totalWorkload += heavyPlusSuperBodyPressure * 6;
+
     if (berserkVal === 'Endless') totalWorkload *= 0.6;
     // Continuous Spawning means less downtime between kills and the next
     // spawn, so the same workload needs a bit more clock time to survive.
     if (continuousOn) totalWorkload *= 1.15;
 
-    let selectedTime = "5 Minutes";
-    if (totalWorkload < 50) selectedTime = "1 Minute";
-    else if (totalWorkload < 110) selectedTime = "3 Minutes";
-    else if (totalWorkload < 200) selectedTime = "5 Minutes";
-    else if (totalWorkload < 320) selectedTime = "8 Minutes";
-    else if (totalWorkload < 480) selectedTime = "10 Minutes";
-    else if (totalWorkload < 650) selectedTime = "13 Minutes";
-    else if (totalWorkload < 820) selectedTime = "15 Minutes";
-    else if (totalWorkload < 1000) selectedTime = "18 Minutes";
-    else selectedTime = "20 Minutes";
+    // Base the bucket on PER-ROUND intensity, not the raw sum — a 1-round
+    // nightmare gauntlet is just as intense per-round as a 5-round one, so
+    // summing across rounds was quietly starving short campaigns of time
+    // (a brutal single round could get clipped to "3 Minutes"). Extra
+    // rounds still earn extra total clock time, just as a separate,
+    // additive bonus rather than diluting the base intensity read.
+    const avgWorkloadPerRound = totalWorkload / roundsData.length;
+
+    const timeOrder = ["1 Minute", "3 Minutes", "5 Minutes", "8 Minutes", "10 Minutes", "13 Minutes", "15 Minutes", "18 Minutes", "20 Minutes"];
+    const perRoundThresholds = [60, 110, 170, 230, 320, 420, 520, 650];
+    let bucketIdx = perRoundThresholds.length; // default: at/above the last threshold
+    for (let i = 0; i < perRoundThresholds.length; i++) {
+      if (avgWorkloadPerRound < perRoundThresholds[i]) { bucketIdx = i; break; }
+    }
+
+    // Additive rounds bonus: each extra round beyond the first nudges the
+    // bucket up, with diminishing returns (players get faster as an arena
+    // wears on, and downtime between rounds isn't purely additive).
+    const extraRounds = roundsData.length - 1;
+    bucketIdx += Math.round(extraRounds * 0.5);
+    bucketIdx = Math.max(0, Math.min(bucketIdx, timeOrder.length - 1));
+    let selectedTime = timeOrder[bucketIdx];
+
+    // Berserk only refreshes every 5 minutes when set to "Respawn" — on a
+    // short timer that refresh may never actually happen, making the
+    // setting pointless (functionally identical to "Once"). Guarantee at
+    // least one refresh window.
+    if (berserkVal === 'Respawn' && timeOrder.indexOf(selectedTime) < timeOrder.indexOf("8 Minutes")) {
+      selectedTime = "8 Minutes";
+    }
 
     document.getElementById('timeLimit').value = selectedTime;
-  }
-
-  function resetAll() {
-    roundsData = [{ respawns: 1, enemies: {} }];
-    document.getElementById('roundMode').value = 'random';
-    document.getElementById('manualRoundContainer').style.display = 'none';
-    generateBalancedArena();
   }
 
   function updateSummary() {
@@ -866,6 +911,7 @@
 
   window.onload = generateBalancedArena;
 </script>
+
 
 
 </body>
