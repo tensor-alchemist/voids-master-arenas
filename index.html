@@ -79,6 +79,44 @@
       gap: 25px;
     }
 
+    .usage-note {
+      background: var(--panel-bg);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--panel-border);
+      border-left: 3px solid var(--accent-gold);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 25px;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+
+    .usage-note strong {
+      color: var(--accent-gold);
+    }
+
+    .credits-footer {
+      margin-top: 30px;
+      padding: 20px 24px;
+      border-top: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    .credits-footer p {
+      margin: 0 0 10px 0;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .credits-footer p:last-child {
+      margin-bottom: 0;
+    }
+
     @media (max-width: 850px) {
       .grid-layout {
         grid-template-columns: 1fr;
@@ -231,6 +269,15 @@
     </div>
   </header>
 
+  <div class="usage-note">
+    <strong>How to use this:</strong> this tool can't write directly into Doom: The Dark Ages —
+    id Software's in-game systems aren't something we can reach into or automate from outside the
+    game. Once you've generated an arena you like, open your own Ripatorium Arena builder and enter
+    the Global Settings and per-round demon counts shown below by hand. Every number this tool
+    produces already respects the exact min/max/step limits of the in-game sliders, so nothing you
+    see here will be a value the game refuses.
+  </div>
+
   <div class="grid-layout">
     
     <!-- LEFT PANEL: GLOBAL SETTINGS -->
@@ -322,6 +369,22 @@
     </div>
 
   </div>
+
+  <footer class="credits-footer">
+    <p>
+      A thank-you to id Software for building Doom: The Dark Ages and handing players the
+      Ripatorium — a sandbox open enough that a tool like this could be built on top of it in the
+      first place. Every slider, every min/max/step range, every demon on this page belongs to
+      the game you made.
+    </p>
+    <p>
+      This randomizer isn't trying to replace what you designed — it's just trying to lower the
+      door for people who want to jump straight into the Ripatorium without hand-tuning every
+      demon count themselves. The goal was always to get more Slayers knee-deep in the dead,
+      faster.
+    </p>
+  </footer>
+
 </div>
 
 <script>
@@ -465,6 +528,47 @@
     return min + (chosenStep * step);
   }
 
+  // Same as rollEnemyCount, but rolls against a temporarily lowered
+  // ceiling (still step-aligned, still within the enemy's real min/max —
+  // never violates the authoritative slider range). Used to rein in
+  // heavy/superheavy counts specifically in rounds that got a large share
+  // of the campaign's total respawn budget, so "many respawns" and "many
+  // big demons per respawn" don't both happen at once.
+  function throttledRollEnemyCount(enemyObj, throttle) {
+    const min = enemyObj.min;
+    const step = enemyObj.step || 1;
+    const throttledMax = Math.max(min, min + Math.floor(((enemyObj.max - min) * throttle) / step) * step);
+    const possibleSteps = Math.floor((throttledMax - min) / step);
+    const chosenStep = Math.floor(Math.random() * (possibleSteps + 1));
+    return min + (chosenStep * step);
+  }
+
+  // Splits a fixed total-respawn budget for the whole campaign across its
+  // rounds. Later rounds get a larger share (escalation), with the slope
+  // steepening a bit at higher difficulty. Every round gets at least 1.
+  // The returned counts always sum to exactly `budget`.
+  function distributeRespawnBudget(totalRounds, budget, difficultyKey) {
+    const escalation = difficultyKey === 'nightmare' ? 1.3 : (difficultyKey === 'sweaty' ? 1.1 : (difficultyKey === 'balanced' ? 0.9 : 0.7));
+    const weights = [];
+    for (let i = 0; i < totalRounds; i++) {
+      const progress = totalRounds > 1 ? i / (totalRounds - 1) : 0.85;
+      weights.push(0.5 + escalation * progress + Math.random() * 0.3);
+    }
+    const sumW = weights.reduce((a, b) => a + b, 0);
+    const remaining = Math.max(0, budget - totalRounds);
+    const raw = weights.map(w => 1 + remaining * (w / sumW));
+    const floors = raw.map(x => Math.floor(x));
+    let leftover = budget - floors.reduce((a, b) => a + b, 0);
+    const fracOrder = raw.map((x, i) => ({ i, frac: x - floors[i] })).sort((a, b) => b.frac - a.frac);
+    let k = 0;
+    while (leftover > 0 && fracOrder.length > 0) {
+      floors[fracOrder[k % fracOrder.length].i] += 1;
+      leftover--;
+      k++;
+    }
+    return floors;
+  }
+
   function shuffleArray(array) {
     let arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -502,19 +606,6 @@
           const newIsArmoured = lowerName.includes('armoured');
           const oldIsArmoured = lowerExisting.includes('armoured');
           if (newIsArmoured !== oldIsArmoured) return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  function hasHighThreatDemon(roundEnemies) {
-    const allSuperHeavies = [...enemyData.superheavy, ...enemyData.dlc.filter(e => e.role === "superheavy")].map(e => e.name);
-    for (const [name, count] of Object.entries(roundEnemies)) {
-      if (count > 0) {
-        const lower = name.toLowerCase();
-        if (allSuperHeavies.includes(name) || lower.includes('brute') || lower.includes('archvile') || lower.includes('cosmic baron')) {
-          return true;
         }
       }
     }
@@ -604,6 +695,16 @@
     let previousRoundEnemyNames = new Set();
     let campaignDurabilityFractions = [];
 
+    // Campaign-wide respawn budget: total wave respawns summed across every
+    // round in this campaign won't exceed ~12-14, no matter how many
+    // rounds there are (a 1-round campaign can spend the whole budget on
+    // that one round — still intense — while a 5-round campaign spreads
+    // it thinner). Rounds that end up with a big share of that budget
+    // throttle back their heavy/superheavy counts instead of getting
+    // their respawns clamped after the fact.
+    const campaignRespawnBudget = 12 + Math.floor(Math.random() * 3); // 12-14
+    const respawnAllocation = distributeRespawnBudget(totalRounds, campaignRespawnBudget, difficultyKey);
+
     for (let r = 1; r <= totalRounds; r++) {
       let roundEnemies = {};
       let currentRoundDurability = 0;
@@ -618,21 +719,24 @@
       const scaledHeavyVarieties = Math.max(1, Math.round(capInfo.heavyVarieties * (0.7 + 0.45 * roundProgress)));
       const scaledFodderVarieties = Math.max(1, Math.round(capInfo.fodderVarieties * (0.8 + 0.3 * roundProgress)));
 
-      // Wave respawns: widened to the full 1-10 range the game supports,
-      // instead of previously topping out around 3-4. High-threat rounds
-      // still get throttled back down below.
-      let minRespawns = (difficultyKey === 'sweaty' || difficultyKey === 'nightmare') ? 3 : 1;
-      let maxRespawns = (difficultyKey === 'sweaty' || difficultyKey === 'nightmare') ? 10 : 6;
-      let roundRespawns = minRespawns + Math.floor(Math.random() * (maxRespawns - minRespawns + 1));
+      // This round's slice of the campaign's fixed respawn budget.
+      let roundRespawns = respawnAllocation[r - 1];
+
+      // The more respawns a round got, the more each heavy/superheavy
+      // count gets reined in — many waves of a few big demons is fine,
+      // many waves of a FULL stack of big demons compounds too fast.
+      // Floor of 0.25 means they never fully vanish, just shrink hard.
+      const heavySuperThrottle = Math.max(0.25, 1 - (roundRespawns - 1) * 0.07);
+      const roundMaxSuperHeavy = Math.max(0, Math.round(capInfo.maxSuperHeavyCount * heavySuperThrottle));
 
       // Superheavies: supports multiple DISTINCT species in one round (up
       // to maxSuperHeavyCount total bodies). Each additional species slot
       // rolls at half the base chance so mixing two is possible but not
       // the norm.
-      if ((r > 1 || difficultyKey === 'nightmare') && capInfo.maxSuperHeavyCount > 0) {
+      if ((r > 1 || difficultyKey === 'nightmare') && roundMaxSuperHeavy > 0) {
         let superheaviesUsed = 0;
         const superSpeciesUsed = new Set();
-        for (let slot = 0; slot < capInfo.maxSuperHeavyCount && superheaviesUsed < capInfo.maxSuperHeavyCount; slot++) {
+        for (let slot = 0; slot < roundMaxSuperHeavy && superheaviesUsed < roundMaxSuperHeavy; slot++) {
           const chanceThisSlot = scaledSuperChance * (slot === 0 ? 1 : 0.5);
           if (Math.random() >= chanceThisSlot) continue;
 
@@ -644,8 +748,8 @@
 
           const superCandidate = candidatePool[0];
           const weight = getDemonWeight(superCandidate);
-          const remainingSuperBudget = capInfo.maxSuperHeavyCount - superheaviesUsed;
-          let count = Math.min(rollEnemyCount(superCandidate) || 1, remainingSuperBudget);
+          const remainingSuperBudget = roundMaxSuperHeavy - superheaviesUsed;
+          let count = Math.min(throttledRollEnemyCount(superCandidate, heavySuperThrottle) || 1, remainingSuperBudget);
 
           while (count > 0 && (
             (currentRoundDurability + (count * weight) > scaledMaxDurability) ||
@@ -675,7 +779,7 @@
         if (conflictsWithExisting(heavyCandidate.name, roundEnemies)) continue;
 
         const hWeight = getDemonWeight(heavyCandidate);
-        let heavyCount = rollEnemyCount(heavyCandidate);
+        let heavyCount = throttledRollEnemyCount(heavyCandidate, heavySuperThrottle);
         
         while (heavyCount > 0 && (
           (currentRoundDurability + (heavyCount * hWeight) > scaledMaxDurability) ||
@@ -737,12 +841,14 @@
       // proportional to how far into the campaign we are.
       const floorDurability = scaledMaxDurability * (0.35 + 0.1 * roundProgress);
       let floorGuard = 0;
-      while (currentRoundDurability < floorDurability && floorGuard < 25) {
+      while (currentRoundDurability < floorDurability && floorGuard < 40) {
         const topUp = allFodder[Math.floor(Math.random() * allFodder.length)];
         const addCount = topUp.step || 5;
         const addWeight = getDemonWeight(topUp);
+        const existingCount = roundEnemies[topUp.name] || 0;
+        if (existingCount + addCount > topUp.max) { floorGuard++; continue; }
         if (currentRoundDurability + addCount * addWeight > scaledMaxDurability) { floorGuard++; continue; }
-        roundEnemies[topUp.name] = (roundEnemies[topUp.name] || 0) + addCount;
+        roundEnemies[topUp.name] = existingCount + addCount;
         currentRoundDurability += addCount * addWeight;
         currentRoundDemonCount += addCount;
         floorGuard++;
@@ -775,17 +881,6 @@
             currentRoundDemonCount += addCount;
           }
         }
-      }
-
-      // High-threat rounds (superheavies, Cosmic Baron, Brutes, Archviles)
-      // get a soft dampening on respawns, not a hard ceiling — a roll of
-      // 9 or 10 can still land as a genuinely intense multi-wave gauntlet
-      // against a stacked round if that's what the dice give you. This
-      // just makes big respawn counts less likely, not impossible, so a
-      // single round can still be the whole (stressful, fun) show.
-      if (hasHighThreatDemon(roundEnemies)) {
-        const dampening = 0.55 + Math.random() * 0.35; // 0.55x - 0.90x
-        roundRespawns = Math.max(1, Math.round(roundRespawns * dampening));
       }
 
       roundsData.push({
