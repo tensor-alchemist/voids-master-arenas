@@ -797,13 +797,15 @@
     let campaignDurabilityFractions = [];
 
     // Campaign-wide respawn budget: total wave respawns summed across every
-    // round in this campaign won't exceed ~12-14, no matter how many
-    // rounds there are (a 1-round campaign can spend the whole budget on
-    // that one round — still intense — while a 5-round campaign spreads
-    // it thinner). Rounds that end up with a big share of that budget
-    // throttle back their heavy/superheavy counts instead of getting
-    // their respawns clamped after the fact.
-    const campaignRespawnBudget = 12 + Math.floor(Math.random() * 3); // 12-14
+    // round in this campaign won't exceed 10, no matter how many rounds
+    // there are (a 1-round campaign can spend the whole budget on that one
+    // round — still intense — while a 5-round campaign spreads it
+    // thinner). The budget itself is fully random from 1 to 10, so some
+    // campaigns are genuinely light on respawns and others push the full
+    // range. Rounds that end up with a big share of that budget throttle
+    // back their heavy/superheavy counts instead of getting their
+    // respawns clamped after the fact.
+    const campaignRespawnBudget = 1 + Math.floor(Math.random() * 10); // 1-10
     const respawnAllocation = distributeRespawnBudget(totalRounds, campaignRespawnBudget, difficultyKey);
 
     for (let r = 1; r <= totalRounds; r++) {
