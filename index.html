@@ -287,6 +287,22 @@
       </div>
       
       <div class="form-group">
+        <label for="arena">Arena</label>
+        <select id="arena" onchange="updateSummary()">
+          <optgroup label="Base Arenas">
+            <option value="City of Ry'ul">City of Ry'ul</option>
+            <option value="Village of Khalim">Village of Khalim</option>
+            <option value="Harbor of Souls">Harbor of Souls</option>
+          </optgroup>
+          <optgroup label="Expansion &amp; DLC Arenas">
+            <option value="Hell's Core">Hell's Core</option>
+            <option value="Osseus">Osseus</option>
+            <option value="Classic Hell">Classic Hell</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="form-group">
         <label for="endless">Endless Mode</label>
         <select id="endless" onchange="updateEndlessState(); updateSummary()">
           <option value="Off">Off</option>
@@ -480,6 +496,63 @@
     nightmare: { maxDurability: 72, maxDemonCount: 45, maxSuperHeavyCount: 3, superChance: 0.90, fodderVarieties: 5, heavyVarieties: 5 }
   };
 
+  // Arenas are taken into account lightly, not as a full simulation of
+  // their geometry — each just nudges composition toward the kind of
+  // fight its layout actually supports, on top of whatever the difficulty
+  // budget already decided.
+  //   melee/ranged bias  -> soft-reorders candidate picks toward that role
+  //   flying bias        -> soft-reorders candidate picks toward flyers
+  //   density bias       -> small multiplier on demon-count headroom
+  //   variety bias       -> shifts the fodder/heavy variety-count split
+  const arenaData = [
+    { name: "City of Ry'ul", category: "base",
+      desc: "Ancient, crumbled stone ruins with open structural layouts and wide avenues for high-mobility demon swarms.",
+      densityMult: 1.08, varietyShift: 0 },
+    { name: "Village of Khalim", category: "base",
+      desc: "Tight, mid-sized settlement with close-quarters walls and elevated choke points.",
+      roleBias: "melee", densityMult: 1.0, varietyShift: 0 },
+    { name: "Harbor of Souls", category: "base",
+      desc: "Waterfront docks and piers with open sightlines forcing balanced mid-to-long-range combat.",
+      roleBias: "ranged", densityMult: 1.0, varietyShift: 0 },
+    { name: "Hell's Core", category: "dlc",
+      desc: "Volatile fiery inner-hell environment with raw magma, jagged obsidian geometry, and intense spatial pressure.",
+      densityMult: 1.12, varietyShift: -1 },
+    { name: "Osseus", category: "dlc",
+      desc: "Skeletal gothic labyrinth built for twisted corridor fights and macabre vertical spaces.",
+      flyingBias: true, densityMult: 1.0, varietyShift: 0 },
+    { name: "Classic Hell", category: "dlc",
+      desc: "Retro pixel-era hell architecture with flat, fast-paced layouts and classic geometry.",
+      densityMult: 1.0, varietyShift: 2 }
+  ];
+
+  function getArenaByName(name) {
+    return arenaData.find(a => a.name === name) || arenaData[0];
+  }
+
+  function rollArena() {
+    const pick = arenaData[Math.floor(Math.random() * arenaData.length)];
+    document.getElementById('arena').value = pick.name;
+    return pick;
+  }
+
+  // Soft-reorders a shuffled candidate list so entries matching the
+  // arena's role/flying bias sort first — same "prefer, don't force"
+  // pattern as preferUnused, so a biased arena still isn't a guarantee.
+  function preferArenaBias(list, arena) {
+    if (!arena) return list;
+    if (arena.roleBias) {
+      const matches = list.filter(e => e.combat === arena.roleBias || e.combat === 'mixed');
+      const rest = list.filter(e => e.combat !== arena.roleBias && e.combat !== 'mixed');
+      return [...matches, ...rest];
+    }
+    if (arena.flyingBias) {
+      const matches = list.filter(e => e.flying);
+      const rest = list.filter(e => !e.flying);
+      return [...matches, ...rest];
+    }
+    return list;
+  }
+
   // Flat durability "tax" added once per distinct Leader-type enemy present
   // in a round, representing the aura buff they give nearby demons (which
   // their own baseWeight doesn't capture — that only prices their own stat
@@ -548,6 +621,7 @@
   // steepening a bit at higher difficulty. Every round gets at least 1.
   // The returned counts always sum to exactly `budget`.
   function distributeRespawnBudget(totalRounds, budget, difficultyKey) {
+    const PER_ROUND_CAP = 10; // the game itself doesn't accept more than this in a single round
     const escalation = difficultyKey === 'nightmare' ? 1.3 : (difficultyKey === 'sweaty' ? 1.1 : (difficultyKey === 'balanced' ? 0.9 : 0.7));
     const weights = [];
     for (let i = 0; i < totalRounds; i++) {
@@ -566,6 +640,32 @@
       leftover--;
       k++;
     }
+
+    // Enforce the per-round cap. Any overflow gets handed to rounds that
+    // still have room; if nobody has room left (e.g. a 1-round campaign
+    // with a 14-respawn budget), the excess is simply dropped — the
+    // per-round cap always wins over hitting the exact campaign total.
+    let overflow = 0;
+    for (let i = 0; i < floors.length; i++) {
+      if (floors[i] > PER_ROUND_CAP) {
+        overflow += floors[i] - PER_ROUND_CAP;
+        floors[i] = PER_ROUND_CAP;
+      }
+    }
+    let guard = 0;
+    while (overflow > 0 && guard < 100) {
+      let placedAny = false;
+      for (let i = 0; i < floors.length && overflow > 0; i++) {
+        if (floors[i] < PER_ROUND_CAP) {
+          floors[i]++;
+          overflow--;
+          placedAny = true;
+        }
+      }
+      if (!placedAny) break;
+      guard++;
+    }
+
     return floors;
   }
 
@@ -667,6 +767,7 @@
   function generateBalancedArena() {
     const difficultyKey = document.getElementById('difficulty').value;
     const continuousOn = rollEndlessAndContinuous(difficultyKey);
+    const selectedArena = rollArena();
 
     const mode = document.getElementById('roundMode').value;
     const manualContainer = document.getElementById('manualRoundContainer');
@@ -714,10 +815,10 @@
       // approaches (and can slightly exceed) the difficulty's nominal cap.
       const roundProgress = totalRounds > 1 ? (r - 1) / (totalRounds - 1) : 0.85;
       const scaledMaxDurability = Math.round(capInfo.maxDurability * (0.7 + 0.4 * roundProgress) * continuousCapFactor);
-      const scaledMaxDemonCount = Math.round(capInfo.maxDemonCount * (0.8 + 0.25 * roundProgress) * continuousCapFactor);
+      const scaledMaxDemonCount = Math.round(capInfo.maxDemonCount * (0.8 + 0.25 * roundProgress) * continuousCapFactor * (selectedArena.densityMult || 1.0));
       const scaledSuperChance = capInfo.superChance * (0.5 + 0.5 * roundProgress);
-      const scaledHeavyVarieties = Math.max(1, Math.round(capInfo.heavyVarieties * (0.7 + 0.45 * roundProgress)));
-      const scaledFodderVarieties = Math.max(1, Math.round(capInfo.fodderVarieties * (0.8 + 0.3 * roundProgress)));
+      const scaledHeavyVarieties = Math.max(1, Math.round(capInfo.heavyVarieties * (0.7 + 0.45 * roundProgress)) - (selectedArena.varietyShift || 0));
+      const scaledFodderVarieties = Math.max(1, Math.round(capInfo.fodderVarieties * (0.8 + 0.3 * roundProgress)) + (selectedArena.varietyShift || 0));
 
       // This round's slice of the campaign's fixed respawn budget.
       let roundRespawns = respawnAllocation[r - 1];
@@ -743,7 +844,7 @@
           let candidatePool = allSuperHeavy.filter(e =>
             !superSpeciesUsed.has(e.name) && !conflictsWithExisting(e.name, roundEnemies)
           );
-          candidatePool = preferUnused(shuffleArray(candidatePool), previousRoundEnemyNames);
+          candidatePool = preferArenaBias(preferUnused(shuffleArray(candidatePool), previousRoundEnemyNames), selectedArena);
           if (candidatePool.length === 0) break;
 
           const superCandidate = candidatePool[0];
@@ -771,7 +872,7 @@
         }
       }
 
-      let shuffledHeavies = preferUnused(shuffleArray(allHeavy), previousRoundEnemyNames);
+      let shuffledHeavies = preferArenaBias(preferUnused(shuffleArray(allHeavy), previousRoundEnemyNames), selectedArena);
       for (let i = 0; i < scaledHeavyVarieties; i++) {
         const heavyCandidate = shuffledHeavies[i];
         if (!heavyCandidate) break;
@@ -804,7 +905,7 @@
         }
       }
 
-      let shuffledFodder = preferUnused(shuffleArray(allFodder), previousRoundEnemyNames);
+      let shuffledFodder = preferArenaBias(preferUnused(shuffleArray(allFodder), previousRoundEnemyNames), selectedArena);
       for (let i = 0; i < scaledFodderVarieties; i++) {
         const fodderCandidate = shuffledFodder[i];
         if (!fodderCandidate) break;
@@ -996,6 +1097,10 @@
     const selectedDifficultyText = diffSelect.options[diffSelect.selectedIndex].text;
 
     let summary = `=== DYNAMIC GLOBAL CONFIGURATION ===\n`;
+    const arenaName = document.getElementById('arena').value;
+    const arenaInfo = getArenaByName(arenaName);
+    summary += `Arena: ${arenaName}\n`;
+    summary += `  ${arenaInfo.desc}\n`;
     summary += `Intensity Level: ${selectedDifficultyText.toUpperCase()}\n`;
     summary += `Endless Mode: ${document.getElementById('endless').value}\n`;
     summary += `Continuous Spawning: ${document.getElementById('continuous').value}\n`;
