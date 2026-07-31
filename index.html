@@ -4,123 +4,235 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ripatorium Master Arena Randomizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #0a0a0c;
-      --panel-bg: rgba(19, 19, 26, 0.88);
-      --panel-border: #3a2222;
-      --accent-red: #e53935;
-      --accent-red-hover: #ff4d4d;
-      --accent-gold: #ffb300;
-      --text-main: #f0f0f5;
-      --text-muted: #a0a0b5;
-      --input-bg: rgba(11, 11, 15, 0.9);
+      --bg-dark: #0b0908;
+      --panel-bg: rgba(21, 17, 15, 0.92);
+      --panel-bg-solid: #16120f;
+      --panel-border: #3a2a20;
+      --accent-red: #d3372b;
+      --accent-red-hover: #ff4d3d;
+      --accent-gold: #c9973b;
+      --accent-gold-bright: #ffb300;
+      --parry-green: #46e07d;
+      --un-violet: #9b4dff;
+      --text-main: #e8e0d0;
+      --text-muted: #9a8f7d;
+      --input-bg: rgba(10, 8, 7, 0.9);
+      --font-display: 'Cinzel', 'Times New Roman', serif;
+      --font-body: 'Chakra Petch', 'Segoe UI', sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 30px 20px;
+      padding: 28px 18px 40px;
       background-color: var(--bg-dark);
       /* Custom Ripatorium 3.0 Arena Background Overlay */
-      background-image: 
-        linear-gradient(to bottom, rgba(10, 10, 12, 0.85), rgba(10, 10, 12, 0.92)),
+      background-image:
+        linear-gradient(to bottom, rgba(11, 9, 8, 0.88), rgba(11, 9, 8, 0.95)),
         url('ripatorium-3-0-share-your-hardest-passcodes-can-you-survive-v0-ltnez44omdch1.webp');
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
       background-repeat: no-repeat;
       color: var(--text-main);
-      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      font-family: var(--font-body);
       min-height: 100vh;
     }
 
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-    }
+    .container { max-width: 1100px; margin: 0 auto; }
 
+    /* ============ HEADER ============ */
     header {
       text-align: center;
-      border-bottom: 2px solid var(--accent-red);
-      padding-bottom: 20px;
-      margin-bottom: 30px;
       background: var(--panel-bg);
       backdrop-filter: blur(8px);
-      padding: 20px;
-      border-radius: 10px;
+      padding: 26px 22px 22px;
+      border-radius: 12px;
       border: 1px solid var(--panel-border);
-      box-shadow: 0 0 25px rgba(229, 57, 53, 0.25);
+      border-bottom: 2px solid var(--accent-red);
+      box-shadow: 0 0 35px rgba(211, 55, 43, 0.18);
+      margin-bottom: 22px;
     }
 
     h1 {
-      margin: 0 0 15px 0;
-      font-size: 2.2rem;
-      letter-spacing: 2px;
+      margin: 0 0 4px 0;
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(1.5rem, 4vw, 2.4rem);
+      letter-spacing: 3px;
       color: var(--accent-red);
       text-transform: uppercase;
-      text-shadow: 0 0 15px rgba(229, 57, 53, 0.6);
+      text-shadow: 0 0 18px rgba(211, 55, 43, 0.55);
     }
 
-    .header-actions {
+    .tagline {
+      margin: 0 0 20px 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    /* ---- Intensity segmented control ---- */
+    .intensity-label {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      margin-bottom: 10px;
+    }
+
+    .intensity-picker {
       display: flex;
       justify-content: center;
-      align-items: center;
-      gap: 15px;
       flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
-    .grid-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 25px;
+    .intensity-btn {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.82rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--panel-border);
+      background: var(--input-bg);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s ease;
     }
 
-    .usage-note {
+    .intensity-btn:hover { border-color: var(--accent-gold); color: var(--text-main); }
+
+    .intensity-btn.active {
+      background: linear-gradient(180deg, rgba(211, 55, 43, 0.25), rgba(211, 55, 43, 0.08));
+      border-color: var(--accent-red);
+      color: #ffd9d4;
+      box-shadow: 0 0 14px rgba(211, 55, 43, 0.4);
+    }
+
+    .intensity-btn[data-value="ultranightmare"] { border-color: rgba(155, 77, 255, 0.4); }
+
+    .intensity-btn[data-value="ultranightmare"].active {
+      background: linear-gradient(180deg, rgba(155, 77, 255, 0.3), rgba(211, 55, 43, 0.15));
+      border-color: var(--un-violet);
+      color: #e6d4ff;
+      box-shadow: 0 0 18px rgba(155, 77, 255, 0.55);
+      animation: unPulse 2.2s ease-in-out infinite;
+    }
+
+    @keyframes unPulse {
+      0%, 100% { box-shadow: 0 0 12px rgba(155, 77, 255, 0.45); }
+      50% { box-shadow: 0 0 26px rgba(155, 77, 255, 0.8); }
+    }
+
+    .intensity-desc {
+      min-height: 1.4em;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin: 4px 0 18px;
+    }
+
+    .btn-action {
+      font-family: var(--font-display);
+      background: linear-gradient(180deg, #e0402f, #a52318);
+      color: #fff;
+      border: 1px solid #ff6a55;
+      padding: 13px 34px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      box-shadow: 0 4px 20px rgba(211, 55, 43, 0.45);
+    }
+
+    .btn-action:hover {
+      background: linear-gradient(180deg, #ff5240, #c22a1c);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 28px rgba(211, 55, 43, 0.65);
+    }
+
+    .btn-action:active { transform: translateY(1px); }
+
+    /* ============ USAGE NOTE ============ */
+    details.usage-note {
       background: var(--panel-bg);
       backdrop-filter: blur(8px);
       border: 1px solid var(--panel-border);
       border-left: 3px solid var(--accent-gold);
       border-radius: 8px;
-      padding: 16px 20px;
-      margin-bottom: 25px;
-      font-size: 0.92rem;
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
       line-height: 1.6;
-      color: var(--text-main);
     }
 
-    .usage-note strong {
+    details.usage-note summary {
+      cursor: pointer;
       color: var(--accent-gold);
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
 
-    .credits-footer {
-      margin-top: 30px;
-      padding: 20px 24px;
-      border-top: 1px solid var(--panel-border);
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      line-height: 1.7;
+    details.usage-note[open] summary { margin-bottom: 8px; }
+
+    /* ============ CAMPAIGN OVERVIEW STRIP ============ */
+    .overview-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .overview-cell {
+      background: var(--panel-bg);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 12px 14px;
       text-align: center;
     }
 
-    .credits-footer p {
-      margin: 0 0 10px 0;
-      max-width: 720px;
-      margin-left: auto;
-      margin-right: auto;
+    .overview-cell .ov-label {
+      display: block;
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 5px;
     }
 
-    .credits-footer p:last-child {
-      margin-bottom: 0;
+    .overview-cell .ov-value {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent-gold-bright);
     }
 
-    @media (max-width: 850px) {
-      .grid-layout {
-        grid-template-columns: 1fr;
-      }
+    /* ============ MAIN GRID ============ */
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .grid-layout { grid-template-columns: 1fr; }
     }
 
     .card {
@@ -128,61 +240,68 @@
       backdrop-filter: blur(8px);
       border: 1px solid var(--panel-border);
       border-radius: 10px;
-      padding: 24px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(229, 57, 53, 0.05);
-      display: flex;
-      flex-direction: column;
+      padding: 22px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(211, 55, 43, 0.04);
     }
 
     .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       border-bottom: 1px solid var(--panel-border);
-      padding-bottom: 12px;
-      margin-bottom: 20px;
+      padding-bottom: 10px;
+      margin-bottom: 18px;
     }
 
     h2 {
       margin: 0;
-      font-size: 1.25rem;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
       color: var(--accent-gold);
       text-transform: uppercase;
-      letter-spacing: 1px;
-      text-shadow: 0 0 8px rgba(255, 179, 0, 0.3);
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px rgba(201, 151, 59, 0.3);
     }
+
+    .settings-section-title {
+      font-size: 0.7rem;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--accent-red);
+      margin: 18px 0 6px;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(211, 55, 43, 0.2);
+    }
+
+    .settings-section-title:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
 
     .form-group {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
-      padding: 8px 0;
-      border-bottom: 1px dashed rgba(229, 57, 53, 0.15);
+      gap: 10px;
+      padding: 7px 0;
     }
 
-    .form-group:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-    }
-
-    label {
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: var(--text-main);
-    }
+    label { font-size: 0.9rem; font-weight: 500; }
 
     select, input[type="number"] {
+      font-family: var(--font-body);
       background: var(--input-bg);
       border: 1px solid var(--panel-border);
       color: var(--text-main);
-      padding: 8px 12px;
+      padding: 7px 10px;
       border-radius: 6px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      max-width: 175px;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     select:focus, input:focus {
       outline: none;
       border-color: var(--accent-red);
-      box-shadow: 0 0 8px rgba(229, 57, 53, 0.5);
+      box-shadow: 0 0 8px rgba(211, 55, 43, 0.5);
     }
 
     select:disabled {
@@ -193,61 +312,197 @@
       opacity: 0.55;
     }
 
-    .form-group.disabled label {
-      color: var(--text-muted);
+    .form-group.disabled label { color: var(--text-muted); }
+
+    /* ============ ROUND CARDS ============ */
+    .rounds-column { display: flex; flex-direction: column; gap: 16px; }
+
+    .global-config-card .config-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
-    .summary-box {
+    .chip {
       background: var(--input-bg);
       border: 1px solid var(--panel-border);
-      padding: 18px;
-      border-radius: 6px;
-      font-family: 'Consolas', 'Courier New', Courier, monospace;
-      font-size: 0.88rem;
-      color: #33ff77;
-      line-height: 1.5;
-      flex-grow: 1;
-      min-height: 420px;
-      max-height: 520px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      color: var(--text-main);
     }
 
-    .btn-action {
-      background: var(--accent-red);
-      color: #ffffff;
-      border: none;
-      padding: 10px 20px;
-      font-size: 0.95rem;
-      font-weight: bold;
+    .chip b { color: var(--accent-gold-bright); font-weight: 600; }
+
+    .arena-desc {
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      font-style: italic;
+      margin: 10px 0 0;
+      line-height: 1.5;
+    }
+
+    .round-card {
+      background: var(--panel-bg);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      animation: roundReveal 0.4s ease both;
+    }
+
+    .round-card:nth-child(2) { animation-delay: 0.05s; }
+    .round-card:nth-child(3) { animation-delay: 0.1s; }
+    .round-card:nth-child(4) { animation-delay: 0.15s; }
+    .round-card:nth-child(5) { animation-delay: 0.2s; }
+    .round-card:nth-child(6) { animation-delay: 0.25s; }
+
+    @keyframes roundReveal {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .round-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .round-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      color: var(--text-main);
+      text-transform: uppercase;
+    }
+
+    .round-meta { font-size: 0.78rem; color: var(--text-muted); }
+    .round-meta b { color: var(--accent-gold-bright); }
+
+    .threat-bar-track {
+      height: 7px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .threat-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    .threat-low { background: var(--parry-green); }
+    .threat-medium { background: #ffd43b; }
+    .threat-high { background: #ff8c1a; }
+    .threat-extreme { background: var(--accent-red); }
+
+    .enemy-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      border-bottom: 1px dashed rgba(211, 55, 43, 0.12);
+      font-size: 0.88rem;
+    }
+
+    .enemy-row:last-of-type { border-bottom: none; }
+
+    .enemy-row .enemy-name { flex: 1; }
+
+    .enemy-row .enemy-count {
+      font-weight: 700;
+      color: var(--parry-green);
+      min-width: 34px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .role-badge {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .role-fodder { background: rgba(232, 224, 208, 0.12); color: var(--text-main); border: 1px solid rgba(232, 224, 208, 0.25); }
+    .role-heavy { background: rgba(201, 151, 59, 0.15); color: var(--accent-gold-bright); border: 1px solid rgba(201, 151, 59, 0.4); }
+    .role-superheavy { background: rgba(211, 55, 43, 0.18); color: #ff8a7d; border: 1px solid rgba(211, 55, 43, 0.5); }
+
+    .round-totals {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--panel-border);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .round-totals b { color: var(--text-main); }
+
+    .btn-secondary {
+      font-family: var(--font-body);
+      background: transparent;
+      color: var(--accent-gold);
+      border: 1px solid var(--accent-gold);
+      padding: 7px 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1px;
       border-radius: 6px;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-      box-shadow: 0 4px 15px rgba(229, 57, 53, 0.4);
+      transition: all 0.18s ease;
     }
 
-    .btn-action:hover {
-      background: var(--accent-red-hover);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(229, 57, 53, 0.6);
+    .btn-secondary:hover { background: rgba(201, 151, 59, 0.12); box-shadow: 0 0 10px rgba(201, 151, 59, 0.3); }
+
+    /* ============ FOOTER ============ */
+    .credits-footer {
+      margin-top: 30px;
+      padding: 20px 24px;
+      border-top: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      line-height: 1.7;
+      text-align: center;
     }
 
-    .btn-action:active {
-      transform: translateY(0);
+    .credits-footer p { margin: 0 auto 10px; max-width: 720px; }
+    .credits-footer p:last-child { margin-bottom: 0; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--panel-bg-solid);
+      border: 1px solid var(--parry-green);
+      color: var(--parry-green);
+      padding: 10px 22px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      z-index: 50;
     }
 
-    .difficulty-select {
-      background: rgba(24, 24, 36, 0.9);
-      color: var(--accent-gold);
-      border: 1px solid var(--accent-gold);
-      font-weight: bold;
-      padding: 10px 14px;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(255, 179, 0, 0.2);
-    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -255,42 +510,47 @@
 <div class="container">
   <header>
     <h1>V01D's Ripatorium Master Arenas</h1>
-    
-    <div class="header-actions">
-      <label for="difficulty" style="font-weight: bold; color: var(--accent-gold);">Intensity Level:</label>
-      <select id="difficulty" class="difficulty-select" onchange="generateBalancedArena()">
-        <option value="easy">Aspiring Slayer</option>
-        <option value="balanced" selected>Hurt Me Plenty</option>
-        <option value="sweaty">Ultra Violence</option>
-        <option value="nightmare">Nightmare</option>
-      </select>
+    <p class="tagline">Doom: The Dark Ages &mdash; Arena Randomizer</p>
 
-      <button class="btn-action" onclick="generateBalancedArena()">𖤐 Spawn the Horde</button>
+    <span class="intensity-label">Choose Your Intensity</span>
+    <div class="intensity-picker" id="intensityPicker" role="radiogroup" aria-label="Intensity Level">
+      <button class="intensity-btn" data-value="easy">Aspiring Slayer</button>
+      <button class="intensity-btn active" data-value="balanced">Hurt Me Plenty</button>
+      <button class="intensity-btn" data-value="sweaty">Ultra Violence</button>
+      <button class="intensity-btn" data-value="nightmare">Nightmare</button>
+      <button class="intensity-btn" data-value="ultranightmare">&#9760; Ultra Nightmare</button>
     </div>
+    <p class="intensity-desc" id="intensityDesc"></p>
+
+    <button class="btn-action" onclick="generateBalancedArena()">&#x16910; Spawn the Horde</button>
   </header>
 
-  <div class="usage-note">
-    <strong>How to use this:</strong> this tool can't write directly into Doom: The Dark Ages —
-    id Software's in-game systems aren't something we can reach into or automate from outside the
-    game. Once you've generated an arena you like, open your own Ripatorium Arena builder and enter
-    the Global Settings and per-round demon counts shown below by hand. Every number this tool
-    produces already respects the exact min/max/step limits of the in-game sliders, so nothing you
-    see here will be a value the game refuses.
-  </div>
+  <details class="usage-note">
+    <summary>How to use this tool</summary>
+    This tool can't write directly into Doom: The Dark Ages &mdash; id Software's in-game systems
+    aren't something we can reach into or automate from outside the game. Once you've generated an
+    arena you like, open your own Ripatorium Arena builder and enter the Global Settings and
+    per-round demon counts shown below by hand (or hit <strong>Copy Setup</strong> to grab a plain-text
+    checklist). Every number this tool produces already respects the exact min/max/step limits of
+    the in-game sliders, so nothing you see here will be a value the game refuses.
+  </details>
+
+  <div class="overview-strip" id="overviewStrip"></div>
 
   <div class="grid-layout">
-    
+
     <!-- LEFT PANEL: GLOBAL SETTINGS -->
     <div class="card">
       <div class="card-header">
         <h2>Arena Settings</h2>
       </div>
-      
+
+      <p class="settings-section-title">Battleground</p>
       <div class="form-group">
         <label for="arena">Arena</label>
-        <select id="arena" onchange="updateSummary()">
+        <select id="arena" onchange="renderResults()">
           <optgroup label="Base Arenas">
-            <option value="City of Ry'uul">City of Ry'ul</option>
+            <option value="City of Ry'ul">City of Ry'ul</option>
             <option value="Village of Khalim">Village of Khalim</option>
             <option value="Harbor of Souls">Harbor of Souls</option>
           </optgroup>
@@ -302,9 +562,10 @@
         </select>
       </div>
 
+      <p class="settings-section-title">Rules of Engagement</p>
       <div class="form-group">
         <label for="endless">Endless Mode</label>
-        <select id="endless" onchange="updateEndlessState(); updateSummary()">
+        <select id="endless" onchange="updateEndlessState(); renderResults()">
           <option value="Off">Off</option>
           <option value="On">On</option>
         </select>
@@ -312,7 +573,7 @@
 
       <div class="form-group">
         <label for="continuous">Continuous Spawning</label>
-        <select id="continuous" onchange="updateSummary()">
+        <select id="continuous" onchange="renderResults()">
           <option value="Off">Off</option>
           <option value="On">On</option>
         </select>
@@ -320,7 +581,7 @@
 
       <div class="form-group">
         <label for="timeLimit">Global Time Limit</label>
-        <select id="timeLimit" onchange="updateSummary()">
+        <select id="timeLimit" onchange="renderResults()">
           <option value="1 Minute">1 Minute</option>
           <option value="3 Minutes">3 Minutes</option>
           <option value="5 Minutes" selected>5 Minutes</option>
@@ -346,9 +607,10 @@
         <input type="number" id="roundCounts" min="1" max="5" value="3" onchange="generateBalancedArena()">
       </div>
 
+      <p class="settings-section-title">Resources &amp; Powerups</p>
       <div class="form-group">
-        <label for="healthAmmo">Health & Ammo Pickups</label>
-        <select id="healthAmmo" onchange="updateSummary()">
+        <label for="healthAmmo">Health &amp; Ammo Pickups</label>
+        <select id="healthAmmo" onchange="renderResults()">
           <option value="None">None</option>
           <option value="Once">Once</option>
           <option value="Respawn">Respawn</option>
@@ -357,7 +619,7 @@
 
       <div class="form-group">
         <label for="berserk">Berserk Powerup</label>
-        <select id="berserk" onchange="updateSummary()">
+        <select id="berserk" onchange="renderResults()">
           <option value="None">None</option>
           <option value="Once">Once</option>
           <option value="Respawn">Respawn</option>
@@ -367,21 +629,25 @@
 
       <div class="form-group">
         <label for="bfcAmmo">BFC Ammo (0-3)</label>
-        <input type="number" id="bfcAmmo" min="0" max="3" value="1" onchange="updateSummary()">
+        <input type="number" id="bfcAmmo" min="0" max="3" value="1" onchange="renderResults()">
       </div>
 
       <div class="form-group">
         <label for="shotgunAmmo">.93 Shotgun Ammo (0-18)</label>
-        <input type="number" id="shotgunAmmo" min="0" max="18" value="12" step="1" onchange="updateSummary()">
+        <input type="number" id="shotgunAmmo" min="0" max="18" value="12" step="1" onchange="renderResults()">
       </div>
     </div>
 
-    <!-- RIGHT PANEL: ARENA SUMMARY -->
-    <div class="card">
-      <div class="card-header">
-        <h2>Arena Setup Summary</h2>
+    <!-- RIGHT PANEL: GENERATED CAMPAIGN -->
+    <div class="rounds-column" id="roundsColumn">
+      <div class="card global-config-card">
+        <div class="card-header">
+          <h2>Generated Campaign</h2>
+          <button class="btn-secondary" onclick="copySetup()">Copy Setup</button>
+        </div>
+        <div id="globalConfigBody">Generating arena preset data...</div>
       </div>
-      <div class="summary-box" id="summaryBox">Generating arena preset data...</div>
+      <div id="roundCardsContainer"></div>
     </div>
 
   </div>
@@ -389,12 +655,12 @@
   <footer class="credits-footer">
     <p>
       A thank-you to id Software for building Doom: The Dark Ages and handing players the
-      Ripatorium — a sandbox open enough that a tool like this could be built on top of it in the
+      Ripatorium &mdash; a sandbox open enough that a tool like this could be built on top of it in the
       first place. Every slider, every min/max/step range, every demon on this page belongs to
       the game you made.
     </p>
     <p>
-      This randomizer isn't trying to replace what you designed — it's just trying to lower the
+      This randomizer isn't trying to replace what you designed &mdash; it's just trying to lower the
       door for people who want to jump straight into the Ripatorium without hand-tuning every
       demon count themselves. The goal was always to get more Slayers knee-deep in the dead,
       faster.
@@ -404,14 +670,19 @@
 
 </div>
 
+<div class="toast" id="toast">Setup copied to clipboard &#10003;</div>
+
 <script>
   let roundsData = [];
+  let currentDifficulty = 'balanced';
+  let campaignInfo = { respawnBudget: 0, intensityScore: 0 };
 
   // NOTE on "combat"/"flying" tags: best-effort classification layered on
   // top of the authoritative min/max/step values from the source sheet.
   // "combat": melee / ranged / mixed engagement style.
-  // "flying": true for airborne enemies (Cacodemon Hybrid, Cosmic Elemental)
-  // — they contest vertical space, which the airspace tax below accounts for.
+  // "flying": true for airborne enemies (Cacodemon Hybrid, Cosmic Elemental,
+  // Acolytes, Maykr Drone) — they contest vertical space, which the airspace
+  // tax below accounts for.
   const enemyData = {
     fodder: [
       { name: "Zombies", min: 0, max: 30, step: 10, role: "fodder", baseWeight: 1.0, combat: "melee" },
@@ -425,51 +696,51 @@
     ],
     heavy: [
       { name: "Imp Stalker", min: 0, max: 6, step: 2, role: "heavy", baseWeight: 2.5, combat: "melee" },
-      { name: "Nightmare Imp Stalker", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
+      { name: "Nightmare Imp Stalker", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "melee" },
       { name: "Hell Knight", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
       { name: "Battle Knight", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "melee" },
       { name: "Battle Knight Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "melee" },
-      { name: "Pinky Rider", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
-      { name: "Pinky Rider Armoured", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "melee" },
-      { name: "Pinky Rider Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "melee" },
+      { name: "Pinky Rider", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "mixed" },
+      { name: "Pinky Rider Armoured", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "mixed" },
+      { name: "Pinky Rider Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "mixed" },
       { name: "Arachnotron", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "ranged" },
       { name: "Armoured Arachnotron", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged" },
       { name: "Mancubus", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
       { name: "Armoured Mancubus", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 5.0, combat: "ranged" },
       { name: "Mortar Mancubus", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "ranged" },
       { name: "Mancubus Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged" },
-      { name: "Revenant", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "ranged" },
-      { name: "Revenant Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "ranged" },
+      { name: "Revenant", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
+      { name: "Revenant Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged" },
       { name: "Whiplash", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "mixed" },
-      { name: "Acolyte", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "ranged" },
-      { name: "Acolyte Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "ranged" },
+      { name: "Acolyte", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged", flying: true },
+      { name: "Acolyte Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged", flying: true },
       { name: "Cacodemon Hybrid", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "mixed", flying: true }
     ],
     superheavy: [
-      { name: "Cyberdemon", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.0, combat: "ranged" },
-      { name: "Cyberdemon Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.0, combat: "ranged" },
-      { name: "Cosmic Baron", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.5, combat: "mixed" },
-      { name: "Agaddon Hunter", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.5, combat: "ranged" },
-      { name: "Agaddon Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 8.0, combat: "ranged" },
-      { name: "Agaddon Champion", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.5, combat: "ranged" },
-      { name: "Komodo", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 6.0, combat: "melee" },
-      { name: "Komodo Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.0, combat: "melee" },
-      { name: "Komodo champion", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 9.0, combat: "melee" },
+      { name: "Cyberdemon", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.0, combat: "mixed" },
+      { name: "Cyberdemon Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.0, combat: "mixed" },
+      { name: "Cosmic Baron", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.5, combat: "mixed" },
+      { name: "Agaddon Hunter", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.5, combat: "melee" },
+      { name: "Agaddon Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 8.0, combat: "melee" },
+      { name: "Agaddon Champion", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.5, combat: "melee" },
+      { name: "Komodo", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 6.0, combat: "mixed" },
+      { name: "Komodo Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.0, combat: "mixed" },
+      { name: "Komodo champion", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 9.0, combat: "mixed" },
       { name: "Vagary", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 6.0, combat: "ranged" },
       { name: "Vagary Champion", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.5, combat: "ranged" }
     ],
     dlc: [
       { name: "Blighted Zombies", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.0, combat: "melee" },
       { name: "Hallowed Zombies", min: 0, max: 9, step: 3, role: "fodder", baseWeight: 1.2, combat: "melee" },
-      { name: "Maykr Drone", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.2, combat: "ranged" },
+      { name: "Maykr Drone", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.2, combat: "ranged", flying: true },
       { name: "Blighted Hell Knight", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "melee" },
       { name: "Buzzsaw", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
       { name: "Nightmare Revenant", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
       { name: "Nightmare Whiplash", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "mixed" },
       { name: "Whiplash  Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "mixed" },
-      { name: "Agaddon Brute", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.5, combat: "ranged" },
-      { name: "Agaddon Brute Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.0, combat: "ranged" },
-      { name: "Agaddon Brute Champion", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 10.0, combat: "ranged" },
+      { name: "Agaddon Brute", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.5, combat: "melee" },
+      { name: "Agaddon Brute Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.0, combat: "melee" },
+      { name: "Agaddon Brute Champion", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 10.0, combat: "melee" },
       { name: "Archvile", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 5.0, combat: "ranged" },
       { name: "Armoured Archvile", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 7.0, combat: "ranged" },
       { name: "Cosmic Barron Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 5.5, combat: "mixed" },
@@ -494,7 +765,21 @@
     easy: { maxDurability: 35, maxDemonCount: 22, maxSuperHeavyCount: 0, superChance: 0.0, fodderVarieties: 2, heavyVarieties: 2 },
     balanced: { maxDurability: 54, maxDemonCount: 34, maxSuperHeavyCount: 1, superChance: 0.50, fodderVarieties: 3, heavyVarieties: 3 },
     sweaty: { maxDurability: 66, maxDemonCount: 41, maxSuperHeavyCount: 2, superChance: 0.80, fodderVarieties: 4, heavyVarieties: 4 },
-    nightmare: { maxDurability: 72, maxDemonCount: 45, maxSuperHeavyCount: 3, superChance: 0.90, fodderVarieties: 5, heavyVarieties: 5 }
+    nightmare: { maxDurability: 72, maxDemonCount: 45, maxSuperHeavyCount: 3, superChance: 0.90, fodderVarieties: 5, heavyVarieties: 5 },
+    // Ultra Nightmare: the ceiling of what the sliders can express while
+    // still being a fight instead of a wall. Durability headroom over
+    // Nightmare goes mostly to superheavy presence (4 bodies, guaranteed
+    // roll every round incl. round 1, and a guaranteed superheavy in the
+    // finale) rather than to raw headcount, which would just add noise.
+    ultranightmare: { maxDurability: 86, maxDemonCount: 50, maxSuperHeavyCount: 4, superChance: 1.0, fodderVarieties: 6, heavyVarieties: 6 }
+  };
+
+  const difficultyBlurbs = {
+    easy: "A fair training pit. No superheavies, generous resources, room to learn the parry.",
+    balanced: "The intended experience — real pressure, honest resources.",
+    sweaty: "Heavies stack up, continuous spawning likely. Bring your fundamentals.",
+    nightmare: "Superheavies from round one. The arena stops being polite.",
+    ultranightmare: "The hardest encounter the sliders can express. Up to 10 total respawns, guaranteed superheavy finale, starved resources. Survive it once and it counts."
   };
 
   // Arenas are taken into account lightly, not as a full simulation of
@@ -555,9 +840,11 @@
   }
 
   // Flat durability "tax" added once per distinct Leader-type enemy present
-  // in a round, representing the aura buff they give nearby demons (which
-  // their own baseWeight doesn't capture — that only prices their own stat
-  // block).
+  // in a round. Leaders are the silver-skinned, Demonic-Essence-empowered
+  // variants (per DoomWiki's "Demonic leader"): meaningfully tougher than
+  // their base species, and the Pinky Rider / Mancubus leaders always spawn
+  // as the ARMOURED variant on top. baseWeight prices their own stat block;
+  // this tax prices the extra encounter pressure a leader adds beyond it.
   const LEADER_TAX = { heavy: 3.5, superheavy: 6 };
 
   // Flat tax added when a SECOND distinct flying enemy type joins a round
@@ -593,6 +880,14 @@
     return 'mixed';
   }
 
+  function getEnemyByName(name) {
+    for (const cat in enemyData) {
+      const found = enemyData[cat].find(e => e.name === name);
+      if (found) return found;
+    }
+    return null;
+  }
+
   function rollEnemyCount(enemyObj) {
     const min = enemyObj.min;
     const max = enemyObj.max;
@@ -617,13 +912,24 @@
     return min + (chosenStep * step);
   }
 
+  // Campaign-wide respawn budget, by intensity. Aspiring Slayer through
+  // Nightmare all draw a total of 6-8 respawns for the WHOLE campaign —
+  // enough waves to make every round mean something, few enough that a
+  // campaign never turns into an attrition slog. Ultra Nightmare alone is
+  // allowed to push past that, drawing 8-10.
+  function rollCampaignRespawnBudget(difficultyKey) {
+    if (difficultyKey === 'ultranightmare') return 8 + Math.floor(Math.random() * 3); // 8-10
+    return 6 + Math.floor(Math.random() * 3); // 6-8
+  }
+
   // Splits a fixed total-respawn budget for the whole campaign across its
   // rounds. Later rounds get a larger share (escalation), with the slope
   // steepening a bit at higher difficulty. Every round gets at least 1.
   // The returned counts always sum to exactly `budget`.
   function distributeRespawnBudget(totalRounds, budget, difficultyKey) {
     const PER_ROUND_CAP = 10; // the game itself doesn't accept more than this in a single round
-    const escalation = difficultyKey === 'nightmare' ? 1.3 : (difficultyKey === 'sweaty' ? 1.1 : (difficultyKey === 'balanced' ? 0.9 : 0.7));
+    const escalationMap = { easy: 0.7, balanced: 0.9, sweaty: 1.1, nightmare: 1.3, ultranightmare: 1.5 };
+    const escalation = escalationMap[difficultyKey] || 0.9;
     const weights = [];
     for (let i = 0; i < totalRounds; i++) {
       const progress = totalRounds > 1 ? i / (totalRounds - 1) : 0.85;
@@ -643,9 +949,9 @@
     }
 
     // Enforce the per-round cap. Any overflow gets handed to rounds that
-    // still have room; if nobody has room left (e.g. a 1-round campaign
-    // with a 14-respawn budget), the excess is simply dropped — the
-    // per-round cap always wins over hitting the exact campaign total.
+    // still have room; if nobody has room left, the excess is simply
+    // dropped — the per-round cap always wins over hitting the exact
+    // campaign total.
     let overflow = 0;
     for (let i = 0; i < floors.length; i++) {
       if (floors[i] > PER_ROUND_CAP) {
@@ -694,13 +1000,13 @@
 
     for (const existing of existingNames) {
       const lowerExisting = existing.toLowerCase();
-      
+
       if (lowerName.includes('archvile') && lowerExisting.includes('archvile')) {
         const newIsArmoured = lowerName.includes('armoured');
         const oldIsArmoured = lowerExisting.includes('armoured');
         if (newIsArmoured !== oldIsArmoured) return true;
       }
-      
+
       const families = ['arachnotron', 'mancubus', 'pinky rider', 'agaddon'];
       for (const family of families) {
         if (lowerName.includes(family) && lowerExisting.includes(family)) {
@@ -719,8 +1025,8 @@
   // toggle layered on afterward.
   function rollEndlessAndContinuous(difficultyKey) {
     document.getElementById('endless').value = Math.random() < 0.15 ? "On" : "Off";
-    const contChance = (difficultyKey === 'sweaty' || difficultyKey === 'nightmare') ? 0.75 : 0.25;
-    const continuousOn = Math.random() < contChance;
+    const contChanceMap = { easy: 0.25, balanced: 0.25, sweaty: 0.75, nightmare: 0.75, ultranightmare: 0.9 };
+    const continuousOn = Math.random() < (contChanceMap[difficultyKey] || 0.25);
     document.getElementById('continuous').value = continuousOn ? "On" : "Off";
     return continuousOn;
   }
@@ -735,23 +1041,36 @@
   //     generosity scales DOWN as intensity rises, so a carefully budgeted
   //     hard round doesn't just get nuked away by the same pass of RNG.
   //     These still get a floor so fights stay winnable, just not free.
+  // Ultra Nightmare deliberately breaks the survival-generosity rule:
+  // it's supposed to be the hardest expressible encounter, so it takes a
+  // flat resource-starvation bias on top of everything (health leans
+  // None/Once, superweapons lean empty). Fodder is the intended health
+  // source there — glory kills and melee scraps, not pickups.
   function rollResourceSettings(difficultyKey, intensityScore) {
-    const survivalBoost = Math.min(0.3, Math.max(0, intensityScore - 0.6) * 0.5);
-    const powerRestraint = Math.min(0.35, Math.max(0, intensityScore - 0.4) * 0.5);
+    const isUN = difficultyKey === 'ultranightmare';
+    const survivalBoost = isUN ? 0 : Math.min(0.3, Math.max(0, intensityScore - 0.6) * 0.5);
+    const powerRestraint = Math.min(isUN ? 0.6 : 0.35, Math.max(0, intensityScore - 0.4) * 0.5 + (isUN ? 0.25 : 0));
 
     const haRoll = Math.random();
     let haVal = "Once";
-    if (haRoll < Math.max(0.05, 0.20 - survivalBoost)) haVal = "None";
-    else if (haRoll < 0.70) haVal = "Once";
-    else haVal = "Respawn";
+    if (isUN) {
+      if (haRoll < 0.45) haVal = "None";
+      else if (haRoll < 0.9) haVal = "Once";
+      else haVal = "Respawn";
+    } else {
+      if (haRoll < Math.max(0.05, 0.20 - survivalBoost)) haVal = "None";
+      else if (haRoll < 0.70) haVal = "Once";
+      else haVal = "Respawn";
+    }
     document.getElementById('healthAmmo').value = haVal;
 
     const bRoll = Math.random();
     let bVal = "Once";
-    if (bRoll < Math.min(0.55, 0.15 + powerRestraint)) bVal = "None";
+    if (bRoll < Math.min(isUN ? 0.75 : 0.55, 0.15 + powerRestraint)) bVal = "None";
     else if (bRoll < 0.75) bVal = "Once";
     else if (bRoll < 0.93 - powerRestraint) bVal = "Respawn";
     else bVal = "Endless";
+    if (isUN && bVal === 'Endless') bVal = 'Once'; // no free room-clearing on UN
     document.getElementById('berserk').value = bVal;
 
     // BFC (0-3) and .93 Shotgun (0-18) ammo pools: same restraint logic,
@@ -766,13 +1085,13 @@
   }
 
   function generateBalancedArena() {
-    const difficultyKey = document.getElementById('difficulty').value;
+    const difficultyKey = currentDifficulty;
     const continuousOn = rollEndlessAndContinuous(difficultyKey);
     const selectedArena = rollArena();
 
     const mode = document.getElementById('roundMode').value;
     const manualContainer = document.getElementById('manualRoundContainer');
-    
+
     let totalRounds = 3;
     if (mode === 'random') {
       manualContainer.style.display = 'none';
@@ -783,6 +1102,7 @@
     }
 
     const capInfo = difficultyCaps[difficultyKey];
+    const isUN = difficultyKey === 'ultranightmare';
     roundsData = [];
 
     const allFodder = [...enemyData.fodder, ...enemyData.dlc.filter(e => e.role === "fodder")];
@@ -797,17 +1117,13 @@
     let previousRoundEnemyNames = new Set();
     let campaignDurabilityFractions = [];
 
-    // Campaign-wide respawn budget: total wave respawns summed across every
-    // round in this campaign won't exceed 10, no matter how many rounds
-    // there are (a 1-round campaign can spend the whole budget on that one
-    // round — still intense — while a 5-round campaign spreads it
-    // thinner). The budget itself is fully random from 1 to 10, so some
-    // campaigns are genuinely light on respawns and others push the full
-    // range. Rounds that end up with a big share of that budget throttle
-    // back their heavy/superheavy counts instead of getting their
-    // respawns clamped after the fact.
-    const campaignRespawnBudget = 1 + Math.floor(Math.random() * 10); // 1-10
+    // Fixed campaign-wide respawn budget (6-8 normally, 8-10 on Ultra
+    // Nightmare — see rollCampaignRespawnBudget). Rounds that end up with
+    // a big share of that budget throttle back their heavy/superheavy
+    // counts instead of getting their respawns clamped after the fact.
+    const campaignRespawnBudget = rollCampaignRespawnBudget(difficultyKey);
     const respawnAllocation = distributeRespawnBudget(totalRounds, campaignRespawnBudget, difficultyKey);
+    campaignInfo.respawnBudget = respawnAllocation.reduce((a, b) => a + b, 0);
 
     for (let r = 1; r <= totalRounds; r++) {
       let roundEnemies = {};
@@ -836,9 +1152,10 @@
       // Superheavies: supports multiple DISTINCT species in one round (up
       // to maxSuperHeavyCount total bodies). Each additional species slot
       // rolls at half the base chance so mixing two is possible but not
-      // the norm.
-      if ((r > 1 || difficultyKey === 'nightmare') && roundMaxSuperHeavy > 0) {
-        let superheaviesUsed = 0;
+      // the norm. Nightmare and Ultra Nightmare allow superheavies from
+      // round 1; everything else keeps round 1 as a warm-up.
+      let superheaviesUsed = 0;
+      if ((r > 1 || difficultyKey === 'nightmare' || isUN) && roundMaxSuperHeavy > 0) {
         const superSpeciesUsed = new Set();
         for (let slot = 0; slot < roundMaxSuperHeavy && superheaviesUsed < roundMaxSuperHeavy; slot++) {
           const chanceThisSlot = scaledSuperChance * (slot === 0 ? 1 : 0.5);
@@ -875,16 +1192,39 @@
         }
       }
 
+      // Ultra Nightmare guarantee: the finale never rolls superheavy-free.
+      // If the chance rolls above all whiffed (or budget squeezed them
+      // out), force exactly one of the cheapest superheavies in — the
+      // capstone fight should always have royalty on the board.
+      if (isUN && r === totalRounds && superheaviesUsed === 0) {
+        const cheapest = [...allSuperHeavy]
+          .filter(e => !conflictsWithExisting(e.name, roundEnemies))
+          .sort((a, b) => getDemonWeight(a) - getDemonWeight(b))[0];
+        if (cheapest) {
+          roundEnemies[cheapest.name] = 1;
+          currentRoundDurability += getDemonWeight(cheapest);
+          currentRoundDemonCount += 1;
+          superheaviesUsed = 1;
+          if (isLeaderName(cheapest.name)) currentRoundDurability += LEADER_TAX.superheavy;
+        }
+      }
+
+      // Heavies: family conflicts (armoured vs unarmoured of the same
+      // species) no longer consume a variety slot — the loop walks the
+      // whole shuffled list until it has PLACED (or fairly attempted)
+      // the target number of varieties, so unlucky shuffles don't quietly
+      // produce under-filled rounds.
       let shuffledHeavies = preferArenaBias(preferUnused(shuffleArray(allHeavy), previousRoundEnemyNames), selectedArena);
-      for (let i = 0; i < scaledHeavyVarieties; i++) {
+      let heavySlotsUsed = 0;
+      for (let i = 0; i < shuffledHeavies.length && heavySlotsUsed < scaledHeavyVarieties; i++) {
         const heavyCandidate = shuffledHeavies[i];
-        if (!heavyCandidate) break;
 
         if (conflictsWithExisting(heavyCandidate.name, roundEnemies)) continue;
 
+        heavySlotsUsed++;
         const hWeight = getDemonWeight(heavyCandidate);
         let heavyCount = throttledRollEnemyCount(heavyCandidate, heavySuperThrottle);
-        
+
         while (heavyCount > 0 && (
           (currentRoundDurability + (heavyCount * hWeight) > scaledMaxDurability) ||
           (currentRoundDemonCount + heavyCount > scaledMaxDemonCount)
@@ -961,6 +1301,9 @@
       // Combat-role mix guarantee: if the round accidentally ended up
       // entirely melee or entirely ranged, inject one cheap unit of the
       // missing role (allowing a small 10% budget overflow if needed).
+      // This is the "chess" invariant: melee pressure forces movement,
+      // ranged artillery punishes it — a round with only one of the two
+      // collapses into a single repeated answer.
       const rolesPresent = new Set(
         Object.keys(roundEnemies).filter(n => roundEnemies[n] > 0).map(getCombatRole)
       );
@@ -989,34 +1332,31 @@
 
       roundsData.push({
         respawns: roundRespawns,
-        enemies: roundEnemies
+        enemies: roundEnemies,
+        durability: currentRoundDurability,
+        durabilityCap: scaledMaxDurability,
+        demonCount: currentRoundDemonCount
       });
 
       previousRoundEnemyNames = new Set(Object.keys(roundEnemies).filter(n => roundEnemies[n] > 0));
       campaignDurabilityFractions.push(currentRoundDurability / capInfo.maxDurability);
     }
 
-    const intensityScore = campaignDurabilityFractions.reduce((a, b) => a + b, 0) / campaignDurabilityFractions.length;
-    const berserkVal = rollResourceSettings(difficultyKey, intensityScore);
+    campaignInfo.intensityScore = campaignDurabilityFractions.reduce((a, b) => a + b, 0) / campaignDurabilityFractions.length;
+    const berserkVal = rollResourceSettings(difficultyKey, campaignInfo.intensityScore);
 
     autoScaleTimeLimit(continuousOn, berserkVal);
-    updateSummary();
+    renderResults();
   }
 
   function getEnemyWeightByName(name) {
-    for (const cat in enemyData) {
-      const found = enemyData[cat].find(e => e.name === name);
-      if (found) return getDemonWeight(found);
-    }
-    return 1.0;
+    const found = getEnemyByName(name);
+    return found ? getDemonWeight(found) : 1.0;
   }
 
   function isHeavyOrAbove(name) {
-    for (const cat in enemyData) {
-      const found = enemyData[cat].find(e => e.name === name);
-      if (found) return found.role === "heavy" || found.role === "superheavy";
-    }
-    return false;
+    const found = getEnemyByName(name);
+    return found ? (found.role === "heavy" || found.role === "superheavy") : false;
   }
 
   function autoScaleTimeLimit(continuousOn, berserkVal) {
@@ -1094,54 +1434,162 @@
     if (timeLimitGroup) timeLimitGroup.classList.toggle('disabled', endlessOn);
   }
 
-  function updateSummary() {
-    updateEndlessState();
-    const diffSelect = document.getElementById('difficulty');
-    const selectedDifficultyText = diffSelect.options[diffSelect.selectedIndex].text;
+  /* ================= RENDERING ================= */
 
-    let summary = `=== DYNAMIC GLOBAL CONFIGURATION ===\n`;
-    const arenaName = document.getElementById('arena').value;
-    const arenaInfo = getArenaByName(arenaName);
-    summary += `Arena: ${arenaName}\n`;
-    summary += `  ${arenaInfo.desc}\n`;
-    summary += `Intensity Level: ${selectedDifficultyText.toUpperCase()}\n`;
-    summary += `Endless Mode: ${document.getElementById('endless').value}\n`;
-    summary += `Continuous Spawning: ${document.getElementById('continuous').value}\n`;
-    const endlessOn = document.getElementById('endless').value === 'On';
-    summary += `Global Time Limit: ${endlessOn ? 'N/A (Endless Mode)' : document.getElementById('timeLimit').value}\n`;
-    summary += `Total Campaign Rounds: ${roundsData.length}\n`;
-    summary += `Health/Ammo Pickups: ${document.getElementById('healthAmmo').value}\n`;
-    summary += `Berserk Powerup: ${document.getElementById('berserk').value}\n`;
-    summary += `BFC Ammo: ${document.getElementById('bfcAmmo').value}\n`;
-    summary += `.93 Shotgun Ammo: ${document.getElementById('shotgunAmmo').value}\n\n`;
-
-    summary += `=== CAMPAIGN ROUND BREAKDOWN ===\n`;
-
-    roundsData.forEach((r, idx) => {
-      summary += `\n--- ROUND ${idx + 1} (Wave Respawns: ${r.respawns}) ---\n`;
-      let totalDemons = 0;
-      let totalDurability = 0;
-
-      const activeEnemiesInOrder = masterDemonOrder.filter(name => r.enemies[name] > 0);
-
-      let activeList = activeEnemiesInOrder.map(name => {
-        const count = r.enemies[name];
-        const w = getEnemyWeightByName(name);
-        totalDemons += count;
-        totalDurability += count * w;
-        return `- ${name}: ${count}`;
-      });
-
-      summary += activeList.join('\n') + `\n[Base Wave Demons: ${totalDemons} | Total Round Spawns: ${totalDemons * r.respawns}]\n`;
-    });
-
-    document.getElementById('summaryBox').innerText = summary;
+  function difficultyLabel(key) {
+    const btn = document.querySelector(`.intensity-btn[data-value="${key}"]`);
+    return btn ? btn.textContent.replace('☠', '').trim() : key;
   }
 
-  window.onload = generateBalancedArena;
+  function renderOverview() {
+    const arenaName = document.getElementById('arena').value;
+    const endlessOn = document.getElementById('endless').value === 'On';
+    const timeLimit = endlessOn ? 'Endless' : document.getElementById('timeLimit').value;
+    const totalSpawns = roundsData.reduce((a, r) => {
+      const base = Object.values(r.enemies).reduce((x, y) => x + y, 0);
+      return a + base * r.respawns;
+    }, 0);
+    document.getElementById('overviewStrip').innerHTML = `
+      <div class="overview-cell"><span class="ov-label">Arena</span><span class="ov-value">${arenaName}</span></div>
+      <div class="overview-cell"><span class="ov-label">Intensity</span><span class="ov-value">${difficultyLabel(currentDifficulty)}</span></div>
+      <div class="overview-cell"><span class="ov-label">Rounds</span><span class="ov-value">${roundsData.length}</span></div>
+      <div class="overview-cell"><span class="ov-label">Time Limit</span><span class="ov-value">${timeLimit}</span></div>
+      <div class="overview-cell"><span class="ov-label">Total Spawns</span><span class="ov-value">${totalSpawns}</span></div>`;
+  }
+
+  function renderGlobalConfig() {
+    const arenaName = document.getElementById('arena').value;
+    const arenaInfo = getArenaByName(arenaName);
+    const endlessOn = document.getElementById('endless').value === 'On';
+    document.getElementById('globalConfigBody').innerHTML = `
+      <div class="config-chips">
+        <span class="chip">Endless: <b>${document.getElementById('endless').value}</b></span>
+        <span class="chip">Continuous Spawning: <b>${document.getElementById('continuous').value}</b></span>
+        <span class="chip">Time: <b>${endlessOn ? 'N/A (Endless)' : document.getElementById('timeLimit').value}</b></span>
+        <span class="chip">Health/Ammo: <b>${document.getElementById('healthAmmo').value}</b></span>
+        <span class="chip">Berserk: <b>${document.getElementById('berserk').value}</b></span>
+        <span class="chip">BFC Ammo: <b>${document.getElementById('bfcAmmo').value}</b></span>
+        <span class="chip">.93 Shotgun: <b>${document.getElementById('shotgunAmmo').value}</b></span>
+      </div>
+      <p class="arena-desc">${arenaInfo.desc}</p>`;
+  }
+
+  function renderRoundCards() {
+    const container = document.getElementById('roundCardsContainer');
+    container.className = 'rounds-column';
+    let html = '';
+    roundsData.forEach((r, idx) => {
+      const activeEnemies = masterDemonOrder.filter(name => r.enemies[name] > 0);
+      const totalDemons = activeEnemies.reduce((a, n) => a + r.enemies[n], 0);
+      const threatPct = Math.min(100, Math.round((r.durability / r.durabilityCap) * 100));
+      const threatClass = threatPct < 45 ? 'threat-low' : (threatPct < 65 ? 'threat-medium' : (threatPct < 85 ? 'threat-high' : 'threat-extreme'));
+
+      let rows = activeEnemies.map(name => {
+        const e = getEnemyByName(name);
+        const role = e ? e.role : 'fodder';
+        return `<div class="enemy-row">
+          <span class="role-badge role-${role}">${role === 'superheavy' ? 'SUPER' : role.toUpperCase()}</span>
+          <span class="enemy-name">${name}</span>
+          <span class="enemy-count">&times;${r.enemies[name]}</span>
+        </div>`;
+      }).join('');
+
+      html += `<div class="round-card">
+        <div class="round-title-row">
+          <span class="round-title">Round ${idx + 1}</span>
+          <span class="round-meta">Wave Respawns: <b>${r.respawns}</b> &nbsp;&middot;&nbsp; Threat Load: <b>${threatPct}%</b></span>
+        </div>
+        <div class="threat-bar-track"><div class="threat-bar-fill ${threatClass}" style="width:${threatPct}%"></div></div>
+        ${rows}
+        <div class="round-totals">
+          <span>Base Wave Demons: <b>${totalDemons}</b></span>
+          <span>Total Round Spawns: <b>${totalDemons * r.respawns}</b></span>
+        </div>
+      </div>`;
+    });
+    container.innerHTML = html;
+  }
+
+  function renderResults() {
+    updateEndlessState();
+    renderOverview();
+    renderGlobalConfig();
+    renderRoundCards();
+  }
+
+  /* ================= COPY / EXPORT ================= */
+
+  function buildExportText() {
+    const endlessOn = document.getElementById('endless').value === 'On';
+    const arenaName = document.getElementById('arena').value;
+    let out = `=== RIPATORIUM SETUP — ${difficultyLabel(currentDifficulty).toUpperCase()} ===\n`;
+    out += `Arena: ${arenaName}\n`;
+    out += `Endless Mode: ${document.getElementById('endless').value}\n`;
+    out += `Continuous Spawning: ${document.getElementById('continuous').value}\n`;
+    out += `Global Time Limit: ${endlessOn ? 'N/A (Endless Mode)' : document.getElementById('timeLimit').value}\n`;
+    out += `Total Campaign Rounds: ${roundsData.length}\n`;
+    out += `Health/Ammo Pickups: ${document.getElementById('healthAmmo').value}\n`;
+    out += `Berserk Powerup: ${document.getElementById('berserk').value}\n`;
+    out += `BFC Ammo: ${document.getElementById('bfcAmmo').value}\n`;
+    out += `.93 Shotgun Ammo: ${document.getElementById('shotgunAmmo').value}\n`;
+
+    roundsData.forEach((r, idx) => {
+      out += `\n--- ROUND ${idx + 1} (Wave Respawns: ${r.respawns}) ---\n`;
+      const activeEnemies = masterDemonOrder.filter(name => r.enemies[name] > 0);
+      const totalDemons = activeEnemies.reduce((a, n) => a + r.enemies[n], 0);
+      out += activeEnemies.map(name => `- ${name}: ${r.enemies[name]}`).join('\n');
+      out += `\n[Base Wave Demons: ${totalDemons} | Total Round Spawns: ${totalDemons * r.respawns}]\n`;
+    });
+    return out;
+  }
+
+  function copySetup() {
+    const text = buildExportText();
+    const done = () => {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, done) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) { /* clipboard unavailable */ }
+    document.body.removeChild(ta);
+    done();
+  }
+
+  /* ================= INTENSITY PICKER ================= */
+
+  function setDifficulty(key, regenerate) {
+    currentDifficulty = key;
+    document.querySelectorAll('.intensity-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.value === key)
+    );
+    document.getElementById('intensityDesc').textContent = difficultyBlurbs[key] || '';
+    if (regenerate) generateBalancedArena();
+  }
+
+  document.getElementById('intensityPicker').addEventListener('click', e => {
+    const btn = e.target.closest('.intensity-btn');
+    if (btn) setDifficulty(btn.dataset.value, true);
+  });
+
+  window.onload = function () {
+    setDifficulty(currentDifficulty, false);
+    generateBalancedArena();
+  };
 </script>
-
-
 
 </body>
 </html>
