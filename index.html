@@ -231,12 +231,19 @@
     .grid-layout {
       display: grid;
       grid-template-columns: 380px 1fr;
+      /* Left column owns the rows: row 1 = settings, row 2 = history.
+         The rounds column spans both, so its height never moves the
+         history card. */
+      grid-template-rows: auto 1fr;
       gap: 22px;
       align-items: start;
     }
 
+    #roundsColumn { grid-column: 2; grid-row: 1 / span 2; }
+
     @media (max-width: 900px) {
-      .grid-layout { grid-template-columns: 1fr; }
+      .grid-layout { grid-template-columns: 1fr; grid-template-rows: none; }
+      #roundsColumn { grid-column: auto; grid-row: auto; }
     }
 
     .card {
@@ -544,6 +551,49 @@
 
     .idcode.unavailable:hover { box-shadow: none; }
 
+    /* ============ ROLL HISTORY ============ */
+    /* Desktop: pinned under the settings card in the left grid column.
+       Mobile (single column): falls back to natural source order, after
+       the generated rounds. */
+    .history-card { grid-column: 1; grid-row: 2; align-self: start; }
+
+    @media (max-width: 900px) {
+      .history-card { grid-column: auto; grid-row: auto; }
+    }
+
+    .history-entry {
+      padding: 8px 12px;
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .history-entry:last-child { margin-bottom: 0; }
+
+    .history-entry:hover { border-color: var(--accent-gold); box-shadow: 0 0 8px rgba(201, 151, 59, 0.25); }
+
+    .history-entry.current {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 8px rgba(211, 55, 43, 0.3);
+      cursor: default;
+    }
+
+    .history-entry .h-name {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--accent-gold-bright);
+      letter-spacing: 1px;
+    }
+
+    .history-entry .h-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation: none !important;
@@ -721,6 +771,14 @@
         <div id="globalConfigBody">Generating arena preset data...</div>
       </div>
       <div id="roundCardsContainer"></div>
+    </div>
+
+    <!-- LEFT PANEL, BELOW SETTINGS: ROLL HISTORY -->
+    <div class="card history-card">
+      <div class="card-header">
+        <h2>Previous Hordes</h2>
+      </div>
+      <div id="historyList"></div>
     </div>
 
   </div>
@@ -1752,6 +1810,15 @@
     } else {
       autoScaleTimeLimit(continuousOn, berserkVal);
     }
+
+    // Snapshot the rolled control values so share links can carry only
+    // the settings the user hand-tweaks after generation.
+    campaignInfo.rolled = {};
+    for (const id of Object.keys(rolledControls)) {
+      campaignInfo.rolled[id] = document.getElementById(id).value;
+    }
+
+    pushHistory();
     renderResults();
   }
 
@@ -1928,6 +1995,7 @@
     renderOverview();
     renderGlobalConfig();
     renderRoundCards();
+    renderHistory();
     saveState();
     updateShareUrl();
   }
@@ -2055,11 +2123,62 @@
     return Number.isFinite(v) ? (v >>> 0) : null;
   }
 
+  // Compact share code: seed (32 bits) + the six pre-roll inputs packed
+  // above it, written in base 36 (~9 chars). Everything else the link used
+  // to carry is derivable by regenerating from the seed, so it stays out
+  // of the URL unless the user hand-tweaked it after generation.
+  const shareDiffOrder = ['easy', 'balanced', 'sweaty', 'nightmare', 'ultranightmare'];
+
+  // Controls the generator rolls itself. Snapshot at generation time; a
+  // share link only includes the ones the user changed afterwards, under
+  // one-letter keys.
+  const rolledControls = {
+    arena: 'a', endless: 'e', continuous: 'n', timeLimit: 't',
+    healthAmmo: 'h', berserk: 'b', bfcAmmo: 'f', shotgunAmmo: 'g'
+  };
+
+  function packShareCode() {
+    const diffIdx = Math.max(0, shareDiffOrder.indexOf(currentDifficulty));
+    const tm = document.getElementById('timeMode').value === 'fixed' ? 1 : 0;
+    const ti = Math.max(0, timeOrder.indexOf(document.getElementById('timeLimit').value));
+    const rm = document.getElementById('roundMode').value === 'manual' ? 1 : 0;
+    const rc = Math.min(7, Math.max(0, (parseInt(document.getElementById('roundCounts').value) || 3) - 1));
+    const cf = baseGameOnly() ? 1 : 0;
+    const meta = diffIdx + 8 * (tm + 2 * (ti + 16 * (rm + 2 * (rc + 8 * cf))));
+    // meta tops out around 2^13, so the packed value stays well under 2^53
+    return ((currentSeed >>> 0) + meta * 4294967296).toString(36).toUpperCase();
+  }
+
+  function unpackShareCode(code) {
+    const v = parseInt(String(code).toLowerCase(), 36);
+    if (!Number.isFinite(v) || v < 0) return null;
+    const seed = v % 4294967296;
+    let meta = Math.floor(v / 4294967296);
+    const diffIdx = meta % 8; meta = Math.floor(meta / 8);
+    const tm = meta % 2; meta = Math.floor(meta / 2);
+    const ti = meta % 16; meta = Math.floor(meta / 16);
+    const rm = meta % 2; meta = Math.floor(meta / 2);
+    const rc = meta % 8; meta = Math.floor(meta / 8);
+    const cf = meta % 2;
+    return {
+      seed,
+      difficulty: shareDiffOrder[diffIdx] || 'balanced',
+      timeMode: tm ? 'fixed' : 'auto',
+      timeLimit: timeOrder[ti] || '5 Minutes',
+      roundMode: rm ? 'manual' : 'random',
+      roundCounts: String(rc + 1),
+      contentFilter: cf ? 'base' : 'all'
+    };
+  }
+
   function buildShareLink() {
     const params = new URLSearchParams();
-    params.set('s', seedToCode(currentSeed));
-    params.set('d', currentDifficulty);
-    persistedControls.forEach(id => params.set(id, document.getElementById(id).value));
+    params.set('c', packShareCode());
+    const rolled = campaignInfo.rolled || null;
+    for (const [id, key] of Object.entries(rolledControls)) {
+      const cur = document.getElementById(id).value;
+      if (!rolled || rolled[id] !== cur) params.set(key, cur);
+    }
     return location.href.split(/[?#]/)[0] + '?' + params.toString();
   }
 
@@ -2086,8 +2205,34 @@
   // passcode (deterministic), then re-apply the shared control values on
   // top — capturing any post-generation hand-tweaks the sharer made to
   // rolled settings like Berserk or Continuous Spawning.
+  // Rebuild a campaign from compact share params (?c=<packed> plus
+  // one-letter overrides). Shared by share links and the roll history.
+  function applyShareParams(params) {
+    const compact = params.get('c');
+    if (!compact) return false;
+    const cfg = unpackShareCode(compact);
+    if (!cfg) return false;
+    if (difficultyCaps[cfg.difficulty]) currentDifficulty = cfg.difficulty;
+    applyControlValue('timeMode', cfg.timeMode);
+    applyControlValue('timeLimit', cfg.timeLimit);
+    applyControlValue('roundMode', cfg.roundMode);
+    applyControlValue('roundCounts', cfg.roundCounts);
+    applyControlValue('contentFilter', cfg.contentFilter);
+    setDifficulty(currentDifficulty, false);
+    applyContentFilterUI();
+    generateBalancedArena(cfg.seed);
+    for (const [id, key] of Object.entries(rolledControls)) {
+      if (params.has(key)) applyControlValue(id, params.get(key));
+    }
+    renderResults();
+    return true;
+  }
+
   function loadFromUrl() {
     const params = new URLSearchParams(location.search);
+    if (params.get('c')) return applyShareParams(params);
+
+    // Legacy long-form links (?s=SEED&d=...&<controlId>=... ) keep working.
     const code = params.get('s');
     if (!code) return false;
     const seed = codeToSeed(code);
@@ -2101,6 +2246,74 @@
     persistedControls.forEach(id => applyControlValue(id, params.get(id)));
     renderResults();
     return true;
+  }
+
+  /* ================= ROLL HISTORY ================= */
+
+  // The last N rolls, kept in localStorage. Each entry stores the compact
+  // share query (which reconstructs the campaign exactly) plus display
+  // metadata — a full roundsData copy would be redundant.
+  const HISTORY_KEY = 'ripatorium-history-v1';
+  const HISTORY_MAX = 10;
+
+  function loadHistory() {
+    try {
+      const h = JSON.parse(localStorage.getItem(HISTORY_KEY));
+      return Array.isArray(h) ? h : [];
+    } catch (e) { return []; }
+  }
+
+  function pushHistory() {
+    try {
+      const q = buildShareLink().split('?')[1];
+      const h = loadHistory();
+      // Revisiting an old roll regenerates it — keep its place in the
+      // list rather than duplicating or reshuffling under the player.
+      if (h.some(e => e && e.q === q)) return;
+      h.unshift({
+        q,
+        name: campaignInfo.name,
+        diff: difficultyLabel(currentDifficulty),
+        arena: document.getElementById('arena').value,
+        rounds: roundsData.length,
+        ts: Date.now()
+      });
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(0, HISTORY_MAX)));
+    } catch (e) { /* storage unavailable — history is a nicety, not a need */ }
+  }
+
+  function restoreHistoryEntry(q) {
+    applyShareParams(new URLSearchParams(q));
+  }
+
+  function relTime(ts) {
+    if (!ts) return '';
+    const mins = Math.floor((Date.now() - ts) / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    return Math.floor(hrs / 24) + 'd ago';
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    if (!list) return;
+    const h = loadHistory();
+    if (!h.length) {
+      list.innerHTML = '<p class="arena-desc">Your last ' + HISTORY_MAX + ' rolls will be remembered here.</p>';
+      return;
+    }
+    const currentQ = buildShareLink().split('?')[1];
+    list.innerHTML = h.map(e => {
+      const isCurrent = e.q === currentQ;
+      return `<div class="history-entry${isCurrent ? ' current' : ''}"
+        ${isCurrent ? '' : `onclick="restoreHistoryEntry('${e.q}')"`}
+        title="${isCurrent ? 'This is the current horde' : 'Click to bring this horde back'}">
+        <div class="h-name">${e.name || 'Unnamed Horde'}</div>
+        <div class="h-meta">${e.diff} &middot; ${e.arena} &middot; ${e.rounds} round${e.rounds > 1 ? 's' : ''} &middot; ${relTime(e.ts)}</div>
+      </div>`;
+    }).join('');
   }
 
   /* ================= PERSISTENCE ================= */
