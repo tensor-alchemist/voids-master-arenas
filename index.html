@@ -516,6 +516,34 @@
       color: var(--accent-gold);
     }
 
+    .idcode {
+      margin-top: 10px;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px dashed var(--accent-gold);
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: box-shadow 0.18s ease;
+    }
+
+    .idcode:hover { box-shadow: 0 0 10px rgba(201, 151, 59, 0.3); }
+
+    .idcode b {
+      color: var(--accent-gold-bright);
+      font-family: 'Courier New', monospace;
+      font-size: 0.95rem;
+      letter-spacing: 2px;
+    }
+
+    .idcode.unavailable {
+      cursor: default;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .idcode.unavailable:hover { box-shadow: none; }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation: none !important;
@@ -546,12 +574,12 @@
 
   <details class="usage-note">
     <summary>How to use this tool</summary>
-    This tool can't write directly into Doom: The Dark Ages &mdash; id Software's in-game systems
-    aren't something we can reach into or automate from outside the game. Once you've generated an
-    arena you like, open your own Ripatorium Arena builder and enter the Global Settings and
-    per-round demon counts shown below by hand (or hit <strong>Copy Setup</strong> to grab a plain-text
-    checklist). Every number this tool produces already respects the exact min/max/step limits of
-    the in-game sliders, so nothing you see here will be a value the game refuses.
+    Each round card shows an <strong>In-game passcode</strong> &mdash; click it to copy, then paste
+    it into the Ripatorium's passcode field and the game sets every demon slider for that round
+    automatically (we reverse-engineered id Software's passcode format to make this work). Global
+    Settings and Wave Respawns still need entering by hand &mdash; they aren't part of id's passcode
+    &mdash; or hit <strong>Copy Setup</strong> for a plain-text checklist. Every number this tool
+    produces already respects the exact min/max/step limits of the in-game sliders.
     <br><br>
     Only have a few minutes? Set <strong>Time Limit Mode</strong> to <strong>Fixed</strong>, pick your
     time, and the generator will build a fight sized to be beatable inside that window. If you don't
@@ -1873,6 +1901,11 @@
         </div>`;
       }).join('');
 
+      const pass = idPasscode(r.enemies);
+      const passHtml = pass.code
+        ? `<div class="idcode" onclick="copyTextToClipboard('${pass.code}', 'Passcode copied &#10003;')" title="Click to copy, then enter it in the Ripatorium passcode field — it sets every demon slider for this round. Respawns and arena settings still need entering by hand.">In-game passcode: <b>${pass.code}</b></div>`
+        : `<div class="idcode unavailable">In-game passcode unavailable &mdash; not yet mapped: ${pass.blockers.join(', ')}</div>`;
+
       html += `<div class="round-card">
         <div class="round-title-row">
           <span class="round-title">Round ${idx + 1}</span>
@@ -1880,6 +1913,7 @@
         </div>
         <div class="threat-bar-track"><div class="threat-bar-fill ${threatClass}" style="width:${threatPct}%"></div></div>
         ${rows}
+        ${passHtml}
         <div class="round-totals">
           <span>Base Wave Demons: <b>${totalDemons}</b></span>
           <span>Total Round Spawns: <b>${totalDemons * r.respawns}</b></span>
@@ -1896,6 +1930,86 @@
     renderRoundCards();
     saveState();
     updateShareUrl();
+  }
+
+  /* ================= ID-SOFTWARE IN-GAME PASSCODES ================= */
+
+  // Reverse-engineered from the game's own passcodes (validated in-game
+  // 2026-08-01): a passcode is an integer written in base 32 using the
+  // scrambled charset below, least-significant character FIRST, trailing
+  // zero chars trimmed. Bits 0-1 select the mode:
+  //   mode 0 (vector): 2 bits per species at bit offset 2*(species+1),
+  //     holding count/step.
+  //   mode 1 (token list): 8-bit records [count/step:2][species:6] packed
+  //     from bit 2 upward, sorted by ascending species id.
+  // The game emits vector for pure bulk-fodder setups, otherwise whichever
+  // mode is shorter (ties go to vector). Codes encode demon composition
+  // only — respawns and arena settings are not part of the passcode.
+  const RIP_ALPHABET = "0123456789ABCDELGHJKMNPQRZTUVWXY";
+
+  // Species ids recovered from probe data. Demons absent here can't be
+  // encoded yet (their id hasn't been observed in any game code).
+  const RIP_SPECIES = {
+    "Zombies": 0, "Soldier": 1, "Heated Metal Shield Soldier": 2,
+    "UnHeated Metal Shield Soldier": 3, "Energy Shield Soldier": 4,
+    "Chaingunner Soldier": 5, "Imp": 6, "Stone Imp": 7,
+    "Imp Stalker": 8, "Nightmare Imp Stalker": 9, "Pinky Rider": 10,
+    "Pinky Rider Leader": 11, "Pinky Rider Armoured": 12, "Hell Knight": 13,
+    "Battle Knight": 14, "Battle Knight Leader": 15, "Acolyte": 16,
+    "Acolyte Leader": 17, "Cacodemon Hybrid": 18, "Mancubus": 19,
+    "Mancubus Leader": 20, "Mortar Mancubus": 21, "Armoured Mancubus": 22,
+    "Arachnotron": 23, "Armoured Arachnotron": 24, "Revenant": 25,
+    "Revenant Leader": 26, "Whiplash": 27,
+    "Cyberdemon": 28, "Cyberdemon Leader": 29, "Cosmic Baron": 30,
+    "Vagary": 31, "Vagary Champion": 32, "Komodo": 33, "Komodo Leader": 34,
+    "Komodo Champion": 35, "Agaddon Hunter": 36, "Agaddon Leader": 37,
+    "Agaddon Champion": 38, "Cosmic Elemental": 39, "Archvile": 40,
+    "Armoured Archvile": 41, "Buzzsaw": 42, "Warlock": 43,
+    "Agaddon Brute": 44, "Nightmare Revenant": 45, "Nightmare Whiplash": 46,
+    "Whiplash Leader": 47, "Blighted Hell Knight": 48, "Blighted Zombies": 49,
+    "Vagary Leader": 50, "Cosmic Baron Leader": 51, "Maykr Drone": 52,
+    "Warlock Leader": 53, "Agaddon Brute Leader": 54, "Agaddon Brute Champion": 55,
+    "Hallowed Zombies": 56
+  };
+
+  function ripToCode(V) {
+    let out = "";
+    while (V > 0n) {
+      out += RIP_ALPHABET[Number(V & 31n)];
+      V >>= 5n;
+    }
+    return out;
+  }
+
+  // Returns { code } on success or { blockers: [names] } when the round
+  // contains demons whose species id is still unmapped.
+  function idPasscode(enemies) {
+    const entries = [];
+    const blockers = [];
+    for (const [name, count] of Object.entries(enemies)) {
+      if (count <= 0) continue;
+      if (!(name in RIP_SPECIES)) { blockers.push(name); continue; }
+      const e = getEnemyByName(name);
+      entries.push({ s: RIP_SPECIES[name], idx: Math.round(count / ((e && e.step) || 1)) });
+    }
+    if (blockers.length) return { code: null, blockers };
+    if (!entries.length) return { code: null, blockers: [] };
+    entries.sort((a, b) => a.s - b.s);
+
+    let vec = 0n;
+    for (const { s, idx } of entries) vec += BigInt(idx) * (4n ** BigInt(s + 1));
+    const vector = ripToCode(vec);
+
+    let tok = 1n, shift = 2n;
+    for (const { s, idx } of entries) {
+      tok += BigInt(idx + 4 * s) << shift;
+      shift += 8n;
+    }
+    const token = ripToCode(tok);
+
+    const allBulkFodder = entries.every(e => e.s <= 3);
+    const code = allBulkFodder ? vector : (vector.length <= token.length ? vector : token);
+    return { code, blockers: [] };
   }
 
   /* ================= SEEDED RNG & SHARE LINKS ================= */
@@ -2057,6 +2171,8 @@
       const totalDemons = activeEnemies.reduce((a, n) => a + r.enemies[n], 0);
       out += activeEnemies.map(name => `- ${name}: ${r.enemies[name]}`).join('\n');
       out += `\n[Base Wave Demons: ${totalDemons} | Total Round Spawns: ${totalDemons * r.respawns}]\n`;
+      const pass = idPasscode(r.enemies);
+      if (pass.code) out += `[In-Game Passcode: ${pass.code} — sets all demon sliders for this round]\n`;
     });
     return out;
   }
