@@ -6,7 +6,7 @@
   <title>Ripatorium Master Arena Randomizer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@400;600;800;900&family=Cinzel:wght@500;700;900&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-dark: #0b0908;
@@ -22,9 +22,38 @@
       --text-main: #e8e0d0;
       --text-muted: #9a8f7d;
       --input-bg: rgba(10, 8, 7, 0.9);
-      --font-display: 'Cinzel', 'Times New Roman', serif;
+      --ember: #ff6a2b;
+      --bone: #e9dcc3;
+      --iron: #2a211c;
+      --iron-light: #4a382e;
+
+      /* Grenze Gotisch is the closest thing on Google Fonts to The Dark
+         Ages' own display face — condensed, gothic, medieval without
+         tipping into unreadable blackletter. Cinzel stays for the small
+         inscriptional caps (the Sentinel/Argent register), Chakra Petch
+         stays for body copy because it reads like a military HUD. */
+      --font-display: 'Grenze Gotisch', 'Cinzel', 'Times New Roman', serif;
+      --font-roman: 'Cinzel', 'Times New Roman', serif;
       --font-body: 'Chakra Petch', 'Segoe UI', sans-serif;
+
+      /* Film-grain / rust tooth, generated rather than downloaded so the
+         page keeps its texture with no network and no external asset. */
+      --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E");
+
+      /* Drop-in slot: put your own screenshot next to this file and it is
+         picked up automatically. A generic one named arena-bg.jpg applies
+         everywhere; per-arena files (listed below) override it when that
+         arena is selected. Missing files simply don't paint — the
+         gradients underneath carry the page on their own. */
+      --arena-img: url('arena-bg.jpg');
     }
+
+    body[data-arena="city-of-ryuul"]   { --arena-img: url('arena-city-of-ryuul.jpg'), url('arena-bg.jpg'); }
+    body[data-arena="village-of-khalim"] { --arena-img: url('arena-village-of-khalim.jpg'), url('arena-bg.jpg'); }
+    body[data-arena="harbor-of-souls"] { --arena-img: url('arena-harbor-of-souls.jpg'), url('arena-bg.jpg'); }
+    body[data-arena="hells-core"]      { --arena-img: url('arena-hells-core.jpg'), url('arena-bg.jpg'); }
+    body[data-arena="osseus"]          { --arena-img: url('arena-osseus.jpg'), url('arena-bg.jpg'); }
+    body[data-arena="classic-hell"]    { --arena-img: url('arena-classic-hell.jpg'), url('arena-bg.jpg'); }
 
     * { box-sizing: border-box; }
 
@@ -32,18 +61,21 @@
       margin: 0;
       padding: 28px 18px 40px;
       background-color: var(--bg-dark);
-      /* Custom Ripatorium 3.0 Arena Background Overlay */
-      /* Radial glows double as an intentional fallback when the local
-         background image isn't shipped alongside this file. */
+      /* Five layers, front to back: grain, a darkening wash so text stays
+         legible over any screenshot, a hell-glow from above, an argent
+         glow from below, then the optional arena photograph. Every layer
+         except the last is procedural, so the page looks deliberate with
+         no image present at all. */
       background-image:
-        linear-gradient(to bottom, rgba(11, 9, 8, 0.88), rgba(11, 9, 8, 0.95)),
-        radial-gradient(ellipse 120% 60% at 50% -10%, rgba(211, 55, 43, 0.25), transparent 70%),
-        radial-gradient(ellipse 90% 50% at 50% 110%, rgba(201, 151, 59, 0.14), transparent 70%),
-        url('ripatorium-3-0-share-your-hardest-passcodes-can-you-survive-v0-ltnez44omdch1.webp');
-      background-size: cover;
-      background-position: center;
+        var(--grain),
+        linear-gradient(to bottom, rgba(11, 9, 8, 0.86), rgba(8, 6, 5, 0.95)),
+        radial-gradient(ellipse 140% 70% at 50% -14%, rgba(214, 48, 30, 0.55), transparent 68%),
+        radial-gradient(ellipse 100% 60% at 50% 114%, rgba(201, 151, 59, 0.26), transparent 70%),
+        var(--arena-img, none);
+      background-size: 300px 300px, cover, cover, cover, cover;
+      background-position: center, center, center, center, center;
       background-attachment: fixed;
-      background-repeat: no-repeat;
+      background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
       color: var(--text-main);
       font-family: var(--font-body);
       min-height: 100vh;
@@ -53,45 +85,98 @@
 
     /* ============ HEADER ============ */
     header {
+      position: relative;
       text-align: center;
-      background: var(--panel-bg);
+      background:
+        radial-gradient(ellipse 80% 120% at 50% 0%, rgba(211, 55, 43, 0.16), transparent 70%),
+        var(--panel-bg);
       backdrop-filter: blur(8px);
-      padding: 26px 22px 22px;
+      padding: 30px 22px 24px;
       border-radius: 12px;
       border: 1px solid var(--panel-border);
       border-bottom: 2px solid var(--accent-red);
-      box-shadow: 0 0 35px rgba(211, 55, 43, 0.18);
+      box-shadow: 0 0 35px rgba(211, 55, 43, 0.18), inset 0 1px 0 rgba(255, 200, 180, 0.06);
       margin-bottom: 22px;
+      overflow: hidden;
+    }
+
+    /* Hairline of ember light along the top edge of the header plate. */
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--ember), transparent);
+      opacity: 0.7;
+    }
+
+    .sigil {
+      display: block;
+      width: 46px;
+      height: 46px;
+      margin: 0 auto 6px;
+      color: var(--accent-red);
+      filter: drop-shadow(0 0 10px rgba(211, 55, 43, 0.6));
     }
 
     h1 {
-      margin: 0 0 4px 0;
+      margin: 0 0 2px 0;
       font-family: var(--font-display);
-      font-weight: 900;
-      font-size: clamp(1.5rem, 4vw, 2.4rem);
-      letter-spacing: 3px;
-      color: var(--accent-red);
+      font-weight: 800;
+      font-size: clamp(1.9rem, 5.4vw, 3.4rem);
+      line-height: 1.05;
+      letter-spacing: 2px;
+      color: #ffd9cf;
       text-transform: uppercase;
-      text-shadow: 0 0 18px rgba(211, 55, 43, 0.55);
+      /* Layered rather than one blur: a tight ember core, a wide red
+         bloom, and a hard black offset so it stays readable if a bright
+         screenshot is sitting behind it. */
+      text-shadow:
+        0 1px 0 #000,
+        0 0 6px rgba(255, 106, 43, 0.85),
+        0 0 26px rgba(211, 55, 43, 0.65),
+        0 0 60px rgba(211, 55, 43, 0.35);
     }
 
     .tagline {
       margin: 0 0 20px 0;
       color: var(--text-muted);
-      font-size: 0.85rem;
-      letter-spacing: 4px;
+      font-family: var(--font-roman);
+      font-size: 0.76rem;
+      letter-spacing: 5px;
       text-transform: uppercase;
     }
+
+    /* Small ornamental rule used under the tagline and between sections. */
+    .rule {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 0 0 18px;
+      color: var(--accent-gold);
+      opacity: 0.55;
+    }
+
+    .rule::before, .rule::after {
+      content: '';
+      height: 1px;
+      width: min(120px, 22vw);
+      background: linear-gradient(90deg, transparent, currentColor);
+    }
+
+    .rule::after { background: linear-gradient(90deg, currentColor, transparent); }
 
     /* ---- Intensity segmented control ---- */
     .intensity-label {
       display: block;
-      font-family: var(--font-display);
-      font-size: 0.8rem;
-      letter-spacing: 2px;
+      font-family: var(--font-roman);
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: 3px;
       text-transform: uppercase;
       color: var(--accent-gold);
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .intensity-picker {
@@ -108,13 +193,19 @@
       font-size: 0.82rem;
       letter-spacing: 1px;
       text-transform: uppercase;
-      padding: 9px 16px;
-      border-radius: 999px;
+      padding: 9px 18px;
+      border-radius: 3px;
       border: 1px solid var(--panel-border);
-      background: var(--input-bg);
+      background: linear-gradient(180deg, rgba(58, 42, 32, 0.5), var(--input-bg));
       color: var(--text-muted);
       cursor: pointer;
       transition: all 0.18s ease;
+      box-shadow: inset 0 1px 0 rgba(255, 220, 200, 0.05);
+    }
+
+    .intensity-btn:focus-visible {
+      outline: 2px solid var(--accent-gold-bright);
+      outline-offset: 2px;
     }
 
     .intensity-btn:hover { border-color: var(--accent-gold); color: var(--text-main); }
@@ -169,15 +260,19 @@
       background: linear-gradient(180deg, #e0402f, #a52318);
       color: #fff;
       border: 1px solid #ff6a55;
-      padding: 13px 34px;
-      font-size: 1.05rem;
+      padding: 12px 40px;
+      font-size: 1.5rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 2.5px;
-      border-radius: 8px;
+      letter-spacing: 3px;
+      border-radius: 4px;
       cursor: pointer;
       transition: all 0.18s ease;
-      box-shadow: 0 4px 20px rgba(211, 55, 43, 0.45);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+      box-shadow:
+        0 4px 20px rgba(211, 55, 43, 0.45),
+        inset 0 1px 0 rgba(255, 220, 200, 0.35),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.35);
     }
 
     .btn-action:hover {
@@ -219,28 +314,44 @@
     }
 
     .overview-cell {
-      background: var(--panel-bg);
+      position: relative;
+      background:
+        linear-gradient(180deg, rgba(58, 42, 32, 0.35), transparent 60%),
+        var(--panel-bg);
       backdrop-filter: blur(8px);
       border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      padding: 12px 14px;
+      border-radius: 3px;
+      padding: 11px 14px 12px;
       text-align: center;
+      box-shadow: inset 0 1px 0 rgba(255, 220, 200, 0.06);
+    }
+
+    .overview-cell::after {
+      content: '';
+      position: absolute;
+      left: 22%; right: 22%; bottom: -1px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+      opacity: 0.4;
     }
 
     .overview-cell .ov-label {
       display: block;
-      font-size: 0.68rem;
-      letter-spacing: 2px;
+      font-family: var(--font-roman);
+      font-size: 0.6rem;
+      letter-spacing: 2.5px;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin-bottom: 5px;
+      margin-bottom: 3px;
     }
 
     .overview-cell .ov-value {
       font-family: var(--font-display);
-      font-size: 1.05rem;
+      font-size: 1.35rem;
       font-weight: 700;
+      line-height: 1.15;
       color: var(--accent-gold-bright);
+      text-shadow: 0 0 12px rgba(201, 151, 59, 0.35);
     }
 
     /* ============ MAIN GRID ============ */
@@ -262,43 +373,66 @@
       #roundsColumn { grid-column: auto; grid-row: auto; }
     }
 
+    /* Panels read as riveted iron plate: a light top bevel, a dark
+       bottom one, and a gold hairline down the leading edge. */
     .card {
+      position: relative;
       background: var(--panel-bg);
       backdrop-filter: blur(8px);
       border: 1px solid var(--panel-border);
-      border-radius: 10px;
+      border-radius: 4px;
       padding: 22px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(211, 55, 43, 0.04);
+      box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 220, 200, 0.07),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+        inset 0 0 15px rgba(211, 55, 43, 0.04);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 10px; bottom: 10px;
+      width: 2px;
+      background: linear-gradient(180deg, transparent, var(--accent-gold), transparent);
+      opacity: 0.5;
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
       border-bottom: 1px solid var(--panel-border);
       padding-bottom: 10px;
       margin-bottom: 18px;
     }
 
+    .card-header h2 { flex: 1 1 auto; min-width: 0; }
+
     h2 {
       margin: 0;
       font-family: var(--font-display);
-      font-size: 1.05rem;
+      font-size: 1.45rem;
       font-weight: 700;
-      color: var(--accent-gold);
+      color: var(--accent-gold-bright);
       text-transform: uppercase;
-      letter-spacing: 2px;
-      text-shadow: 0 0 8px rgba(201, 151, 59, 0.3);
+      letter-spacing: 1.5px;
+      line-height: 1.1;
+      text-shadow: 0 0 10px rgba(201, 151, 59, 0.35), 0 1px 0 #000;
     }
 
     .settings-section-title {
-      font-size: 0.7rem;
-      letter-spacing: 2.5px;
+      font-family: var(--font-roman);
+      font-weight: 700;
+      font-size: 0.68rem;
+      letter-spacing: 3px;
       text-transform: uppercase;
       color: var(--accent-red);
-      margin: 18px 0 6px;
+      margin: 20px 0 6px;
       padding-top: 12px;
-      border-top: 1px dashed rgba(211, 55, 43, 0.2);
+      border-top: 1px solid rgba(211, 55, 43, 0.22);
     }
 
     .settings-section-title:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
@@ -351,12 +485,13 @@
     }
 
     .chip {
-      background: var(--input-bg);
+      background: linear-gradient(180deg, rgba(58, 42, 32, 0.45), var(--input-bg));
       border: 1px solid var(--panel-border);
-      border-radius: 999px;
+      border-radius: 2px;
       padding: 5px 12px;
       font-size: 0.78rem;
       color: var(--text-main);
+      box-shadow: inset 0 1px 0 rgba(255, 220, 200, 0.05);
     }
 
     .chip b { color: var(--accent-gold-bright); font-weight: 600; }
@@ -370,12 +505,19 @@
     }
 
     .round-card {
-      background: var(--panel-bg);
+      position: relative;
+      background:
+        linear-gradient(180deg, rgba(58, 42, 32, 0.28), transparent 120px),
+        var(--panel-bg);
       backdrop-filter: blur(8px);
       border: 1px solid var(--panel-border);
-      border-radius: 10px;
-      padding: 18px 20px;
+      border-left: 3px solid var(--accent-red);
+      border-radius: 4px;
+      padding: 16px 20px 18px;
       animation: roundReveal 0.4s ease both;
+      box-shadow:
+        0 6px 22px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 220, 200, 0.06);
     }
 
     .round-card:nth-child(2) { animation-delay: 0.05s; }
@@ -401,49 +543,81 @@
     .round-title {
       font-family: var(--font-display);
       font-weight: 700;
-      font-size: 1rem;
-      letter-spacing: 2px;
-      color: var(--text-main);
+      font-size: 1.5rem;
+      line-height: 1.1;
+      letter-spacing: 1.5px;
+      color: var(--bone);
+      text-transform: uppercase;
+      text-shadow: 0 1px 0 #000;
+    }
+
+    .round-meta {
+      font-size: 0.76rem;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
       text-transform: uppercase;
     }
 
-    .round-meta { font-size: 0.78rem; color: var(--text-muted); }
-    .round-meta b { color: var(--accent-gold-bright); }
+    .round-meta b {
+      color: var(--accent-gold-bright);
+      font-size: 0.95rem;
+      font-variant-numeric: tabular-nums;
+    }
 
     .enemy-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 9px;
       padding: 5px 0;
-      border-bottom: 1px dashed rgba(211, 55, 43, 0.12);
-      font-size: 0.88rem;
+      border-bottom: 1px solid rgba(211, 55, 43, 0.10);
+      font-size: 0.9rem;
+      transition: background 0.15s ease;
     }
 
     .enemy-row:last-of-type { border-bottom: none; }
+    .enemy-row:hover { background: rgba(255, 106, 43, 0.05); }
 
     .enemy-row .enemy-name { flex: 1; }
 
     .enemy-row .enemy-count {
+      font-family: var(--font-display);
       font-weight: 700;
+      font-size: 1.15rem;
       color: var(--parry-green);
-      min-width: 34px;
+      min-width: 38px;
       text-align: right;
       font-variant-numeric: tabular-nums;
     }
 
+    /* Superheavies are meant to catch the eye when you scan a round. */
+    .enemy-row.is-superheavy .enemy-name { color: #ffb9ae; font-weight: 600; }
+    .enemy-row.is-superheavy .enemy-count { color: var(--accent-red-hover); }
+    .enemy-row.is-heavy .enemy-count { color: var(--accent-gold-bright); }
+
     .role-badge {
-      font-size: 0.6rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.58rem;
       font-weight: 700;
       letter-spacing: 1px;
       padding: 2px 7px;
-      border-radius: 4px;
+      border-radius: 2px;
       text-transform: uppercase;
       flex-shrink: 0;
+      min-width: 74px;
     }
 
-    .role-fodder { background: rgba(232, 224, 208, 0.12); color: var(--text-main); border: 1px solid rgba(232, 224, 208, 0.25); }
+    .role-badge .ic { width: 10px; height: 10px; flex-shrink: 0; }
+
+    .role-fodder { background: rgba(232, 224, 208, 0.10); color: var(--text-muted); border: 1px solid rgba(232, 224, 208, 0.20); }
     .role-heavy { background: rgba(201, 151, 59, 0.15); color: var(--accent-gold-bright); border: 1px solid rgba(201, 151, 59, 0.4); }
-    .role-superheavy { background: rgba(211, 55, 43, 0.18); color: #ff8a7d; border: 1px solid rgba(211, 55, 43, 0.5); }
+    .role-superheavy {
+      background: linear-gradient(180deg, rgba(211, 55, 43, 0.3), rgba(211, 55, 43, 0.14));
+      color: #ffb0a4;
+      border: 1px solid rgba(211, 55, 43, 0.6);
+      box-shadow: 0 0 8px rgba(211, 55, 43, 0.3);
+    }
 
     .round-totals {
       margin-top: 10px;
@@ -489,6 +663,12 @@
       text-align: center;
     }
 
+    #campaignTitle {
+      font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+      color: var(--bone);
+      text-shadow: 0 0 14px rgba(255, 106, 43, 0.28), 0 1px 0 #000;
+    }
+
     .credits-footer p { margin: 0 auto 10px; max-width: 720px; }
     .credits-footer p:last-child { margin-bottom: 0; }
 
@@ -532,15 +712,19 @@
     }
 
     .idcode {
-      margin-top: 10px;
-      padding: 6px 10px;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px dashed var(--accent-gold);
-      border-radius: 6px;
-      font-size: 0.82rem;
+      margin-top: 12px;
+      padding: 7px 11px;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.4));
+      border: 1px solid rgba(201, 151, 59, 0.45);
+      border-left: 3px solid var(--accent-gold);
+      border-radius: 2px;
+      font-family: var(--font-roman);
+      font-size: 0.7rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
       color: var(--text-muted);
       cursor: pointer;
-      transition: box-shadow 0.18s ease;
+      transition: box-shadow 0.18s ease, border-color 0.18s ease;
     }
 
     .idcode:hover { box-shadow: 0 0 10px rgba(201, 151, 59, 0.3); }
@@ -548,8 +732,9 @@
     .idcode b {
       color: var(--accent-gold-bright);
       font-family: 'Courier New', monospace;
-      font-size: 0.95rem;
-      letter-spacing: 2px;
+      font-size: 1.05rem;
+      letter-spacing: 2.5px;
+      text-shadow: 0 0 10px rgba(201, 151, 59, 0.5);
     }
 
     .idcode.unavailable {
@@ -590,10 +775,11 @@
 
     .history-entry .h-name {
       font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 0.88rem;
+      font-weight: 600;
+      font-size: 1.15rem;
+      line-height: 1.15;
       color: var(--accent-gold-bright);
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
     }
 
     .history-entry .h-meta {
@@ -612,10 +798,38 @@
 </head>
 <body>
 
+<!-- Icon sprite. These are original marks in the genre's visual language,
+     not traced from id artwork: a swarm of dots for chaff, a shield for a
+     heavy, an eight-point star for a superheavy, and a crusader cross over
+     an inverted triangle for the page sigil. Inline so the page needs no
+     image files and works with no network. -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <symbol id="ic-fodder" viewBox="0 0 24 24">
+    <circle cx="5" cy="12" r="2.6" fill="currentColor"/>
+    <circle cx="12" cy="12" r="2.6" fill="currentColor"/>
+    <circle cx="19" cy="12" r="2.6" fill="currentColor"/>
+  </symbol>
+  <symbol id="ic-heavy" viewBox="0 0 24 24">
+    <path d="M12 1.6l9 3.2v6.4c0 5.6-3.9 10-9 11.2C6.9 21.2 3 16.8 3 11.2V4.8z" fill="currentColor"/>
+  </symbol>
+  <symbol id="ic-super" viewBox="0 0 24 24">
+    <path d="M12 .8l2.9 6.6 6.9-2.9-2.9 6.9 2.9 6.9-6.9-2.9L12 23.2l-2.9-6.8-6.9 2.9 2.9-6.9L2.2 4.5l6.9 2.9z" fill="currentColor"/>
+  </symbol>
+  <symbol id="ic-sigil" viewBox="0 0 64 64">
+    <g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+      <circle cx="32" cy="32" r="24"/>
+      <path d="M14 23h36L32 54z"/>
+      <path d="M32 5v22M23 14h18"/>
+    </g>
+  </symbol>
+</svg>
+
 <div class="container">
   <header>
+    <svg class="sigil" aria-hidden="true"><use href="#ic-sigil"/></svg>
     <h1>V01D's Ripatorium Master Arenas</h1>
     <p class="tagline">Doom: The Dark Ages &mdash; Arena Randomizer</p>
+    <div class="rule" aria-hidden="true">&#10022;</div>
 
     <span class="intensity-label">Choose Your Intensity</span>
     <div class="intensity-picker" id="intensityPicker" role="radiogroup" aria-label="Intensity Level">
@@ -2043,8 +2257,18 @@
     return btn ? btn.textContent.replace(/^[^A-Za-z]+/, '').trim() : key;
   }
 
+  // "City of Ry'uul" -> "city-of-ryuul", matching the body[data-arena]
+  // rules in the stylesheet that pick up an optional local screenshot.
+  function arenaSlug(name) {
+    return String(name).toLowerCase()
+      .replace(/['\u2019]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
   function renderOverview() {
     const arenaName = document.getElementById('arena').value;
+    if (document.body && document.body.dataset) document.body.dataset.arena = arenaSlug(arenaName);
     const endlessOn = document.getElementById('endless').value === 'On';
     const timeLimit = endlessOn ? 'Endless' : document.getElementById('timeLimit').value;
     const totalSpawns = roundsData.reduce((a, r) => {
@@ -2092,8 +2316,9 @@
       let rows = activeEnemies.map(name => {
         const e = getEnemyByName(name);
         const role = e ? e.role : 'fodder';
-        return `<div class="enemy-row">
-          <span class="role-badge role-${role}">${role === 'superheavy' ? 'SUPER' : role.toUpperCase()}</span>
+        const icon = role === 'superheavy' ? 'super' : (role === 'heavy' ? 'heavy' : 'fodder');
+        return `<div class="enemy-row is-${role}">
+          <span class="role-badge role-${role}"><svg class="ic" aria-hidden="true"><use href="#ic-${icon}"/></svg>${role === 'superheavy' ? 'SUPER' : role.toUpperCase()}</span>
           <span class="enemy-name">${name}</span>
           <span class="enemy-count">&times;${r.enemies[name]}</span>
         </div>`;
