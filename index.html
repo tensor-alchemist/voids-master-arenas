@@ -843,9 +843,13 @@
   // Getting to the next wave, repositioning, picking up what dropped.
   const ROUND_OVERHEAD_SECONDS = 10;
 
-  // Headroom over the raw estimate. A fight that ends with time to spare
-  // beats one that ends on a timeout the roster never earned.
-  const TIME_SAFETY = 1.15;
+  // Headroom over the raw estimate. Set to 1.0 — none — after checking the
+  // model against nine of id's own presets: their chosen clock matches the
+  // bare estimate almost exactly (median ratio 1.0), and two of them
+  // (Sadistic, Brutality) sit well INSIDE it on purpose. id does not hand
+  // out slack, and a Ripatorium fight that cannot run out of time is not
+  // really a fight. Kept as a named constant so it can be dialled back up.
+  const TIME_SAFETY = 1.0;
 
   function timeLimitMinutes(label) {
     return parseInt(label, 10) || 5;
@@ -954,30 +958,44 @@
     // (threat-weight) budget is the constraint that actually bites,
     // instead of rounds always just maxing out on cheap fodder headcount.
     //
-    // These budgets are sized for a HARD CEILING OF 2 WAVES PER ROUND (see
-    // MAX_RESPAWNS_PER_ROUND). A round is meant to be frightening because
-    // of what walks onto the board, not because the same horde is replayed
-    // several times — so the durability budget runs high and the headcount
-    // budget deliberately does not follow it, pushing each roster toward
-    // more heavies and superheavies rather than more chaff.
-    easy: { maxDurability: 43, maxDemonCount: 24, maxSuperHeavyCount: 0, superChance: 0.0, fodderVarieties: 2, heavyVarieties: 3 },
-    balanced: { maxDurability: 66, maxDemonCount: 36, maxSuperHeavyCount: 2, superChance: 0.60, fodderVarieties: 3, heavyVarieties: 4 },
-    sweaty: { maxDurability: 82, maxDemonCount: 43, maxSuperHeavyCount: 3, superChance: 0.85, fodderVarieties: 4, heavyVarieties: 5 },
-    nightmare: { maxDurability: 92, maxDemonCount: 47, maxSuperHeavyCount: 4, superChance: 0.95, fodderVarieties: 5, heavyVarieties: 6 },
+    // Calibrated against nine of id Software's own Ripatorium presets
+    // (decoded from their passcodes). Three things those presets teach:
+    //
+    //  1. Rounds are BIG — 38 bodies on average, not 17. The chaff is the
+    //     encounter's texture: it feeds glory kills, it crowds sightlines,
+    //     it is what makes a Mancubus behind it a problem.
+    //  2. Total mass is roughly FLAT across difficulties (durability 57-83
+    //     from their Medium all the way to their hardest). Difficulty is
+    //     the MIX shifting from fodder to heavies, not the pile growing.
+    //  3. Superheavies are rare — 0.94 per round on average across all
+    //     nine presets, and never more than two of one species. They are
+    //     punctuation, not the sentence.
+    //
+    // fodderReserve is the share of a round's durability budget that
+    // heavies and superheavies may not touch. Without it the big demons
+    // spend first (they are placed first) and fodder lives on the scraps,
+    // which is exactly how our high difficulties had drifted to ~7 chaff
+    // per round against id's ~28.
+    easy: { maxDurability: 85, maxDemonCount: 75, maxSuperHeavyCount: 0, superChance: 0.0, maxSuperPerSpecies: 0, fodderReserve: 0.60, fodderVarieties: 4, heavyVarieties: 4 },
+    balanced: { maxDurability: 100, maxDemonCount: 80, maxSuperHeavyCount: 1, superChance: 0.55, maxSuperPerSpecies: 1, fodderReserve: 0.50, fodderVarieties: 4, heavyVarieties: 6 },
+    sweaty: { maxDurability: 108, maxDemonCount: 75, maxSuperHeavyCount: 2, superChance: 0.70, maxSuperPerSpecies: 2, fodderReserve: 0.42, fodderVarieties: 5, heavyVarieties: 7 },
+    nightmare: { maxDurability: 112, maxDemonCount: 68, maxSuperHeavyCount: 2, superChance: 0.80, maxSuperPerSpecies: 2, fodderReserve: 0.35, fodderVarieties: 5, heavyVarieties: 8 },
     // Ultra Nightmare: the ceiling of what the sliders can express while
     // still being a fight instead of a wall. Durability headroom over
     // Nightmare goes mostly to superheavy presence (4 bodies, guaranteed
     // roll every round incl. round 1, and a guaranteed superheavy in the
     // finale) rather than to raw headcount, which would just add noise.
-    ultranightmare: { maxDurability: 108, maxDemonCount: 52, maxSuperHeavyCount: 5, superChance: 1.0, fodderVarieties: 6, heavyVarieties: 7 },
+    ultranightmare: { maxDurability: 118, maxDemonCount: 60, maxSuperHeavyCount: 3, superChance: 0.90, maxSuperPerSpecies: 2, fodderReserve: 0.25, fodderVarieties: 5, heavyVarieties: 9 },
     // Slaughterhouse: fodderVarieties 0 is load-bearing, not cosmetic — it
     // is the switch that strips every cheap body out of the round. No
     // zombies to glory-kill for health, no imps to soak a swing: every
     // single thing on the board is a heavy or a superheavy. Headcount is
     // deliberately LOWER than Ultra Nightmare while durability runs far
-    // higher, because 28 bodies that all bite is a different (and worse)
-    // problem than 52 bodies where 30 of them are chaff.
-    slaughterhouse: { maxDurability: 125, maxDemonCount: 28, maxSuperHeavyCount: 6, superChance: 1.0, fodderVarieties: 0, heavyVarieties: 8 }
+    // higher, because 30 bodies that all bite is a different (and worse)
+    // problem than 60 bodies where 40 of them are chaff. This is the one
+    // intensity that deliberately breaks id's fodder-as-texture rule —
+    // removing the texture IS the premise — so it keeps fodderReserve 0.
+    slaughterhouse: { maxDurability: 125, maxDemonCount: 30, maxSuperHeavyCount: 6, superChance: 1.0, maxSuperPerSpecies: 3, fodderReserve: 0, fodderVarieties: 0, heavyVarieties: 9 }
   };
 
   const difficultyBlurbs = {
@@ -985,8 +1003,8 @@
     balanced: "The intended experience — real pressure, honest resources.",
     sweaty: "Heavies stack up, continuous spawning likely. Bring your fundamentals.",
     nightmare: "Superheavies from round one. The arena stops being polite.",
-    ultranightmare: "The hardest encounter the sliders can express. Superheavies every round, guaranteed superheavy finale, starved resources. Survive it once and it counts.",
-    slaughterhouse: "No fodder. No mercy. Nothing below heavy on the board, double waves every round, resources stripped to the bone. For the master of master slayers."
+    ultranightmare: "The hardest encounter the sliders can express. Superheavies every round, guaranteed superheavy finale, thin powerups. Survive it once and it counts.",
+    slaughterhouse: "No fodder. No mercy. Nothing below heavy on the board, and no Berserk or BFC to lean on. For the master of master slayers."
   };
 
   // Arenas are taken into account lightly, not as a full simulation of
@@ -1127,29 +1145,39 @@
   }
 
   // Hard ceiling on Wave Respawns for any SINGLE round, at every
-  // intensity. The game accepts up to 10, but replaying one horde that
-  // many times stops being a fight and becomes an endurance test — and a
-  // third wave already reads as padding rather than escalation. Two is the
-  // most a round gets. Intensity is expressed through WHAT walks onto the
-  // board (see the durability budgets in difficultyCaps, which are sized
-  // for exactly this ceiling), never through how many times it walks on.
-  const MAX_RESPAWNS_PER_ROUND = 2;
+  // intensity. The game accepts up to 10, but replaying one horde six or
+  // ten times stops being a fight and becomes an endurance test. Three is
+  // the most a round gets; intensity is carried mainly by WHAT walks onto
+  // the board (see the durability budgets in difficultyCaps), with wave
+  // count as a secondary dial.
+  const MAX_RESPAWNS_PER_ROUND = 3;
 
   // Campaign-wide respawn budget: a share of the campaign's own ceiling
   // (rounds x the per-round cap), rather than a flat count. Taking a
-  // FRACTION of the ceiling is the point — it guarantees some rounds land
-  // on a single wave, so a campaign has a rhythm of lulls and swells
-  // instead of every round droning at the maximum. A flat budget stopped
-  // doing that once the cap came down: on a short campaign it saturated
-  // every round. Slaughterhouse alone takes the whole ceiling.
+  // FRACTION of the ceiling is the point — it leaves room for rounds to
+  // differ from each other, so a campaign has a rhythm instead of every
+  // round droning at the same number. Even Slaughterhouse takes a share
+  // rather than the whole ceiling: pinned at the maximum it stopped
+  // reading as relentless and started reading as a constant.
   // The result can never exceed the ceiling, so distributeRespawnBudget's
   // per-round cap never has to discard overflow (which would skew the
   // arc-weighted split it just computed).
   function rollCampaignRespawnBudget(difficultyKey, totalRounds) {
     const ceiling = totalRounds * MAX_RESPAWNS_PER_ROUND;
-    if (difficultyKey === 'slaughterhouse') return ceiling;
-    const shareMap = { easy: 0.55, balanced: 0.65, sweaty: 0.72, nightmare: 0.8, ultranightmare: 0.9 };
-    const share = (shareMap[difficultyKey] || 0.6) + rand() * 0.15 - 0.05;
+    // Held below the ceiling on purpose at the top end too: at a 0.87
+    // share the relentless arc pushed the closing round to the maximum in
+    // 98% of rolls, which is a constant wearing the costume of a climax.
+    //
+    // Lowered again after decoding id's presets: across 36 of their rounds
+    // the wave count is 1 thirty times, 2 six times, and 3 never — they
+    // carry difficulty entirely in the roster and treat a repeat wave as a
+    // rare accent. Our rosters now match theirs in size, so the same
+    // restraint applies; 3 stays reachable at the top end, just rare.
+    const shareMap = {
+      easy: 0.37, balanced: 0.43, sweaty: 0.50,
+      nightmare: 0.57, ultranightmare: 0.63, slaughterhouse: 0.73
+    };
+    const share = (shareMap[difficultyKey] || 0.55) + rand() * 0.16 - 0.06;
     return Math.max(totalRounds, Math.min(ceiling, Math.round(ceiling * share)));
   }
 
@@ -1171,10 +1199,15 @@
   }
 
   // Splits a fixed total-respawn budget for the whole campaign across its
-  // rounds, following the campaign arc (peak rounds get the largest
-  // share), with the slope steepening a bit at higher difficulty. Every
-  // round gets at least 1. The returned counts always sum to exactly
-  // `budget`.
+  // rounds. The campaign arc BIASES the split (peak rounds tend to draw
+  // more), with the slope steepening a bit at higher difficulty — but the
+  // random term is deliberately wide enough that the per-round weight
+  // ranges overlap between early and late rounds. That overlap is the
+  // point: with a narrow jitter the arc won and every campaign came out in
+  // the same shape, round 1 forever on a single wave and everything after
+  // it identical. A late round can now open lighter than an early one.
+  // Every round still gets at least 1, and the counts always sum to
+  // exactly `budget`.
   function distributeRespawnBudget(totalRounds, budget, difficultyKey) {
     const PER_ROUND_CAP = MAX_RESPAWNS_PER_ROUND;
     const escalationMap = { easy: 0.7, balanced: 0.9, sweaty: 1.1, nightmare: 1.3, ultranightmare: 1.5, slaughterhouse: 1.6 };
@@ -1182,7 +1215,7 @@
     const weights = [];
     for (let i = 0; i < totalRounds; i++) {
       const progress = campaignArc(i + 1, totalRounds, difficultyKey === 'ultranightmare' || difficultyKey === 'slaughterhouse');
-      weights.push(0.5 + escalation * progress + rand() * 0.3);
+      weights.push(0.6 + escalation * progress + rand() * (0.9 + 0.6 * escalation));
     }
     const sumW = weights.reduce((a, b) => a + b, 0);
     const remaining = Math.max(0, budget - totalRounds);
@@ -1317,26 +1350,39 @@
 
     const haRoll = rand();
     let haVal = "Once";
+    // Every one of id's nine presets sets Health & Ammo to Respawn —
+    // including the ones named Sadistic and Brutality. Their difficulty
+    // lives entirely in the encounter; they hand the player the tools and
+    // then build something that needs them. We had drifted the other way,
+    // rolling None on roughly a fifth of campaigns and nearly half of
+    // Ultra Nightmares, which is a different (and cheaper) kind of hard.
     if (isSH) {
       // No fodder means no glory-kill health economy — pickups are the
-      // only tap there is, so they never go fully dry, just scarce.
-      haVal = haRoll < 0.6 ? "Once" : "Respawn";
+      // only tap there is, so they never go dry here.
+      haVal = haRoll < 0.45 ? "Once" : "Respawn";
     } else if (isUN) {
-      if (haRoll < 0.45) haVal = "None";
-      else if (haRoll < 0.9) haVal = "Once";
+      if (haRoll < 0.15) haVal = "None";
+      else if (haRoll < 0.60) haVal = "Once";
       else haVal = "Respawn";
     } else {
-      if (haRoll < Math.max(0.05, 0.20 - survivalBoost)) haVal = "None";
-      else if (haRoll < 0.70) haVal = "Once";
+      if (haRoll < Math.max(0.03, 0.10 - survivalBoost)) haVal = "None";
+      else if (haRoll < 0.40) haVal = "Once";
       else haVal = "Respawn";
     }
     document.getElementById('healthAmmo').value = haVal;
 
+    // id's presets run Berserk None in seven of nine, Once in one, and
+    // Endless in exactly one — Brutality, which pairs it with BFC 0 and a
+    // three-minute clock. Respawn appears nowhere. Ours was rolling
+    // Endless on 22% of campaigns: a standing room-clearer that quietly
+    // undoes whatever the encounter budget just built.
     const bRoll = rand();
-    let bVal = "Once";
-    if (bRoll < Math.min(isUN ? 0.75 : 0.55, 0.15 + powerRestraint)) bVal = "None";
-    else if (bRoll < 0.75) bVal = "Once";
-    else if (bRoll < 0.93 - powerRestraint) bVal = "Respawn";
+    let bVal;
+    const noneChance = Math.min(0.8, 0.55 + powerRestraint);
+    const rest = 1 - noneChance;
+    if (bRoll < noneChance) bVal = "None";
+    else if (bRoll < noneChance + rest * 0.72) bVal = "Once";
+    else if (bRoll < noneChance + rest * 0.90) bVal = "Respawn";
     else bVal = "Endless";
     if (isUN && bVal === 'Endless') bVal = 'Once'; // no free room-clearing on UN
     if (isSH) bVal = rand() < 0.7 ? 'None' : 'Once'; // Slaughterhouse: earn it
@@ -1344,11 +1390,18 @@
 
     // BFC (0-3) and .93 Shotgun (0-18) ammo pools: same restraint logic,
     // biased toward the low end as the round gets heavier.
-    const bfcMax = Math.max(1, Math.round(3 * (1 - powerRestraint)));
+    // id ships BFC 1 in eight of nine presets (0 in the ninth), averaging
+    // 0.9 — a single panic button, not a stockpile.
+    const bfcMax = Math.max(1, Math.round(2.4 * (1 - powerRestraint)));
     document.getElementById('bfcAmmo').value = Math.floor(rand() * (bfcMax + 1));
 
-    const shotgunMax = Math.max(3, Math.round(18 * (1 - powerRestraint)));
-    document.getElementById('shotgunAmmo').value = Math.floor(rand() * (shotgunMax + 1));
+    // id's presets carry 9, 10 or 18 rounds of .93 — never a starved one.
+    // Rolling toward 0 turned a weapon into a dead slider, so the pool
+    // still tightens with intensity but keeps a usable floor.
+    const shotgunMax = Math.max(6, Math.round(18 * (1 - powerRestraint)));
+    const shotgunMin = 4;
+    document.getElementById('shotgunAmmo').value =
+      shotgunMin + Math.floor(rand() * (shotgunMax - shotgunMin + 1));
 
     return bVal;
   }
@@ -1439,7 +1492,8 @@
       allFodder, allHeavy, allSuperHeavy, previousRoundEnemyNames,
       scaledMaxDurability, scaledMaxDemonCount, scaledSuperChance,
       scaledHeavyVarieties, scaledFodderVarieties,
-      roundMaxSuperHeavy, roundProgress, finaleHighNote
+      roundMaxSuperHeavy, maxSuperPerSpecies, fodderReserve,
+      roundProgress, finaleHighNote
     } = opts;
 
     let roundEnemies = {};
@@ -1451,6 +1505,12 @@
     // intensity (Slaughterhouse) it is the heavy pool, so the "top up
     // with something small" fallbacks can never smuggle a zombie in.
     const fillerPool = noFodder ? allHeavy : allFodder;
+
+    // Heavies and superheavies are placed first, so left unchecked they
+    // spend the whole durability budget and fodder gets whatever is left.
+    // Ring-fencing a share of the budget is what keeps a round's chaff
+    // layer intact — see the fodderReserve note in difficultyCaps.
+    const bigDemonBudget = scaledMaxDurability * (1 - fodderReserve);
 
     // Superheavies: supports multiple DISTINCT species in one round (up
     // to maxSuperHeavyCount total bodies). Each additional species slot
@@ -1474,10 +1534,10 @@
         const superCandidate = candidatePool[0];
         const weight = getDemonWeight(superCandidate);
         const remainingSuperBudget = roundMaxSuperHeavy - superheaviesUsed;
-        let count = Math.min(rollEnemyCount(superCandidate) || 1, remainingSuperBudget);
+        let count = Math.min(rollEnemyCount(superCandidate) || 1, remainingSuperBudget, maxSuperPerSpecies);
 
         while (count > 0 && (
-          (currentRoundDurability + (count * weight) > scaledMaxDurability) ||
+          (currentRoundDurability + (count * weight) > bigDemonBudget) ||
           (currentRoundDemonCount + count > scaledMaxDemonCount)
         )) {
           count -= superCandidate.step || 1;
@@ -1537,7 +1597,7 @@
       let heavyCount = rollEnemyCount(heavyCandidate);
 
       while (heavyCount > 0 && (
-        (currentRoundDurability + (heavyCount * hWeight) > scaledMaxDurability) ||
+        (currentRoundDurability + (heavyCount * hWeight) > bigDemonBudget) ||
         (currentRoundDemonCount + heavyCount > scaledMaxDemonCount)
       )) {
         heavyCount -= heavyCandidate.step || 1;
@@ -1863,7 +1923,9 @@
         allFodder, allHeavy, allSuperHeavy, previousRoundEnemyNames,
         scaledMaxDurability, scaledMaxDemonCount, scaledSuperChance,
         scaledHeavyVarieties, scaledFodderVarieties,
-        roundMaxSuperHeavy, roundProgress, finaleHighNote
+        roundMaxSuperHeavy, maxSuperPerSpecies: capInfo.maxSuperPerSpecies,
+        fodderReserve: capInfo.fodderReserve,
+        roundProgress, finaleHighNote
       };
       let composed = composeRound(composeOpts);
       let bestSimilarity = maxRoundSimilarity(composed.roundEnemies, roundsData);
@@ -2166,22 +2228,149 @@
   // The one legitimately unseeded roll: picking the next passcode.
   function newSeed() { return Math.floor(Math.random() * 0xFFFFFFFF) >>> 0; }
 
-  // Campaign title generator — two words of chaos, drawn from the seeded
-  // stream so a share link reproduces the name along with the fight.
+  // Campaign title generator.
+  //
+  // id names its own Ripatorium presets in the register the series has
+  // used since 1993 — "Perfect Hatred" is Doom E4M2 and "Phobos Anomaly"
+  // is E1M8, both lifted verbatim. So the vocabulary here is drawn from
+  // the same well: Ultimate Doom / Doom II / Doom 64 level names, and The
+  // Dark Ages' own proper nouns (Khalim, Hebeth, Aratum, Nerathul,
+  // Ry'uul, Kar'Thul, Lomarith, Osseus, Xal Goroth).
+  //
+  // Seven patterns, not one, because id's names aren't one shape either:
+  // "Annihilation", "Vile Shadows", "Trial of Xal Goroth" and "Slough of
+  // Despair" are four different constructions, and a generator that only
+  // ever emits Adjective+Noun sounds like a generator.
+  //
+  // Titles stay a PURE FUNCTION OF THE SEED — deliberately NOT
+  // de-duplicated against the roll history — because a share link has to
+  // reproduce the title along with the fight, and history differs per
+  // browser. Uniqueness comes from size instead.
   const nameAdjectives = [
     'Crimson', 'Howling', 'Ashen', 'Rabid', 'Molten', 'Grinning', 'Sundered',
     'Feral', 'Blackened', 'Wretched', 'Screaming', 'Seething', 'Unholy',
-    'Ravenous', 'Splintered', 'Scalding', 'Graven', 'Bleeding', 'Gnashing', 'Blistered'
+    'Ravenous', 'Splintered', 'Scalding', 'Graven', 'Bleeding', 'Gnashing',
+    'Blistered', 'Accursed', 'Baleful', 'Blighted', 'Boiling', 'Broken',
+    'Burning', 'Cindered', 'Cloven', 'Consecrated', 'Cruel', 'Damned',
+    'Desecrated', 'Dreadful', 'Endless', 'Fetid', 'Forsaken', 'Gilded',
+    'Godless', 'Hallowed', 'Hollow', 'Infernal', 'Iron', 'Jagged',
+    'Lamenting', 'Leaden', 'Livid', 'Mangled', 'Merciless', 'Mourning',
+    'Nameless', 'Obsidian', 'Perfect', 'Pitiless', 'Profane', 'Putrid',
+    'Rancid', 'Reeking', 'Relentless', 'Rending', 'Riven', 'Rotting',
+    'Ruinous', 'Rusted', 'Sacred', 'Salted', 'Sanctified', 'Savage',
+    'Scorched', 'Serrated', 'Shattered', 'Shrieking', 'Silent', 'Sinless',
+    'Smouldering', 'Sovereign', 'Squalid', 'Starving', 'Sullen', 'Tarnished',
+    'Thundering', 'Unbroken', 'Unclean', 'Unquiet', 'Unrepentant', 'Vile',
+    'Weeping', 'Withered', 'Wrathful', 'Yawning', 'Zealous'
   ];
+
   const nameNouns = [
     'Slaughter', 'Gauntlet', 'Reckoning', 'Cacophony', 'Maelstrom', 'Requiem',
     'Onslaught', 'Bloodbath', 'Carnival', 'Furnace', 'Abattoir', 'Communion',
-    'Stampede', 'Vespers', 'Meatgrinder', 'Hymn', 'Tempest', 'Ossuary', 'Bedlam', 'Liturgy'
+    'Stampede', 'Vespers', 'Meatgrinder', 'Hymn', 'Tempest', 'Ossuary',
+    'Bedlam', 'Liturgy', 'Advent', 'Anthem', 'Atrocity', 'Barrow', 'Bellows',
+    'Betrayal', 'Bonfire', 'Butchery', 'Calamity', 'Canticle', 'Cascade',
+    'Cauldron', 'Charnel', 'Choir', 'Crucible', 'Deluge', 'Dirge', 'Doctrine',
+    'Effigy', 'Elegy', 'Exodus', 'Feast', 'Forge', 'Harvest', 'Havoc',
+    'Inquisition', 'Jubilee', 'Kiln', 'Litany', 'Lullaby', 'Menagerie',
+    'Migration', 'Nocturne', 'Novena', 'Oratory', 'Overture', 'Pageant',
+    'Parade', 'Penance', 'Pilgrimage', 'Procession', 'Psalm', 'Pyre',
+    'Rapture', 'Rebuke', 'Refrain', 'Rictus', 'Sacrament', 'Sermon',
+    'Spectacle', 'Symphony', 'Threnody', 'Tithe', 'Vigil', 'Vintage', 'Wake',
+    'Winnowing', 'Zealotry', 'Antiphon', 'Benediction', 'Carrion', 'Chorus',
+    'Culling', 'Fusillade', 'Rondo', 'Scourging', 'Sepulchre', 'Toll'
   ];
 
+  // Places take "of" phrases and "The <Adjective> <Place>" — the
+  // Unholy Cathedral / Halls of the Damned / Harbor of Souls register.
+  const namePlaces = [
+    'Abyss', 'Altar', 'Ascent', 'Barrow', 'Bastion', 'Belfry', 'Bridge',
+    'Catacombs', 'Cathedral', 'Causeway', 'Cellars', 'Chancel', 'Chasm',
+    'Cloister', 'Colonnade', 'Court', 'Crossing', 'Crypt', 'Descent',
+    'Foundry', 'Gallery', 'Garrison', 'Gate', 'Grotto', 'Halls', 'Harbor',
+    'Keep', 'Kiln', 'Ladder', 'Marches', 'Mire', 'Moat', 'Nave', 'Ossuary',
+    'Pit', 'Precinct', 'Quarry', 'Rampart', 'Reliquary', 'Sanctum',
+    'Scaffold', 'Shrine', 'Slough', 'Spire', 'Stair', 'Tannery', 'Threshold',
+    'Tomb', 'Tower', 'Undercroft', 'Vault', 'Verge', 'Well', 'Yard',
+    'Gibbet', 'Bailey', 'Pyre'
+  ];
+
+  const nameGenitives = [
+    'Souls', 'the Damned', 'Ash', 'Bone', 'Cinders', 'Embers', 'Iron',
+    'Nails', 'Rust', 'Salt', 'Sinew', 'Teeth', 'Thorns', 'Viscera', 'Ruin',
+    'Sorrow', 'Despair', 'Dread', 'Hunger', 'Lament', 'Mercy', 'Penance',
+    'Silence', 'Spite', 'Wrath', 'the Faithless', 'the Unclean',
+    'the Nameless', 'the Forsaken', 'the Repentant', 'the Sightless',
+    'the Slain', 'the Sundered', 'the Unburied', 'the Unmourned',
+    'Broken Vows', 'Cold Fire', 'Dead Saints', 'Last Rites', 'Long Knives',
+    'Old Blood', 'Small Mercies', 'Black Water', 'Second Death', 'No Return',
+    'Many Mouths', 'Red Hours', 'Quiet Hands'
+  ];
+
+  // The Dark Ages' own place and demon names, plus the infernal geography
+  // Doom has always borrowed from (Erebus, Dis, Limbo, Styx and
+  // Pandemonium are all series level names).
+  const namePropers = [
+    'Khalim', 'Hebeth', 'Aratum', 'Nerathul', "Ry'uul", "Kar'Thul",
+    'Lomarith', 'Osseus', 'Xal Goroth', "Argent D'Nur", 'Nekravol', 'Deimos',
+    'Phobos', 'Erebus', 'Dis', 'Limbo', 'Pandemonium', 'Acheron', 'Cocytus',
+    'Styx', 'Gehenna', 'Tartarus', 'Malebolge', 'Abaddon', 'Belphegor',
+    'Thanatos', 'Sheol', 'Avernus'
+  ];
+
+  const nameRites = [
+    'Trial', 'Rite', 'Ordeal', 'Judgment', 'Vigil', 'Reckoning', 'Passion',
+    'Crucible', 'Gauntlet', 'Sentence', 'Verdict', 'Wake', 'Dominion',
+    'Fall', 'Siege', 'Harrowing'
+  ];
+
+  const nameSingles = [
+    'Pandemonium', 'Annihilation', 'Bloodfalls', 'Purgation', 'Attrition',
+    'Interment', 'Immolation', 'Excoriation', 'Desolation', 'Perdition',
+    'Damnation', 'Obliteration', 'Evisceration', 'Consecration',
+    'Mortification', 'Exsanguination', 'Cataclysm', 'Apostasy', 'Anathema',
+    'Iconoclasm', 'Ruination', 'Extirpation', 'Malediction', 'Abnegation',
+    'Flagellation', 'Necropolis', 'Golgotha', 'Aceldama', 'Defilement',
+    'Subjugation', 'Interregnum', 'Decimation', 'Effacement', 'Inhumation',
+    'Lamentation', 'Obsequies', 'Privation', 'Quietus', 'Recusancy',
+    'Transfixion', 'Ululation', 'Vitrification'
+  ];
+
+  // id's Episode 4 titles are half-sentences — "And Hell Followed",
+  // "They Will Repent", "Sever the Wicked", "Unto the Cruel".
+  const namePhrases = [
+    'And Hell Followed', 'Let None Remain', 'Suffer the Faithful',
+    'Cast Down the Choir', 'Nothing Kneels Here', 'Count the Dead',
+    'Feed the Furnace', 'Salt the Ground', 'Behold the Ossuary',
+    'Kneel or Burn', 'The Choir Is Silent', 'Ash Upon Ash',
+    'Blood for the Forge', 'So Ends the Hymn', 'Let the Iron Speak',
+    'No Rites Were Read', 'Deliver Us Nothing', 'Every Bell Is Broken',
+    'Nothing Was Buried', 'The Ledger Is Long', 'Pay in Teeth',
+    'Grind Them Small', 'Remember Nothing', 'Sing It Down',
+    'Wake the Hollow', 'None Shall Pass Twice', 'Bury the Bells',
+    'They Will Not Repent', 'Unto the Cruel', 'Sever What Remains',
+    'Break the Seventh Seal', 'Weep and Be Nothing', 'Here Ends the Psalm',
+    'Some Doors Open Once', 'The Bill Comes Due', 'All Roads Lead Down',
+    'Nothing Answers', 'Speak No Absolution', 'The Last Bell Rings',
+    'Hold, and Bleed'
+  ];
+
+  function pickName(list) {
+    return list[Math.floor(rand() * list.length)];
+  }
+
+  // Weights favour the large-space constructions, so the small curated
+  // pools (singles, phrases) stay flavour instead of becoming the
+  // repeat-prone majority.
   function rollCampaignName() {
-    return nameAdjectives[Math.floor(rand() * nameAdjectives.length)] + ' ' +
-           nameNouns[Math.floor(rand() * nameNouns.length)];
+    const r = rand();
+    if (r < 0.34) return pickName(nameAdjectives) + ' ' + pickName(nameNouns);
+    if (r < 0.53) return pickName(namePlaces) + ' of ' + pickName(nameGenitives);
+    if (r < 0.71) return pickName(namePropers) + ' ' + pickName(nameNouns);
+    if (r < 0.79) return pickName(nameRites) + ' of ' + pickName(namePropers);
+    if (r < 0.91) return 'The ' + pickName(nameAdjectives) + ' ' + pickName(namePlaces);
+    if (r < 0.955) return pickName(nameSingles);
+    return pickName(namePhrases);
   }
 
   function codeToSeed(code) {
@@ -2202,7 +2391,10 @@
   // history entry from an older ruleset can say so instead of quietly
   // handing back a campaign that no longer matches its own label.
   // Codes minted before this field existed decode as 0.
-  const GENERATOR_VERSION = 2;
+  // 3 = rebalanced against id Software's own decoded presets.
+  // 4 = expanded title generator (consumes a different number of RNG
+  //     draws, so the same seed no longer yields the same fight).
+  const GENERATOR_VERSION = 4;
 
   // Controls the generator rolls itself. Snapshot at generation time; a
   // share link only includes the ones the user changed afterwards, under
