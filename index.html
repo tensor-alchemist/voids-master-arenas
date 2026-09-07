@@ -6,7 +6,7 @@
   <title>Ripatorium Master Arena Randomizer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@400;600;800;900&family=Cinzel:wght@500;700;900&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Eczar:wght@500;600;700;800&family=Cinzel:wght@500;700;900&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-dark: #0b0908;
@@ -27,12 +27,14 @@
       --iron: #2a211c;
       --iron-light: #4a382e;
 
-      /* Grenze Gotisch is the closest thing on Google Fonts to The Dark
-         Ages' own display face — condensed, gothic, medieval without
-         tipping into unreadable blackletter. Cinzel stays for the small
-         inscriptional caps (the Sentinel/Argent register), Chakra Petch
-         stays for body copy because it reads like a military HUD. */
-      --font-display: 'Grenze Gotisch', 'Cinzel', 'Times New Roman', serif;
+      /* Eczar, not a blackletter. Grenze Gotisch had the right mood but
+         its capitals collapse into each other — L and C share a bowl, R
+         and A share the same angular shoulder — so "SLAUGHTERHOUSE" took
+         real effort to read. Eczar keeps the heavy, high-contrast drama
+         while every capital stays unmistakable. Cinzel stays for the
+         small inscriptional caps (the Sentinel/Argent register), Chakra
+         Petch stays for body copy because it reads like a military HUD. */
+      --font-display: 'Eczar', 'Cinzel', 'Times New Roman', serif;
       --font-roman: 'Cinzel', 'Times New Roman', serif;
       --font-body: 'Chakra Petch', 'Segoe UI', sans-serif;
 
@@ -123,9 +125,9 @@
       margin: 0 0 2px 0;
       font-family: var(--font-display);
       font-weight: 800;
-      font-size: clamp(1.9rem, 5.4vw, 3.4rem);
-      line-height: 1.05;
-      letter-spacing: 2px;
+      font-size: clamp(1.7rem, 4.6vw, 2.9rem);
+      line-height: 1.1;
+      letter-spacing: 1px;
       color: #ffd9cf;
       text-transform: uppercase;
       /* Layered rather than one blur: a tight ember core, a wide red
@@ -261,10 +263,10 @@
       color: #fff;
       border: 1px solid #ff6a55;
       padding: 12px 40px;
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 3px;
+      letter-spacing: 2.5px;
       border-radius: 4px;
       cursor: pointer;
       transition: all 0.18s ease;
@@ -347,7 +349,7 @@
 
     .overview-cell .ov-value {
       font-family: var(--font-display);
-      font-size: 1.35rem;
+      font-size: 1.15rem;
       font-weight: 700;
       line-height: 1.15;
       color: var(--accent-gold-bright);
@@ -414,7 +416,7 @@
     h2 {
       margin: 0;
       font-family: var(--font-display);
-      font-size: 1.45rem;
+      font-size: 1.25rem;
       font-weight: 700;
       color: var(--accent-gold-bright);
       text-transform: uppercase;
@@ -543,7 +545,7 @@
     .round-title {
       font-family: var(--font-display);
       font-weight: 700;
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       line-height: 1.1;
       letter-spacing: 1.5px;
       color: var(--bone);
@@ -589,6 +591,18 @@
       font-variant-numeric: tabular-nums;
     }
 
+    /* Eczar sets U+00D7 small and high, so a bare &times; next to a big
+       numeral reads as a superscript asterisk. Render the sign in the body
+       face instead and let the count keep the display face. */
+    .enemy-row .enemy-count i {
+      font-family: var(--font-body);
+      font-style: normal;
+      font-size: 0.7em;
+      font-weight: 500;
+      opacity: 0.5;
+      margin-right: 1px;
+    }
+
     /* Superheavies are meant to catch the eye when you scan a round. */
     .enemy-row.is-superheavy .enemy-name { color: #ffb9ae; font-weight: 600; }
     .enemy-row.is-superheavy .enemy-count { color: var(--accent-red-hover); }
@@ -610,7 +624,9 @@
 
     .role-badge .ic { width: 10px; height: 10px; flex-shrink: 0; }
 
-    .role-fodder { background: rgba(232, 224, 208, 0.10); color: var(--text-muted); border: 1px solid rgba(232, 224, 208, 0.20); }
+    /* Each tag matches the colour of the count on its own row: green
+       fodder, gold heavy, red superheavy. */
+    .role-fodder { background: rgba(70, 224, 125, 0.12); color: var(--parry-green); border: 1px solid rgba(70, 224, 125, 0.38); }
     .role-heavy { background: rgba(201, 151, 59, 0.15); color: var(--accent-gold-bright); border: 1px solid rgba(201, 151, 59, 0.4); }
     .role-superheavy {
       background: linear-gradient(180deg, rgba(211, 55, 43, 0.3), rgba(211, 55, 43, 0.14));
@@ -664,7 +680,7 @@
     }
 
     #campaignTitle {
-      font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+      font-size: clamp(1.15rem, 2.2vw, 1.5rem);
       color: var(--bone);
       text-shadow: 0 0 14px rgba(255, 106, 43, 0.28), 0 1px 0 #000;
     }
@@ -776,7 +792,7 @@
     .history-entry .h-name {
       font-family: var(--font-display);
       font-weight: 600;
-      font-size: 1.15rem;
+      font-size: 1.02rem;
       line-height: 1.15;
       color: var(--accent-gold-bright);
       letter-spacing: 0.5px;
@@ -1190,16 +1206,30 @@
     // spend first (they are placed first) and fodder lives on the scraps,
     // which is exactly how our high difficulties had drifted to ~7 chaff
     // per round against id's ~28.
-    easy: { maxDurability: 85, maxDemonCount: 75, maxSuperHeavyCount: 0, superChance: 0.0, maxSuperPerSpecies: 0, fodderReserve: 0.60, fodderVarieties: 4, heavyVarieties: 4 },
-    balanced: { maxDurability: 100, maxDemonCount: 80, maxSuperHeavyCount: 1, superChance: 0.55, maxSuperPerSpecies: 1, fodderReserve: 0.50, fodderVarieties: 4, heavyVarieties: 6 },
-    sweaty: { maxDurability: 108, maxDemonCount: 75, maxSuperHeavyCount: 2, superChance: 0.70, maxSuperPerSpecies: 2, fodderReserve: 0.42, fodderVarieties: 5, heavyVarieties: 7 },
-    nightmare: { maxDurability: 112, maxDemonCount: 68, maxSuperHeavyCount: 2, superChance: 0.80, maxSuperPerSpecies: 2, fodderReserve: 0.35, fodderVarieties: 5, heavyVarieties: 8 },
+    // Raised across easy..Nightmare to pay back the waves removed from
+    // shareMap: the same round is now one pass through a bigger horde
+    // instead of two passes through a smaller one. Nightmare's ceiling is
+    // set so a peak round can genuinely field ~60 bodies. Note the extra
+    // budget is steered at CHAFF (fodderReserve went up alongside it) —
+    // more zombies, not more Cyberdemons, so rounds get bigger without
+    // getting disproportionately deadlier.
+    // maxBodies is a HARD ceiling on Base Wave Demons, enforced as the last
+    // step of composeRound. maxDemonCount alone could not hold a line:
+    // it gets scaled by arena density and round progress, and three of the
+    // composition passes are allowed to overrun it on purpose (the
+    // role-mix guarantee gets 10%, the finale anchor 15%, the empty-round
+    // fallback ignores it). Nightmare was landing on 83 against a stated
+    // maximum of 60.
+    easy: { maxDurability: 82, maxDemonCount: 66, maxBodies: 52, maxSuperHeavyCount: 0, superChance: 0.0, maxSuperPerSpecies: 0, fodderReserve: 0.62, fodderVarieties: 4, heavyVarieties: 4 },
+    balanced: { maxDurability: 100, maxDemonCount: 74, maxBodies: 56, maxSuperHeavyCount: 1, superChance: 0.55, maxSuperPerSpecies: 1, fodderReserve: 0.53, fodderVarieties: 4, heavyVarieties: 6 },
+    sweaty: { maxDurability: 112, maxDemonCount: 80, maxBodies: 58, maxSuperHeavyCount: 2, superChance: 0.70, maxSuperPerSpecies: 2, fodderReserve: 0.46, fodderVarieties: 5, heavyVarieties: 7 },
+    nightmare: { maxDurability: 126, maxDemonCount: 88, maxBodies: 60, maxSuperHeavyCount: 2, superChance: 0.80, maxSuperPerSpecies: 2, fodderReserve: 0.42, fodderVarieties: 5, heavyVarieties: 8 },
     // Ultra Nightmare: the ceiling of what the sliders can express while
     // still being a fight instead of a wall. Durability headroom over
     // Nightmare goes mostly to superheavy presence (4 bodies, guaranteed
     // roll every round incl. round 1, and a guaranteed superheavy in the
     // finale) rather than to raw headcount, which would just add noise.
-    ultranightmare: { maxDurability: 118, maxDemonCount: 60, maxSuperHeavyCount: 3, superChance: 0.90, maxSuperPerSpecies: 2, fodderReserve: 0.25, fodderVarieties: 5, heavyVarieties: 9 },
+    ultranightmare: { maxDurability: 118, maxDemonCount: 60, maxBodies: 60, maxSuperHeavyCount: 3, superChance: 0.90, maxSuperPerSpecies: 2, fodderReserve: 0.25, fodderVarieties: 5, heavyVarieties: 9 },
     // Slaughterhouse: fodderVarieties 0 is load-bearing, not cosmetic — it
     // is the switch that strips every cheap body out of the round. No
     // zombies to glory-kill for health, no imps to soak a swing: every
@@ -1209,7 +1239,7 @@
     // problem than 60 bodies where 40 of them are chaff. This is the one
     // intensity that deliberately breaks id's fodder-as-texture rule —
     // removing the texture IS the premise — so it keeps fodderReserve 0.
-    slaughterhouse: { maxDurability: 125, maxDemonCount: 30, maxSuperHeavyCount: 6, superChance: 1.0, maxSuperPerSpecies: 3, fodderReserve: 0, fodderVarieties: 0, heavyVarieties: 9 }
+    slaughterhouse: { maxDurability: 125, maxDemonCount: 30, maxBodies: 40, maxSuperHeavyCount: 6, superChance: 1.0, maxSuperPerSpecies: 3, fodderReserve: 0, fodderVarieties: 0, heavyVarieties: 9 }
   };
 
   const difficultyBlurbs = {
@@ -1218,7 +1248,7 @@
     sweaty: "Heavies stack up, continuous spawning likely. Bring your fundamentals.",
     nightmare: "Superheavies from round one. The arena stops being polite.",
     ultranightmare: "The hardest encounter the sliders can express. Superheavies every round, guaranteed superheavy finale, thin powerups. Survive it once and it counts.",
-    slaughterhouse: "No fodder. No mercy. Nothing below heavy on the board, and no Berserk or BFC to lean on. For the master of master slayers."
+    slaughterhouse: "No fodder. No mercy. Nothing below heavy on the board, and no Berserk, BFC or .93 rounds to lean on. For the master of master slayers."
   };
 
   // Arenas are taken into account lightly, not as a full simulation of
@@ -1387,9 +1417,17 @@
     // carry difficulty entirely in the roster and treat a repeat wave as a
     // rare accent. Our rosters now match theirs in size, so the same
     // restraint applies; 3 stays reachable at the top end, just rare.
+    //
+    // Trimmed once more from easy through Nightmare, where 2-wave rounds
+    // had become the default rather than an accent (Nightmare was landing
+    // on 2 in three quarters of its rounds). The pressure that comes off
+    // here goes straight back into roster size — see maxDemonCount and
+    // maxDurability in difficultyCaps. Ultra Nightmare and Slaughterhouse
+    // are deliberately left where they were: repeated waves are part of
+    // what those two are for.
     const shareMap = {
-      easy: 0.37, balanced: 0.43, sweaty: 0.50,
-      nightmare: 0.57, ultranightmare: 0.63, slaughterhouse: 0.73
+      easy: 0.34, balanced: 0.39, sweaty: 0.45,
+      nightmare: 0.49, ultranightmare: 0.63, slaughterhouse: 0.73
     };
     const share = (shareMap[difficultyKey] || 0.55) + rand() * 0.16 - 0.06;
     return Math.max(totalRounds, Math.min(ceiling, Math.round(ceiling * share)));
@@ -1599,7 +1637,6 @@
     else if (bRoll < noneChance + rest * 0.90) bVal = "Respawn";
     else bVal = "Endless";
     if (isUN && bVal === 'Endless') bVal = 'Once'; // no free room-clearing on UN
-    if (isSH) bVal = rand() < 0.7 ? 'None' : 'Once'; // Slaughterhouse: earn it
     document.getElementById('berserk').value = bVal;
 
     // BFC (0-3) and .93 Shotgun (0-18) ammo pools: same restraint logic,
@@ -1616,6 +1653,19 @@
     const shotgunMin = 4;
     document.getElementById('shotgunAmmo').value =
       shotgunMin + Math.floor(rand() * (shotgunMax - shotgunMin + 1));
+
+    // Slaughterhouse gets no crutches whatsoever: no Berserk, no BFC, no
+    // .93 rounds. A flat override rather than a very low roll, because a
+    // low roll still occasionally hands out a panic button — and this
+    // intensity is defined by their absence. Health & Ammo stays on
+    // (Once/Respawn above): with no fodder there are no glory kills, so
+    // pickups are the only health economy the round has.
+    if (isSH) {
+      bVal = 'None';
+      document.getElementById('berserk').value = bVal;
+      document.getElementById('bfcAmmo').value = 0;
+      document.getElementById('shotgunAmmo').value = 0;
+    }
 
     return bVal;
   }
@@ -1706,7 +1756,7 @@
       allFodder, allHeavy, allSuperHeavy, previousRoundEnemyNames,
       scaledMaxDurability, scaledMaxDemonCount, scaledSuperChance,
       scaledHeavyVarieties, scaledFodderVarieties,
-      roundMaxSuperHeavy, maxSuperPerSpecies, fodderReserve,
+      roundMaxSuperHeavy, maxSuperPerSpecies, fodderReserve, maxBodies,
       roundProgress, finaleHighNote
     } = opts;
 
@@ -1946,6 +1996,59 @@
       }
     }
 
+    // Hard headcount ceiling, applied after every pass that is allowed to
+    // overrun its own budget. Sheds from the largest CHAFF stack first, so
+    // a round loses zombies rather than losing species variety or its
+    // big-demon anchors; heavies are only touched once fodder is gone, and
+    // superheavies last of all. Steps stay slider-aligned.
+    if (maxBodies) {
+      const shedTier = n => {
+        const e = getEnemyByName(n);
+        if (!e) return 0;
+        return e.role === 'superheavy' ? 2 : (e.role === 'heavy' ? 1 : 0);
+      };
+      const stepOf = n => {
+        const e = getEnemyByName(n);
+        return Math.min((e && e.step) || 1, roundEnemies[n]);
+      };
+      let capGuard = 0;
+      while (currentRoundDemonCount > maxBodies && capGuard < 400) {
+        const names = Object.keys(roundEnemies).filter(n => roundEnemies[n] > 0);
+        if (!names.length) break;
+        const lowest = Math.min(...names.map(shedTier));
+        const pool = names.filter(n => shedTier(n) === lowest);
+        const excess = currentRoundDemonCount - maxBodies;
+
+        // Slider steps mean we can only shed in that enemy's increment, so
+        // WHICH enemy we take from decides how much overshoot we eat. Two
+        // over the cap should cost a pair of Stone Imps (step 2), not a
+        // block of ten Soldiers. Pick the smallest step that clears the
+        // excess; if nothing single-handedly covers it, take the biggest
+        // step available and loop.
+        let pick = null, best = Infinity;
+        for (const n of pool) {
+          const step = stepOf(n);
+          if (step >= excess && step < best) { best = step; pick = n; }
+        }
+        if (!pick) {
+          let widest = 0;
+          for (const n of pool) {
+            const step = stepOf(n);
+            if (step > widest) { widest = step; pick = n; }
+          }
+        }
+        if (!pick) break;
+
+        const e = getEnemyByName(pick);
+        const step = stepOf(pick);
+        roundEnemies[pick] -= step;
+        currentRoundDemonCount -= step;
+        currentRoundDurability -= step * getDemonWeight(e || { baseWeight: 1 });
+        if (roundEnemies[pick] <= 0) delete roundEnemies[pick];
+        capGuard++;
+      }
+    }
+
     // Airspace tax, priced once against the FINAL roster. It used to be
     // charged inside the heavy pass, which runs before fodder is placed —
     // so Maykr Drone (the one fodder-class flyer) could neither be taxed
@@ -2138,7 +2241,7 @@
         scaledMaxDurability, scaledMaxDemonCount, scaledSuperChance,
         scaledHeavyVarieties, scaledFodderVarieties,
         roundMaxSuperHeavy, maxSuperPerSpecies: capInfo.maxSuperPerSpecies,
-        fodderReserve: capInfo.fodderReserve,
+        fodderReserve: capInfo.fodderReserve, maxBodies: capInfo.maxBodies,
         roundProgress, finaleHighNote
       };
       let composed = composeRound(composeOpts);
@@ -2320,7 +2423,7 @@
         return `<div class="enemy-row is-${role}">
           <span class="role-badge role-${role}"><svg class="ic" aria-hidden="true"><use href="#ic-${icon}"/></svg>${role === 'superheavy' ? 'SUPER' : role.toUpperCase()}</span>
           <span class="enemy-name">${name}</span>
-          <span class="enemy-count">&times;${r.enemies[name]}</span>
+          <span class="enemy-count"><i>&times;</i>${r.enemies[name]}</span>
         </div>`;
       }).join('');
 
@@ -2619,7 +2722,10 @@
   // 3 = rebalanced against id Software's own decoded presets.
   // 4 = expanded title generator (consumes a different number of RNG
   //     draws, so the same seed no longer yields the same fight).
-  const GENERATOR_VERSION = 4;
+  // 5 = fewer repeat waves below Ultra Nightmare, bigger rosters instead.
+  // 6 = hard per-round headcount ceiling (maxBodies).
+  // 7 = Slaughterhouse forced to zero Berserk / BFC / .93.
+  const GENERATOR_VERSION = 7;
 
   // Controls the generator rolls itself. Snapshot at generation time; a
   // share link only includes the ones the user changed afterwards, under
