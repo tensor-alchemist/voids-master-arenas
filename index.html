@@ -1067,7 +1067,7 @@
   // Calibrated by sweeping these rates against the generator's own output
   // until demons-per-minute stayed consistent across every intensity and
   // round count. Spot-check: Zombie 0.9s, Hell Knight 4.5s, Armoured
-  // Archvile 10.5s, Cyberdemon 14s, Agaddon Brute Champion 20s.
+  // Archvile 16s, Cyberdemon 14s, Agaddon Brute Champion 20s.
   const KILL_SECONDS_PER_WEIGHT = { fodder: 0.9, heavy: 1.5, superheavy: 2.0 };
 
   // Getting to the next wave, repositioning, picking up what dropped.
@@ -1102,6 +1102,22 @@
     return s * respawns * (continuousOn ? 1.15 : 1.0);
   }
 
+  // VARIANT ORDERING (Prerit's rule, enforced across the whole roster):
+  //     base < Champion < Leader        and        non-armoured < armoured
+  //
+  // Leader is the top rank, not Champion. Five families had it inverted —
+  // Agaddon, Agaddon Brute, Komodo, Vagary all put Champion above Leader,
+  // and Cosmic Baron Leader was classed `heavy` w=5.5 under a `superheavy`
+  // w=7.5 base. Fixed by swapping each pair's weights within the family, so
+  // the calibrated band (superheavy 6-10) is unchanged and only the order
+  // moves. The armoured rule was already satisfied everywhere.
+  //
+  // The two rules are independent chains and deliberately do NOT order
+  // "Leader" against "Armoured": Mancubus Leader (4.5) sits under Armoured
+  // Mancubus (5.0), and Pinky Rider Leader (4.0) under Pinky Rider Armoured
+  // (4.5). Both satisfy base < Leader and base < armoured. Left alone
+  // rather than inventing a third rule.
+  //
   // NOTE on "combat"/"flying" tags: best-effort classification layered on
   // top of the authoritative min/max/step values from the source sheet.
   // "combat": melee / ranged / mixed engagement style.
@@ -1146,13 +1162,13 @@
       { name: "Cyberdemon Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.0, combat: "mixed" },
       { name: "Cosmic Baron", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.5, combat: "mixed" },
       { name: "Agaddon Hunter", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.5, combat: "melee" },
-      { name: "Agaddon Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 8.0, combat: "melee" },
-      { name: "Agaddon Champion", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.5, combat: "melee" },
+      { name: "Agaddon Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.5, combat: "melee" },
+      { name: "Agaddon Champion", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 8.0, combat: "melee" },
       { name: "Komodo", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 6.0, combat: "mixed" },
-      { name: "Komodo Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.0, combat: "mixed" },
-      { name: "Komodo Champion", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 9.0, combat: "mixed" },
+      { name: "Komodo Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 9.0, combat: "mixed" },
+      { name: "Komodo Champion", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.0, combat: "mixed" },
       { name: "Vagary", min: 0, max: 2, step: 1, role: "superheavy", baseWeight: 6.0, combat: "ranged" },
-      { name: "Vagary Champion", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.5, combat: "ranged" }
+      { name: "Vagary Champion", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 7.5, combat: "ranged" }
     ],
     dlc: [
       { name: "Blighted Zombies", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.0, combat: "melee" },
@@ -1164,15 +1180,33 @@
       { name: "Nightmare Whiplash", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "mixed" },
       { name: "Whiplash Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "mixed" },
       { name: "Agaddon Brute", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.5, combat: "melee" },
-      { name: "Agaddon Brute Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.0, combat: "melee" },
-      { name: "Agaddon Brute Champion", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 10.0, combat: "melee" },
-      { name: "Archvile", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 5.0, combat: "ranged" },
-      { name: "Armoured Archvile", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 7.0, combat: "ranged" },
-      { name: "Cosmic Baron Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 5.5, combat: "mixed" },
+      { name: "Agaddon Brute Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 10.0, combat: "melee" },
+      { name: "Agaddon Brute Champion", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.0, combat: "melee" },
+      // Archviles are SUPERHEAVY, not heavy. They summon: the bodies on the
+      // board when the round starts are only the opening balance, and an
+      // Archvile left alive keeps refilling them while dominating the arena
+      // from range. Classed heavy at w=5/7 they were priced at 15 durability
+      // for three of them, and a Hurt Me Plenty round 1 could open with
+      // 3x Archvile + 43 fodder while reporting "superheavy: 0".
+      //
+      // id agrees. Across their 36 decoded rounds Archviles appear in only
+      // four, three of which field exactly ONE; the single 3x round is
+      // Trial of Xal Goroth round 5 — the last round of their hardest
+      // preset. Their Medium and Challenging presets contain none at all.
+      //
+      // Reclassifying hands the limiting to the existing maxSuperPerSpecies
+      // caps rather than a new knob: 0 on Aspiring Slayer, 1 on Hurt Me
+      // Plenty, 2 through Ultra Nightmare, 3 only in Slaughterhouse.
+      // Weights raised to clear the superheavy band floor (Vagary/Komodo
+      // 6.0) rather than sit under it — Armoured Archvile now prices above
+      // a Cyberdemon, which is what a summoner that armoured is worth.
+      { name: "Archvile", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.5, combat: "ranged" },
+      { name: "Armoured Archvile", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 8.0, combat: "ranged" },
+      { name: "Cosmic Baron Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.5, combat: "mixed" },
       { name: "Cosmic Elemental", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged", flying: true },
       { name: "Warlock", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
       { name: "Warlock Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged" },
-      { name: "Vagary Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 7.5, combat: "ranged" }
+      { name: "Vagary Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.5, combat: "ranged" }
     ]
   };
 
@@ -1369,6 +1403,72 @@
       if (found) return found.combat || 'mixed';
     }
     return 'mixed';
+  }
+
+  // Combat-role floor, read straight off id Software's own presets: across
+  // their 36 decoded rounds the minority engagement role NEVER falls below
+  // 3 bodies, and its smallest share of a round is 7.1% (Challenging round
+  // 3, 40 melee against 3 ranged). So a floor of "3 bodies or 7%, whichever
+  // is larger" is id's observed minimum, not a taste call.
+  //
+  // Presence alone was never enough. A round of 30 Soldiers, 3 Warlocks, a
+  // Mancubus, an Armoured Archvile and ONE Battle Knight passes a "has both
+  // roles" test while playing as a single repeated answer, and 13% of
+  // Aspiring Slayer rounds were landing exactly there.
+  const MIN_MINORITY_BODIES = 3;
+  const MIN_MINORITY_SHARE = 0.07;
+
+  // Body counts per engagement role. A "mixed" unit answers to both, so it
+  // counts toward each side rather than forming a third category.
+  function combatRoleCounts(enemies) {
+    let melee = 0, ranged = 0, total = 0;
+    for (const name of Object.keys(enemies)) {
+      const c = enemies[name];
+      if (!c) continue;
+      const role = getCombatRole(name);
+      total += c;
+      if (role === 'melee' || role === 'mixed') melee += c;
+      if (role === 'ranged' || role === 'mixed') ranged += c;
+    }
+    return { melee, ranged, total };
+  }
+
+  // ...but never demand more than half the round. id's smallest decoded
+  // round is 20 bodies; the clock trim can shred an Ultra Nightmare round
+  // down to two Agaddon Champions, and "3 bodies of the minority role" is
+  // simply not a statement about a 3-body round. Capping at half means a
+  // 2-body round asks for one of each, and a 1-body round asks for nothing
+  // — a lone Cyberdemon is a lone Cyberdemon, not a broken invariant.
+  function combatRoleFloor(total) {
+    const want = Math.max(MIN_MINORITY_BODIES, Math.ceil(total * MIN_MINORITY_SHARE));
+    return Math.min(want, Math.floor(total / 2));
+  }
+
+  // Which role a round is short of, and by how many bodies. Null once the
+  // round clears the floor. Note that adding bodies also raises the total,
+  // hence the floor — but at a 7% share that converges quickly.
+  function combatRoleDeficit(enemies) {
+    const { melee, ranged, total } = combatRoleCounts(enemies);
+    if (!total) return null;
+    const floor = combatRoleFloor(total);
+    const have = Math.min(melee, ranged);
+    if (have >= floor) return null;
+    return { role: melee <= ranged ? 'melee' : 'ranged', short: floor - have };
+  }
+
+  // True if shedding `step` of `name` would push the round below the floor.
+  // Used by both trims, which used to shed on cost alone and could take the
+  // last melee body out of a round the mix guarantee had just fixed.
+  function shedBreaksRoleFloor(enemies, name, step) {
+    const probe = Object.assign({}, enemies);
+    probe[name] = (probe[name] || 0) - step;
+    if (probe[name] <= 0) delete probe[name];
+    const before = combatRoleDeficit(enemies);
+    const after = combatRoleDeficit(probe);
+    if (!after) return false;
+    // Already short before the shed: only block sheds that make it worse.
+    if (before) return after.short > before.short;
+    return true;
   }
 
   function getEnemyByName(name) {
@@ -1689,8 +1789,9 @@
   // Greedy post-generation trim for Fixed time mode: while the round's
   // estimated clear time exceeds its share of the clock, remove one step
   // of whichever enemy sheds the most seconds. The round is never emptied,
-  // and steps stay slider-aligned, so composition (melee/ranged mix,
-  // variety) survives — only volume shrinks. With protectAnchors set
+  // and steps stay slider-aligned. The melee/ranged mix is preserved
+  // explicitly (see shedBreaksRoleFloor) rather than assumed — shedding on
+  // seconds alone does not protect it. With protectAnchors set
   // (finale rounds), fodder is exhausted before heavies and heavies
   // before superheavies, so the closing round's boss anchor is the very
   // last thing the clock is allowed to take.
@@ -1710,25 +1811,41 @@
         const lowestTier = Math.min(...names.map(trimTier));
         candidates = names.filter(n => trimTier(n) === lowestTier);
       }
+      // Shed the most seconds per step, but never at the cost of the
+      // combat-role floor while a role-safe candidate still exists. The
+      // old version selected on seconds alone and was measured creating
+      // 108 mono-role rounds per 65k — it would quietly take the last
+      // melee body out of a round the mix guarantee had just repaired.
       let best = null;
       let bestShed = -1;
+      let bestSafe = null;
+      let bestSafeShed = -1;
       for (const name of candidates) {
         const e = getEnemyByName(name);
         const step = Math.min(e ? (e.step || 1) : 1, enemies[name]);
         if (totalCount - step <= 0) continue;
         const shed = step * enemySeconds(name) * respawns * contFactor;
         if (shed > bestShed) { bestShed = shed; best = { name, step }; }
+        if (shed > bestSafeShed && !shedBreaksRoleFloor(enemies, name, step)) {
+          bestSafeShed = shed; bestSafe = { name, step };
+        }
       }
+      if (bestSafe) best = bestSafe;
       if (!best && protectAnchors && candidates.length < names.length) {
         // The protected tier is all that's left trimmable — fall through
         // to it rather than stalling above budget.
+        let fallSafe = null, fallSafeShed = -1;
         for (const name of names) {
           const e = getEnemyByName(name);
           const step = Math.min(e ? (e.step || 1) : 1, enemies[name]);
           if (totalCount - step <= 0) continue;
           const shed = step * enemySeconds(name) * respawns * contFactor;
           if (shed > bestShed) { bestShed = shed; best = { name, step }; }
+          if (shed > fallSafeShed && !shedBreaksRoleFloor(enemies, name, step)) {
+            fallSafeShed = shed; fallSafe = { name, step };
+          }
         }
+        if (fallSafe) best = fallSafe;
       }
       if (!best) break;
       enemies[best.name] -= best.step;
@@ -1964,36 +2081,105 @@
       }
     }
 
-    // Combat-role mix guarantee: if the round accidentally ended up
-    // entirely melee or entirely ranged, inject one cheap unit of the
-    // missing role (allowing a small 10% budget overflow if needed).
-    // This is the "chess" invariant: melee pressure forces movement,
-    // ranged artillery punishes it — a round with only one of the two
-    // collapses into a single repeated answer.
-    const rolesPresent = new Set(
-      Object.keys(roundEnemies).filter(n => roundEnemies[n] > 0).map(getCombatRole)
-    );
-    const hasRanged = rolesPresent.has('ranged') || rolesPresent.has('mixed');
-    const hasMelee = rolesPresent.has('melee') || rolesPresent.has('mixed');
-    const missingRole = !hasRanged ? 'ranged' : (!hasMelee ? 'melee' : null);
-    if (missingRole && currentRoundDemonCount > 0) {
-      const pool = (noFodder ? [...allHeavy, ...allSuperHeavy] : [...allFodder, ...allHeavy]).filter(e =>
-        e.combat === missingRole && !conflictsWithExisting(e.name, roundEnemies)
-      );
-      if (pool.length > 0) {
-        const pick = pool[Math.floor(rand() * pool.length)];
-        const addCount = Math.max(pick.step || 1, pick.min || 1);
-        const addWeight = getDemonWeight(pick);
-        const overflowAllowance = 1.1;
-        if (
-          currentRoundDurability + addCount * addWeight <= scaledMaxDurability * overflowAllowance &&
-          currentRoundDemonCount + addCount <= scaledMaxDemonCount * overflowAllowance
-        ) {
-          roundEnemies[pick.name] = (roundEnemies[pick.name] || 0) + addCount;
-          currentRoundDurability += addCount * addWeight;
-          currentRoundDemonCount += addCount;
-        }
+    // Combat-role mix guarantee. The "chess" invariant: melee pressure
+    // forces movement, ranged artillery punishes it, and a round answered
+    // by one repeated tactic is a worse round than a harder mixed one.
+    //
+    // Three defects fixed here, all measured against 65k generated rounds:
+    //
+    //  1. It tested PRESENCE, not proportion — one melee body in a wall of
+    //     38 hitscan passed. Now it fills to combatRoleFloor(), which is
+    //     id's own observed minimum (see MIN_MINORITY_BODIES).
+    //  2. It drew ONE random candidate and gave up if that draw did not
+    //     fit. 85% of those give-ups had a cheaper candidate sitting in the
+    //     same pool. Now the pool is walked cheapest-injection-first and
+    //     retried until the floor is met or nothing at all fits.
+    //  3. It ignored each unit's slider `max`, so a top-up could push
+    //     Chaingunner Soldier past its own ceiling of 3.
+    //
+    // "mixed" units are eligible because they satisfy both roles at once,
+    // and a unit already on the board can be topped up (its sibling
+    // conflict is already resolved). A 10% budget overflow is allowed: a
+    // mixed round slightly over budget beats a mono-role round inside it.
+    const roleOverflow = 1.1;
+    let roleGuard = 0;
+    let roleDeficit = combatRoleDeficit(roundEnemies);
+    while (roleDeficit && currentRoundDemonCount > 0 && roleGuard < 40) {
+      roleGuard++;
+      const pool = (noFodder ? [...allHeavy, ...allSuperHeavy] : [...allFodder, ...allHeavy])
+        .filter(e => e.combat === roleDeficit.role || e.combat === 'mixed')
+        .filter(e => roundEnemies[e.name] > 0 || !conflictsWithExisting(e.name, roundEnemies))
+        .map(e => ({ e, step: Math.max(e.step || 1, e.min || 1), w: getDemonWeight(e) }))
+        .sort((a, b) => (a.step * a.w) - (b.step * b.w));
+      let added = false;
+      for (const { e, step, w } of pool) {
+        const existing = roundEnemies[e.name] || 0;
+        if (existing + step > e.max) continue;
+        if (currentRoundDurability + step * w > scaledMaxDurability * roleOverflow) continue;
+        if (currentRoundDemonCount + step > scaledMaxDemonCount * roleOverflow) continue;
+        roundEnemies[e.name] = existing + step;
+        currentRoundDurability += step * w;
+        currentRoundDemonCount += step;
+        added = true;
+        break;
       }
+      if (!added) break;
+      roleDeficit = combatRoleDeficit(roundEnemies);
+    }
+
+    // Swap fallback, for rounds that cannot AFFORD the missing role.
+    // Measured cause of 89% of the residual: Slaughterhouse fields no
+    // fodder, so the cheapest melee body available is a weight-3 heavy,
+    // and a ~13-body round has already spent its durability on
+    // superheavies. Adding is impossible; trading is not.
+    //
+    // So exchange mass rather than adding it — drop a majority-role unit
+    // and buy a minority-role one with the freed budget. This keeps the
+    // round exactly as heavy as it was (no crutch, no overflow) and is a
+    // pure composition change, which is where difficulty is supposed to
+    // live. An Agaddon Champion traded for a Vagary Champion is no softer;
+    // it is just a fight with two answers instead of one.
+    let swapGuard = 0;
+    while (roleDeficit && currentRoundDemonCount > 0 && swapGuard < 20) {
+      swapGuard++;
+      const wanted = (noFodder ? [...allHeavy, ...allSuperHeavy] : [...allFodder, ...allHeavy])
+        .filter(e => e.combat === roleDeficit.role || e.combat === 'mixed')
+        .filter(e => roundEnemies[e.name] > 0 || !conflictsWithExisting(e.name, roundEnemies))
+        .map(e => ({ e, step: Math.max(e.step || 1, e.min || 1), w: getDemonWeight(e) }))
+        .sort((a, b) => (a.step * a.w) - (b.step * b.w));
+      // Sell from the majority role only, heaviest first, and never empty
+      // the round or strip its last species.
+      const sellable = Object.keys(roundEnemies)
+        .filter(n => roundEnemies[n] > 0 && getCombatRole(n) !== roleDeficit.role && getCombatRole(n) !== 'mixed')
+        .map(n => {
+          const e = getEnemyByName(n);
+          const step = Math.min((e && e.step) || 1, roundEnemies[n]);
+          return { name: n, step, w: getEnemyWeightByName(n) };
+        })
+        .filter(x => currentRoundDemonCount - x.step > 0)
+        .sort((a, b) => (b.step * b.w) - (a.step * a.w));
+
+      let swapped = false;
+      for (const sell of sellable) {
+        const freedDur = sell.step * sell.w;
+        const freedCount = sell.step;
+        for (const buy of wanted) {
+          const existing = (roundEnemies[buy.e.name] || 0);
+          if (existing + buy.step > buy.e.max) continue;
+          if (currentRoundDurability - freedDur + buy.step * buy.w > scaledMaxDurability * roleOverflow) continue;
+          if (currentRoundDemonCount - freedCount + buy.step > scaledMaxDemonCount * roleOverflow) continue;
+          roundEnemies[sell.name] -= sell.step;
+          if (roundEnemies[sell.name] <= 0) delete roundEnemies[sell.name];
+          roundEnemies[buy.e.name] = existing + buy.step;
+          currentRoundDurability += buy.step * buy.w - freedDur;
+          currentRoundDemonCount += buy.step - freedCount;
+          swapped = true;
+          break;
+        }
+        if (swapped) break;
+      }
+      if (!swapped) break;
+      roleDeficit = combatRoleDeficit(roundEnemies);
     }
 
     // Hard headcount ceiling, applied after every pass that is allowed to
@@ -2025,17 +2211,27 @@
         // block of ten Soldiers. Pick the smallest step that clears the
         // excess; if nothing single-handedly covers it, take the biggest
         // step available and loop.
+        // Two-tier candidate list: sheds that preserve the combat-role
+        // floor are tried first. Only if EVERY candidate would break it do
+        // we allow one through — the headcount cap is hard, so the loop
+        // must always be able to make progress.
+        const safe = pool.filter(n => !shedBreaksRoleFloor(roundEnemies, n, stepOf(n)));
+        const tiers = safe.length ? [safe, pool] : [pool];
+
         let pick = null, best = Infinity;
-        for (const n of pool) {
-          const step = stepOf(n);
-          if (step >= excess && step < best) { best = step; pick = n; }
-        }
-        if (!pick) {
-          let widest = 0;
-          for (const n of pool) {
+        for (const tier of tiers) {
+          for (const n of tier) {
             const step = stepOf(n);
-            if (step > widest) { widest = step; pick = n; }
+            if (step >= excess && step < best) { best = step; pick = n; }
           }
+          if (!pick) {
+            let widest = 0;
+            for (const n of tier) {
+              const step = stepOf(n);
+              if (step > widest) { widest = step; pick = n; }
+            }
+          }
+          if (pick) break;
         }
         if (!pick) break;
 
@@ -2725,7 +2921,16 @@
   // 5 = fewer repeat waves below Ultra Nightmare, bigger rosters instead.
   // 6 = hard per-round headcount ceiling (maxBodies).
   // 7 = Slaughterhouse forced to zero Berserk / BFC / .93.
-  const GENERATOR_VERSION = 7;
+  // 8 = combat-role mix enforced as a proportion (>=3 bodies or 7% of the
+  //     round, id's own observed minimum) instead of mere presence, and
+  //     both trims taught to respect it.
+  // 9 = Archviles reclassified heavy -> superheavy (they summon), so the
+  //     per-species superheavy caps now limit them: 0 on Aspiring Slayer,
+  //     1 on Hurt Me Plenty, 3 only in Slaughterhouse.
+  // 10 = variant ordering enforced: base < Champion < Leader (five families
+  //      had Champion above Leader) and Cosmic Baron Leader promoted to
+  //      superheavy to sit above its own base.
+  const GENERATOR_VERSION = 10;
 
   // Controls the generator rolls itself. Snapshot at generation time; a
   // share link only includes the ones the user changed afterwards, under
@@ -2758,7 +2963,12 @@
     const rm = meta % 2; meta = Math.floor(meta / 2);
     const rc = meta % 8; meta = Math.floor(meta / 8);
     const cf = meta % 2; meta = Math.floor(meta / 2);
-    const gv = meta % 8;
+    // The version is the LAST field, so it takes the whole remainder — it
+    // used to be masked `% 8`, which silently wrapped version 8 back to 0
+    // and stamped every fresh code as stale. packShareCode leaves 21 bits
+    // above the 32-bit seed and 13 bits of settings, so this holds a
+    // version up to 255 before the 2^53 integer limit bites.
+    const gv = meta;
     return {
       seed,
       generator: gv,
