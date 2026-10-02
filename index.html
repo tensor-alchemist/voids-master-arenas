@@ -285,6 +285,69 @@
 
     .btn-action:active { transform: translateY(1px); }
 
+    /* ---- Slaughter Mode switch ---- */
+    .slaughter-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 14px;
+      padding: 7px 14px 7px 8px;
+      border-radius: 3px;
+      border: 1px solid var(--panel-border);
+      background: linear-gradient(180deg, rgba(58, 42, 32, 0.5), var(--input-bg));
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.82rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .slaughter-toggle:hover { border-color: var(--accent-gold); color: var(--text-main); }
+    .slaughter-toggle:focus-visible { outline: 2px solid var(--accent-gold-bright); outline-offset: 2px; }
+    .sm-track {
+      position: relative;
+      width: 34px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--iron);
+      border: 1px solid var(--iron-light);
+      transition: background 0.18s ease, border-color 0.18s ease;
+      flex-shrink: 0;
+    }
+    .sm-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: transform 0.18s ease, background 0.18s ease;
+    }
+    .sm-state {
+      min-width: 2.2em;
+      text-align: left;
+      color: var(--text-muted);
+    }
+    .slaughter-toggle.on {
+      border-color: var(--ember);
+      color: #ffe6d9;
+      background: linear-gradient(180deg, rgba(255, 106, 43, 0.28), rgba(40, 8, 2, 0.7));
+      box-shadow: 0 0 14px rgba(255, 106, 43, 0.45);
+    }
+    .slaughter-toggle.on .sm-track { background: rgba(255, 106, 43, 0.35); border-color: var(--ember); }
+    .slaughter-toggle.on .sm-knob { transform: translateX(16px); background: #ffd2bd; }
+    .slaughter-toggle.on .sm-state { color: var(--ember); }
+    .slaughter-desc {
+      max-width: 560px;
+      margin: -6px auto 16px;
+      color: #e9b49b;
+      font-size: 0.85rem;
+    }
+    .chip.chip-slaughter { border-color: var(--ember); color: var(--ember); }
+
     /* ============ USAGE NOTE ============ */
     details.usage-note {
       background: var(--panel-bg);
@@ -425,20 +488,6 @@
       text-shadow: 0 0 10px rgba(201, 151, 59, 0.35), 0 1px 0 #000;
     }
 
-    .settings-section-title {
-      font-family: var(--font-roman);
-      font-weight: 700;
-      font-size: 0.68rem;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--accent-red);
-      margin: 20px 0 6px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(211, 55, 43, 0.22);
-    }
-
-    .settings-section-title:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
-
     .form-group {
       display: flex;
       justify-content: space-between;
@@ -497,6 +546,76 @@
     }
 
     .chip b { color: var(--accent-gold-bright); font-weight: 600; }
+
+    [hidden] { display: none !important; }
+
+    /* Editable chips: the chip wraps the real control, styled to read as
+       the chip's value. One place to see a setting, one place to change it. */
+    .chip-edit {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      font-weight: 400;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .chip-edit:hover { border-color: var(--accent-gold); }
+    .chip-edit:focus-within {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 8px rgba(211, 55, 43, 0.5);
+    }
+    .chip-edit select,
+    .chip-edit input[type="number"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      margin: 0;
+      padding: 0 13px 0 0;
+      max-width: none;
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: 600;
+      color: var(--accent-gold-bright);
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23c9973b'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right center;
+      background-size: 8px 5px;
+    }
+    .chip-edit input[type="number"] {
+      -moz-appearance: textfield;
+      width: 2.4em;
+      padding: 0;
+      background-image: none;
+      cursor: text;
+    }
+    .chip-edit input[type="number"]::-webkit-inner-spin-button,
+    .chip-edit input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .chip-edit select:focus,
+    .chip-edit input:focus { box-shadow: none; border: none; }
+    .chip-edit select option { background: var(--panel-bg-solid); color: var(--text-main); }
+    .chip-edit select:disabled {
+      background: transparent;
+      border: none;
+      opacity: 1;
+      color: var(--accent-gold-bright);
+      padding-right: 0;
+      cursor: default;
+    }
+    .chip-edit.locked,
+    .chip-edit.disabled { cursor: default; }
+    .chip-edit.locked:hover,
+    .chip-edit.disabled:hover { border-color: var(--panel-border); }
+
+    .panel-note {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      margin: 10px 0 0;
+    }
 
     .arena-desc {
       color: var(--text-muted);
@@ -635,20 +754,6 @@
       box-shadow: 0 0 8px rgba(211, 55, 43, 0.3);
     }
 
-    .round-totals {
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid var(--panel-border);
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .round-totals b { color: var(--text-main); }
-
     .btn-secondary {
       font-family: var(--font-body);
       background: transparent;
@@ -727,38 +832,68 @@
       margin-top: 2px;
     }
 
-    .idcode {
-      margin-top: 12px;
+    /* ---- Passcodes on the campaign card ---- */
+    .passcode-block { margin-top: 14px; }
+    .passcode-heading {
+      display: block;
+      font-family: var(--font-roman);
+      font-weight: 700;
+      font-size: 0.68rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
+      margin-bottom: 8px;
+    }
+    .passcode-list { display: flex; flex-direction: column; gap: 6px; }
+    .pc-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      text-align: left;
       padding: 7px 11px;
       background: linear-gradient(180deg, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.4));
       border: 1px solid rgba(201, 151, 59, 0.45);
       border-left: 3px solid var(--accent-gold);
       border-radius: 2px;
-      font-family: var(--font-roman);
-      font-size: 0.7rem;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
+      font-family: var(--font-body);
+      font-size: 0.78rem;
       color: var(--text-muted);
       cursor: pointer;
       transition: box-shadow 0.18s ease, border-color 0.18s ease;
     }
-
-    .idcode:hover { box-shadow: 0 0 10px rgba(201, 151, 59, 0.3); }
-
-    .idcode b {
+    .pc-row:hover { box-shadow: 0 0 10px rgba(201, 151, 59, 0.3); }
+    .pc-row:focus-visible { outline: 2px solid var(--accent-gold-bright); outline-offset: 2px; }
+    .pc-round {
+      font-family: var(--font-display);
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--bone);
+      min-width: 5.2em;
+    }
+    .pc-waves { min-width: 4.6em; text-transform: uppercase; letter-spacing: 0.5px; }
+    .pc-code {
+      flex: 1 1 auto;
       color: var(--accent-gold-bright);
       font-family: 'Courier New', monospace;
-      font-size: 1.05rem;
+      font-size: 1.02rem;
       letter-spacing: 2.5px;
       text-shadow: 0 0 10px rgba(201, 151, 59, 0.5);
+      overflow-wrap: anywhere;
     }
-
-    .idcode.unavailable {
-      cursor: default;
-      border-color: rgba(255, 255, 255, 0.15);
+    .pc-copy {
+      font-family: var(--font-roman);
+      font-size: 0.66rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent-gold);
     }
+    .pc-row.unavailable { cursor: default; border-color: rgba(255, 255, 255, 0.15); }
+    .pc-row.unavailable:hover { box-shadow: none; }
+    .pc-missing { flex: 1 1 auto; font-style: italic; }
 
-    .idcode.unavailable:hover { box-shadow: none; }
+    .rounds-toggle { margin-top: 14px; }
 
     /* ============ ROLL HISTORY ============ */
     /* Desktop: pinned under the settings card in the left grid column.
@@ -796,6 +931,23 @@
       line-height: 1.15;
       color: var(--accent-gold-bright);
       letter-spacing: 0.5px;
+    }
+
+    .history-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .history-btn { padding: 6px 12px; font-size: 0.72rem; }
+    .history-btn:disabled,
+    .history-btn:disabled:hover { opacity: 0.35; cursor: default; box-shadow: none; background: transparent; }
+    .history-count {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
     }
 
     .history-entry .h-meta {
@@ -847,6 +999,17 @@
     <p class="tagline">Doom: The Dark Ages &mdash; Arena Randomizer</p>
     <div class="rule" aria-hidden="true">&#10022;</div>
 
+    <button type="button" class="slaughter-toggle" id="slaughterToggle" role="switch" aria-checked="false"
+      aria-describedby="slaughterDesc">
+      <span class="sm-track" aria-hidden="true"><span class="sm-knob"></span></span>
+      <span class="sm-label">Slaughter Mode</span>
+      <span class="sm-state">Off</span>
+    </button>
+    <p class="slaughter-desc" id="slaughterDesc" hidden>
+      Five escalating rounds, two to four waves each, with Endless and Continuous Spawning always on.
+      Each round hits harder than the last. Your intensity still decides which demons show up.
+    </p>
+
     <span class="intensity-label">Choose Your Intensity</span>
     <div class="intensity-picker" id="intensityPicker" role="radiogroup" aria-label="Intensity Level">
       <button class="intensity-btn" data-value="easy" role="radio" aria-checked="false" tabindex="-1">Aspiring Slayer</button>
@@ -863,7 +1026,7 @@
 
   <details class="usage-note">
     <summary>How to use this tool</summary>
-    Each round card shows an <strong>In-game passcode</strong> &mdash; click it to copy, then paste
+    The campaign card lists an <strong>In-game passcode</strong> for every round &mdash; click one to copy, then paste
     it into the Ripatorium's passcode field and the game sets every demon slider for that round
     automatically (we reverse-engineered id Software's passcode format to make this work). Global
     Settings and Wave Respawns still need entering by hand &mdash; they aren't part of id's passcode
@@ -882,27 +1045,11 @@
 
   <div class="grid-layout">
 
-    <!-- LEFT PANEL: GLOBAL SETTINGS -->
+    <!-- LEFT PANEL: what you choose BEFORE rolling. Everything the roll
+         decides lives on the campaign card's chips, which are the controls. -->
     <div class="card">
       <div class="card-header">
-        <h2>Arena Settings</h2>
-      </div>
-
-      <p class="settings-section-title">Battleground</p>
-      <div class="form-group">
-        <label for="arena">Arena</label>
-        <select id="arena" onchange="renderResults()">
-          <optgroup label="Base Arenas">
-            <option value="City of Ry'uul">City of Ry'uul</option>
-            <option value="Village of Khalim">Village of Khalim</option>
-            <option value="Harbor of Souls">Harbor of Souls</option>
-          </optgroup>
-          <optgroup label="Expansion &amp; DLC Arenas" id="dlcArenaGroup">
-            <option value="Hell's Core">Hell's Core</option>
-            <option value="Osseus">Osseus</option>
-            <option value="Classic Hell">Classic Hell</option>
-          </optgroup>
-        </select>
+        <h2>Generator Options</h2>
       </div>
 
       <div class="form-group">
@@ -913,24 +1060,7 @@
         </select>
       </div>
 
-      <p class="settings-section-title">Rules of Engagement</p>
-      <div class="form-group">
-        <label for="endless">Endless Mode</label>
-        <select id="endless" onchange="updateEndlessState(); renderResults()">
-          <option value="Off">Off</option>
-          <option value="On">On</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="continuous">Continuous Spawning</label>
-        <select id="continuous" onchange="renderResults()">
-          <option value="Off">Off</option>
-          <option value="On">On</option>
-        </select>
-      </div>
-
-      <div class="form-group">
+      <div class="form-group std-only">
         <label for="timeMode">Time Limit Mode</label>
         <select id="timeMode" onchange="generateBalancedArena()">
           <option value="auto">Auto &mdash; Scale Time to Fight</option>
@@ -938,22 +1068,7 @@
         </select>
       </div>
 
-      <div class="form-group">
-        <label for="timeLimit">Global Time Limit</label>
-        <select id="timeLimit" onchange="onTimeLimitChange()">
-          <option value="1 Minute">1 Minute</option>
-          <option value="3 Minutes">3 Minutes</option>
-          <option value="5 Minutes" selected>5 Minutes</option>
-          <option value="8 Minutes">8 Minutes</option>
-          <option value="10 Minutes">10 Minutes</option>
-          <option value="13 Minutes">13 Minutes</option>
-          <option value="15 Minutes">15 Minutes</option>
-          <option value="18 Minutes">18 Minutes</option>
-          <option value="20 Minutes">20 Minutes</option>
-        </select>
-      </div>
-
-      <div class="form-group">
+      <div class="form-group std-only">
         <label for="roundMode">Round Count Mode</label>
         <select id="roundMode" onchange="generateBalancedArena()">
           <option value="random" selected>Randomized Rounds (1-5)</option>
@@ -961,40 +1076,14 @@
         </select>
       </div>
 
-      <div class="form-group" id="manualRoundContainer" style="display: none;">
+      <div class="form-group std-only" id="manualRoundContainer" style="display: none;">
         <label for="roundCounts">Fixed Round Count (1-5)</label>
         <input type="number" id="roundCounts" min="1" max="5" value="3" onchange="generateBalancedArena()">
       </div>
 
-      <p class="settings-section-title">Resources &amp; Powerups</p>
-      <div class="form-group">
-        <label for="healthAmmo">Health &amp; Ammo Pickups</label>
-        <select id="healthAmmo" onchange="renderResults()">
-          <option value="None">None</option>
-          <option value="Once">Once</option>
-          <option value="Respawn">Respawn</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="berserk">Berserk Powerup</label>
-        <select id="berserk" onchange="renderResults()">
-          <option value="None">None</option>
-          <option value="Once">Once</option>
-          <option value="Respawn">Respawn</option>
-          <option value="Endless">Endless</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="bfcAmmo">BFC Ammo (0-3)</label>
-        <input type="number" id="bfcAmmo" min="0" max="3" value="1" onchange="renderResults()">
-      </div>
-
-      <div class="form-group">
-        <label for="shotgunAmmo">.93 Shotgun Ammo (0-18)</label>
-        <input type="number" id="shotgunAmmo" min="0" max="18" value="12" step="1" onchange="renderResults()">
-      </div>
+      <p class="panel-note" id="slaughterPanelNote" hidden>
+        Slaughter Mode sets the format: five rounds, two to four waves each, Endless and Continuous Spawning on.
+      </p>
     </div>
 
     <!-- RIGHT PANEL: GENERATED CAMPAIGN -->
@@ -1007,9 +1096,65 @@
             <button class="btn-secondary" onclick="copySetup()">Copy Setup</button>
           </div>
         </div>
-        <div id="globalConfigBody">Generating arena preset data...</div>
+        <div id="globalConfigBody">
+          <div class="config-chips">
+            <span class="chip chip-slaughter" id="chipSlaughter" hidden>Slaughter Mode</span>
+            <label class="chip chip-edit">Arena: <select id="arena" onchange="renderResults()">
+          <optgroup label="Base Arenas">
+            <option value="City of Ry'uul">City of Ry'uul</option>
+            <option value="Village of Khalim">Village of Khalim</option>
+            <option value="Harbor of Souls">Harbor of Souls</option>
+          </optgroup>
+          <optgroup label="Expansion &amp; DLC Arenas" id="dlcArenaGroup">
+            <option value="Hell's Core">Hell's Core</option>
+            <option value="Osseus">Osseus</option>
+            <option value="Classic Hell">Classic Hell</option>
+          </optgroup>
+        </select></label>
+            <label class="chip chip-edit" id="chipEndless">Endless: <select id="endless" onchange="updateEndlessState(); renderResults()">
+          <option value="Off">Off</option>
+          <option value="On">On</option>
+        </select></label>
+            <label class="chip chip-edit" id="chipContinuous">Continuous Spawning: <select id="continuous" onchange="renderResults()">
+          <option value="Off">Off</option>
+          <option value="On">On</option>
+        </select></label>
+            <label class="chip chip-edit" id="chipTime">Time: <select id="timeLimit" onchange="onTimeLimitChange()">
+          <option value="1 Minute">1 Minute</option>
+          <option value="3 Minutes">3 Minutes</option>
+          <option value="5 Minutes" selected>5 Minutes</option>
+          <option value="8 Minutes">8 Minutes</option>
+          <option value="10 Minutes">10 Minutes</option>
+          <option value="13 Minutes">13 Minutes</option>
+          <option value="15 Minutes">15 Minutes</option>
+          <option value="18 Minutes">18 Minutes</option>
+          <option value="20 Minutes">20 Minutes</option>
+        </select><b id="timeNA" hidden>N/A (Endless)</b></label>
+            <label class="chip chip-edit">Health/Ammo: <select id="healthAmmo" onchange="renderResults()">
+          <option value="None">None</option>
+          <option value="Once">Once</option>
+          <option value="Respawn">Respawn</option>
+        </select></label>
+            <label class="chip chip-edit">Berserk: <select id="berserk" onchange="renderResults()">
+          <option value="None">None</option>
+          <option value="Once">Once</option>
+          <option value="Respawn">Respawn</option>
+          <option value="Endless">Endless</option>
+        </select></label>
+            <label class="chip chip-edit">BFC Ammo: <input type="number" id="bfcAmmo" min="0" max="3" value="1" onchange="renderResults()"></label>
+            <label class="chip chip-edit">.93 Shotgun: <input type="number" id="shotgunAmmo" min="0" max="18" value="12" step="1" onchange="renderResults()"></label>
+          </div>
+          <div class="passcode-block">
+            <span class="passcode-heading">In-game passcodes</span>
+            <div class="passcode-list" id="passcodeList"></div>
+          </div>
+          <p class="arena-desc" id="arenaDesc"></p>
+          <div id="campaignNotes"></div>
+          <button type="button" class="btn-secondary rounds-toggle" id="roundsToggle"
+            aria-expanded="false" aria-controls="roundCardsContainer">Show demons</button>
+        </div>
       </div>
-      <div id="roundCardsContainer"></div>
+      <div id="roundCardsContainer" hidden></div>
     </div>
 
     <!-- LEFT PANEL, BELOW SETTINGS: ROLL HISTORY -->
@@ -1045,6 +1190,10 @@
 <script>
   let roundsData = [];
   let currentDifficulty = 'balanced';
+  // Slaughter Mode is a campaign FORMAT layered on top of the chosen
+  // intensity, not a seventh intensity: the intensity still decides what
+  // walks onto the board, Slaughter Mode decides the shape of the night.
+  let slaughterMode = false;
   let campaignInfo = { intensityScore: 0, fitNote: '', versionNote: '' };
 
   const timeOrder = ["1 Minute", "3 Minutes", "5 Minutes", "8 Minutes", "10 Minutes", "13 Minutes", "15 Minutes", "18 Minutes", "20 Minutes"];
@@ -1495,6 +1644,52 @@
   // the board (see the durability budgets in difficultyCaps), with wave
   // count as a secondary dial.
   const MAX_RESPAWNS_PER_ROUND = 3;
+
+  // ---- Slaughter Mode (id's new game mode) ----
+  // Fixed format: 5 rounds, Endless and Continuous Spawning always on,
+  // 2-4 wave respawns per round, and every round heavier than the last.
+  //
+  // Balance comes from one rule: a round with W waves fields each wave at
+  // 1/sqrt(W) of a normal round's budget, so the round's TOTAL work grows
+  // with sqrt(W) rather than W. Four waves is twice the fight of one, not
+  // four times. Combined with the linear campaign arc (0.7 -> 1.1 of the
+  // intensity's budget) and Continuous Spawning's 0.85 trim, the opener
+  // lands near 0.85x a normal round at that intensity and the finale near
+  // 1.9x — roughly the intensity's own worst normal 2-wave peak, only now
+  // it is round five of five rather than a one-off spike.
+  const SLAUGHTER_ROUNDS = 5;
+  // Per-intensity budget scalar, so Slaughter Mode is the SAME step up on
+  // every intensity. Without it the 1/sqrt rule alone made an average
+  // Slaughter Mode round 1.87x a normal round on Aspiring Slayer (whose
+  // normal rounds are nearly all single-wave) but 0.95x on Slaughterhouse
+  // (whose normal rounds already run 2-3 waves with no wave pressure) —
+  // the hardest intensity got EASIER in the harder mode. Calibrated by
+  // measurement so an average Slaughter Mode round costs ~1.3x a normal
+  // round at the same intensity: the opener lighter than normal, the
+  // finale about double. slaughter.js asserts the band.
+  const SLAUGHTER_BUDGET = {
+    easy: 0.70, balanced: 0.75, sweaty: 0.92,
+    nightmare: 1.00, ultranightmare: 1.23, slaughterhouse: 1.52
+  };
+  // Escalation fallback: if no composition attempt out-weighs the previous
+  // round, the round's budget grows in these steps and composes again.
+  const SLAUGHTER_ESCALATION_STEPS = [1, 1.08, 1.16, 1.25, 1.35, 1.5];
+  const SLAUGHTER_MIN_WAVES = 2;
+  const SLAUGHTER_MAX_WAVES = 4;
+
+  // Opens at the minimum and closes at the maximum, with the middle three
+  // rounds drawn freely and sorted — so waves never step DOWN between
+  // rounds, but the climb has ten possible shapes (2-2-2-2-4 through
+  // 2-4-4-4-4) instead of always the same staircase.
+  function slaughterWaveSchedule() {
+    const span = SLAUGHTER_MAX_WAVES - SLAUGHTER_MIN_WAVES + 1;
+    const middle = [];
+    for (let i = 0; i < SLAUGHTER_ROUNDS - 2; i++) {
+      middle.push(SLAUGHTER_MIN_WAVES + Math.floor(rand() * span));
+    }
+    middle.sort((a, b) => a - b);
+    return [SLAUGHTER_MIN_WAVES, ...middle, SLAUGHTER_MAX_WAVES];
+  }
 
   // Campaign-wide respawn budget: a share of the campaign's own ceiling
   // (rounds x the per-round cap), rather than a flat count. Taking a
@@ -2266,6 +2461,9 @@
   // twice.
   const MAX_ROUND_SIMILARITY = 0.5;
   const COMPOSE_ATTEMPTS = 10;
+  // Slaughter Mode is also hunting for a round heavier than the last one,
+  // so it gets a deeper retry budget than the dissimilarity check alone.
+  const SLAUGHTER_COMPOSE_ATTEMPTS = 24;
 
   function roundSimilarity(enemiesA, enemiesB) {
     const a = Object.keys(enemiesA).filter(n => enemiesA[n] > 0);
@@ -2284,16 +2482,28 @@
     rngState = currentSeed | 0;
     campaignInfo.name = rollCampaignName();
     const difficultyKey = currentDifficulty;
-    const fitToTime = document.getElementById('timeMode').value === 'fixed';
+    // Slaughter Mode runs Endless, which ignores the clock entirely, so
+    // "fit the fight to N minutes" has nothing to fit to.
+    const fitToTime = !slaughterMode && document.getElementById('timeMode').value === 'fixed';
     const fitMinutes = timeLimitMinutes(document.getElementById('timeLimit').value);
-    const continuousOn = rollEndlessAndContinuous(difficultyKey, fitToTime);
+    let continuousOn;
+    if (slaughterMode) {
+      document.getElementById('endless').value = 'On';
+      document.getElementById('continuous').value = 'On';
+      continuousOn = true;
+    } else {
+      continuousOn = rollEndlessAndContinuous(difficultyKey, fitToTime);
+    }
     const selectedArena = rollArena();
 
     const mode = document.getElementById('roundMode').value;
     const manualContainer = document.getElementById('manualRoundContainer');
 
     let totalRounds = 3;
-    if (mode === 'random') {
+    if (slaughterMode) {
+      manualContainer.style.display = 'none';
+      totalRounds = SLAUGHTER_ROUNDS;
+    } else if (mode === 'random') {
       manualContainer.style.display = 'none';
       totalRounds = Math.floor(rand() * 5) + 1;
     } else {
@@ -2339,6 +2549,11 @@
 
     let previousRoundEnemyNames = new Set();
     let campaignDurabilityFractions = [];
+    // Slaughter Mode's escalation guarantee is measured in estimated clear
+    // seconds (all waves, Continuous Spawning included) — the same model
+    // the time limits use, so "harder" means "more fight", not "bigger
+    // number on one slider".
+    let previousRoundLoad = 0;
 
     // Campaign-wide respawn budget — a share of rounds x the per-round
     // cap, spread across the rounds along the campaign arc. Rounds that
@@ -2351,7 +2566,9 @@
       // the window (roughly 0.8 waves per minute), floored at 1 per round.
       campaignRespawnBudget = Math.max(totalRounds, Math.min(campaignRespawnBudget, Math.round(fitMinutes * 0.8)));
     }
-    const respawnAllocation = distributeRespawnBudget(totalRounds, campaignRespawnBudget, difficultyKey);
+    const respawnAllocation = slaughterMode
+      ? slaughterWaveSchedule()
+      : distributeRespawnBudget(totalRounds, campaignRespawnBudget, difficultyKey);
 
     // Fixed time mode: split the player's clock into a per-round seconds
     // budget — the exact inverse of autoScaleTimeLimit, in the same units —
@@ -2372,7 +2589,14 @@
 
       // Campaign arc: round 1 is a fair warm-up, intensity peaks late in
       // the campaign, and (below Ultra Nightmare) the finale eases off.
-      const roundProgress = campaignArc(r, totalRounds, relentless);
+      // Slaughter Mode escalates on every intensity: a straight climb with
+      // no post-peak release. Only the ARC goes relentless — composeRound
+      // still gets the intensity's own `relentless`, because that flag
+      // also forces a superheavy into the finale, and Aspiring Slayer
+      // fields none.
+      const roundProgress = slaughterMode
+        ? (r - 1) / (totalRounds - 1)
+        : campaignArc(r, totalRounds, relentless);
 
       // Finale high note: the arc ramps VOLUME down after the peak, but
       // the closing round keeps peak-level SPECTACLE — full superheavy
@@ -2393,11 +2617,17 @@
       // knocked them straight down to 2 and flattened every roster into
       // singles — the opposite of what this intensity pass is for.
       // Slaughterhouse opts out; "no bar held" is its whole premise.
-      const respawnPressure = isSH ? 1 : 1 - (roundRespawns - 1) * 0.12;
+      // Slaughter Mode swaps in the 1/sqrt(waves) rule (see SLAUGHTER_ROUNDS)
+      // and applies it to Slaughterhouse too: four waves of superheavies on
+      // Continuous Spawning with no bar held is not a fight anyone finishes.
+      const respawnPressure = slaughterMode
+        ? 1 / Math.sqrt(roundRespawns)
+        : (isSH ? 1 : 1 - (roundRespawns - 1) * 0.12);
       const roundMaxSuperHeavy = capInfo.maxSuperHeavyCount;
 
-      let scaledMaxDurability = Math.round(capInfo.maxDurability * (0.7 + 0.4 * roundProgress) * continuousCapFactor * respawnPressure);
-      let scaledMaxDemonCount = Math.round(capInfo.maxDemonCount * (0.8 + 0.25 * roundProgress) * continuousCapFactor * respawnPressure * (selectedArena.densityMult || 1.0));
+      const modeBudget = slaughterMode ? (SLAUGHTER_BUDGET[difficultyKey] || 1) : 1;
+      let scaledMaxDurability = Math.round(capInfo.maxDurability * (0.7 + 0.4 * roundProgress) * continuousCapFactor * respawnPressure * modeBudget);
+      let scaledMaxDemonCount = Math.round(capInfo.maxDemonCount * (0.8 + 0.25 * roundProgress) * continuousCapFactor * respawnPressure * modeBudget * (selectedArena.densityMult || 1.0));
       const scaledSuperChance = capInfo.superChance * (0.5 + 0.5 * qualityProgress);
       const scaledHeavyVarieties = Math.max(1, Math.round(capInfo.heavyVarieties * (0.7 + 0.45 * qualityProgress)) - (selectedArena.varietyShift || 0));
       const scaledFodderVarieties = noFodder
@@ -2442,12 +2672,39 @@
       };
       let composed = composeRound(composeOpts);
       let bestSimilarity = maxRoundSimilarity(composed.roundEnemies, roundsData);
-      for (let attempt = 1; attempt < COMPOSE_ATTEMPTS && bestSimilarity > MAX_ROUND_SIMILARITY; attempt++) {
-        const retry = composeRound(composeOpts);
-        const similarity = maxRoundSimilarity(retry.roundEnemies, roundsData);
-        if (similarity < bestSimilarity) {
-          bestSimilarity = similarity;
-          composed = retry;
+      if (slaughterMode) {
+        // Two requirements, in priority order: the round must out-weigh
+        // the one before it (the escalation rule), and it should differ
+        // from every earlier round (the usual dissimilarity rule). If no
+        // attempt escalates — a run of same-wave rounds near their caps
+        // can plateau — the budget steps up and the round composes again,
+        // so escalation is enforced through the normal composition rules
+        // rather than by bolting bodies on afterwards.
+        const loadOf = c => roundSeconds(c.roundEnemies, roundRespawns, true);
+        const score = c => ({ esc: loadOf(c) > previousRoundLoad, sim: maxRoundSimilarity(c.roundEnemies, roundsData) });
+        const better = (a, b) => (a.esc !== b.esc) ? a.esc : a.sim < b.sim;
+        let best = score(composed);
+        for (const boost of SLAUGHTER_ESCALATION_STEPS) {
+          const opts = boost === 1 ? composeOpts : Object.assign({}, composeOpts, {
+            scaledMaxDurability: Math.round(scaledMaxDurability * boost),
+            scaledMaxDemonCount: Math.round(scaledMaxDemonCount * boost)
+          });
+          for (let attempt = 0; attempt < SLAUGHTER_COMPOSE_ATTEMPTS && !(best.esc && best.sim <= MAX_ROUND_SIMILARITY); attempt++) {
+            const retry = composeRound(opts);
+            const sc = score(retry);
+            if (better(sc, best)) { best = sc; composed = retry; }
+          }
+          if (best.esc) break;
+        }
+        bestSimilarity = best.sim;
+      } else {
+        for (let attempt = 1; attempt < COMPOSE_ATTEMPTS && bestSimilarity > MAX_ROUND_SIMILARITY; attempt++) {
+          const retry = composeRound(composeOpts);
+          const similarity = maxRoundSimilarity(retry.roundEnemies, roundsData);
+          if (similarity < bestSimilarity) {
+            bestSimilarity = similarity;
+            composed = retry;
+          }
         }
       }
       const roundEnemies = composed.roundEnemies;
@@ -2469,7 +2726,14 @@
       });
 
       previousRoundEnemyNames = new Set(Object.keys(roundEnemies).filter(n => roundEnemies[n] > 0));
-      campaignDurabilityFractions.push(currentRoundDurability / capInfo.maxDurability);
+      if (slaughterMode) {
+        previousRoundLoad = roundSeconds(roundEnemies, roundRespawns, true);
+        // Undo the per-wave pressure so the resource roll sees the round
+        // as sized for its intensity, not as an artificially light one.
+        campaignDurabilityFractions.push(currentRoundDurability * Math.sqrt(roundRespawns) / capInfo.maxDurability);
+      } else {
+        campaignDurabilityFractions.push(currentRoundDurability / capInfo.maxDurability);
+      }
     }
 
     campaignInfo.intensityScore = campaignDurabilityFractions.reduce((a, b) => a + b, 0) / campaignDurabilityFractions.length;
@@ -2545,8 +2809,11 @@
     const endlessOn = document.getElementById('endless').value === 'On';
     const timeLimitSelect = document.getElementById('timeLimit');
     timeLimitSelect.disabled = endlessOn;
-    const timeLimitGroup = timeLimitSelect.closest('.form-group');
-    if (timeLimitGroup) timeLimitGroup.classList.toggle('disabled', endlessOn);
+    timeLimitSelect.hidden = endlessOn;
+    const na = document.getElementById('timeNA');
+    if (na) na.hidden = !endlessOn;
+    const chip = timeLimitSelect.closest('.chip');
+    if (chip) chip.classList.toggle('disabled', endlessOn);
   }
 
   /* ================= RENDERING ================= */
@@ -2568,40 +2835,67 @@
   function renderOverview() {
     const arenaName = document.getElementById('arena').value;
     if (document.body && document.body.dataset) document.body.dataset.arena = arenaSlug(arenaName);
-    const endlessOn = document.getElementById('endless').value === 'On';
-    const timeLimit = endlessOn ? 'Endless' : document.getElementById('timeLimit').value;
     const totalSpawns = roundsData.reduce((a, r) => {
       const base = Object.values(r.enemies).reduce((x, y) => x + y, 0);
       return a + base * r.respawns;
     }, 0);
     const totalWaves = roundsData.reduce((a, r) => a + r.respawns, 0);
     document.getElementById('overviewStrip').innerHTML = `
-      <div class="overview-cell"><span class="ov-label">Arena</span><span class="ov-value">${arenaName}</span></div>
       <div class="overview-cell"><span class="ov-label">Intensity</span><span class="ov-value">${difficultyLabel(currentDifficulty)}</span></div>
       <div class="overview-cell"><span class="ov-label">Rounds</span><span class="ov-value">${roundsData.length}</span></div>
       <div class="overview-cell"><span class="ov-label">Waves</span><span class="ov-value">${totalWaves}</span></div>
-      <div class="overview-cell"><span class="ov-label">Time Limit</span><span class="ov-value">${timeLimit}</span></div>
       <div class="overview-cell"><span class="ov-label">Total Spawns</span><span class="ov-value">${totalSpawns}</span></div>`;
   }
 
+  // The chips ARE the controls (each wraps the real select/input), so this
+  // only refreshes the parts around them. Rebuilding the chip markup here
+  // would destroy the controls the generator reads and writes.
   function renderGlobalConfig() {
-    const arenaName = document.getElementById('arena').value;
-    const arenaInfo = getArenaByName(arenaName);
-    const endlessOn = document.getElementById('endless').value === 'On';
+    const arenaInfo = getArenaByName(document.getElementById('arena').value);
     document.getElementById('campaignTitle').textContent = campaignInfo.name || 'Generated Campaign';
-    document.getElementById('globalConfigBody').innerHTML = `
-      <div class="config-chips">
-        <span class="chip">Endless: <b>${document.getElementById('endless').value}</b></span>
-        <span class="chip">Continuous Spawning: <b>${document.getElementById('continuous').value}</b></span>
-        <span class="chip">Time: <b>${endlessOn ? 'N/A (Endless)' : document.getElementById('timeLimit').value}</b></span>
-        <span class="chip">Health/Ammo: <b>${document.getElementById('healthAmmo').value}</b></span>
-        <span class="chip">Berserk: <b>${document.getElementById('berserk').value}</b></span>
-        <span class="chip">BFC Ammo: <b>${document.getElementById('bfcAmmo').value}</b></span>
-        <span class="chip">.93 Shotgun: <b>${document.getElementById('shotgunAmmo').value}</b></span>
-      </div>
-      <p class="arena-desc">${arenaInfo.desc}</p>
+    document.getElementById('chipSlaughter').hidden = !slaughterMode;
+    document.getElementById('arenaDesc').textContent = arenaInfo.desc;
+    document.getElementById('campaignNotes').innerHTML = `
       ${campaignInfo.fitNote ? `<p class="fit-note">&#9202; ${campaignInfo.fitNote}</p>` : ''}
       ${campaignInfo.versionNote ? `<p class="stale-note">&#9888; ${campaignInfo.versionNote}</p>` : ''}`;
+  }
+
+  // One switch for every round's roster. The passcode list on the
+  // campaign card is what you need to set a round up; the demon lists are
+  // there on demand. Remembered between visits like the other settings.
+  let showRounds = false;
+
+  function setShowRounds(on) {
+    showRounds = !!on;
+    document.getElementById('roundCardsContainer').hidden = !showRounds;
+    const btn = document.getElementById('roundsToggle');
+    if (btn) {
+      btn.setAttribute('aria-expanded', showRounds ? 'true' : 'false');
+      btn.textContent = showRounds ? 'Hide demons' : 'Show demons';
+    }
+  }
+
+  function renderPasscodeList() {
+    const list = document.getElementById('passcodeList');
+    if (!list) return;
+    list.innerHTML = roundsData.map((r, idx) => {
+      const pass = idPasscode(r.enemies);
+      const waves = `${r.respawns} wave${r.respawns > 1 ? 's' : ''}`;
+      if (!pass.code) {
+        return `<div class="pc-row unavailable">
+          <span class="pc-round">Round ${idx + 1}</span>
+          <span class="pc-waves">${waves}</span>
+          <span class="pc-missing">Unavailable &mdash; not yet mapped: ${pass.blockers.join(', ')}</span>
+        </div>`;
+      }
+      return `<button type="button" class="pc-row" onclick="copyTextToClipboard('${pass.code}', 'Round ${idx + 1} passcode copied &#10003;')"
+        title="Copy, then enter it in the Ripatorium passcode field — it sets every demon slider for this round. Wave Respawns still need entering by hand.">
+        <span class="pc-round">Round ${idx + 1}</span>
+        <span class="pc-waves">${waves}</span>
+        <b class="pc-code">${pass.code}</b>
+        <span class="pc-copy">Copy</span>
+      </button>`;
+    }).join('');
   }
 
   function renderRoundCards() {
@@ -2623,31 +2917,27 @@
         </div>`;
       }).join('');
 
-      const pass = idPasscode(r.enemies);
-      const passHtml = pass.code
-        ? `<div class="idcode" onclick="copyTextToClipboard('${pass.code}', 'Passcode copied &#10003;')" title="Click to copy, then enter it in the Ripatorium passcode field — it sets every demon slider for this round. Respawns and arena settings still need entering by hand.">In-game passcode: <b>${pass.code}</b></div>`
-        : `<div class="idcode unavailable">In-game passcode unavailable &mdash; not yet mapped: ${pass.blockers.join(', ')}</div>`;
-
       html += `<div class="round-card">
         <div class="round-title-row">
           <span class="round-title">Round ${idx + 1}</span>
-          <span class="round-meta">Wave Respawns: <b>${r.respawns}</b></span>
+          <span class="round-meta">Waves <b>${r.respawns}</b> &middot; Demons <b>${totalDemons}</b> &middot; Total Spawns <b>${totalDemons * r.respawns}</b></span>
         </div>
         ${rows}
-        ${passHtml}
-        <div class="round-totals">
-          <span>Base Wave Demons: <b>${totalDemons}</b></span>
-          <span>Total Round Spawns: <b>${totalDemons * r.respawns}</b></span>
-        </div>
       </div>`;
     });
     container.innerHTML = html;
   }
 
+  document.getElementById('roundsToggle').addEventListener('click', () => {
+    setShowRounds(!showRounds);
+    saveState();
+  });
+
   function renderResults() {
     updateEndlessState();
     renderOverview();
     renderGlobalConfig();
+    renderPasscodeList();
     renderRoundCards();
     renderHistory();
     saveState();
@@ -2931,6 +3221,8 @@
   //      had Champion above Leader) and Cosmic Baron Leader promoted to
   //      superheavy to sit above its own base.
   const GENERATOR_VERSION = 10;
+  // Width of the version field in a share code (see packShareCode).
+  const GENERATOR_VERSION_SPAN = 128;
 
   // Controls the generator rolls itself. Snapshot at generation time; a
   // share link only includes the ones the user changed afterwards, under
@@ -2947,8 +3239,13 @@
     const rm = document.getElementById('roundMode').value === 'manual' ? 1 : 0;
     const rc = Math.min(7, Math.max(0, (parseInt(document.getElementById('roundCounts').value) || 3) - 1));
     const cf = baseGameOnly() ? 1 : 0;
-    const meta = diffIdx + 8 * (tm + 2 * (ti + 16 * (rm + 2 * (rc + 8 * (cf + 2 * GENERATOR_VERSION)))));
-    // meta tops out at 2^16, so the packed value stays well under 2^53
+    const sm = slaughterMode ? 1 : 0;
+    // Bit layout above the 32-bit seed: 13 bits of settings, a 7-bit
+    // generator version, then the Slaughter Mode flag on top. Putting the
+    // flag ABOVE the version means every code minted before it existed
+    // already reads sm = 0, so old links keep decoding exactly as before.
+    // 13 + 7 + 1 = 21 bits, the most that fits under the 2^53 limit.
+    const meta = diffIdx + 8 * (tm + 2 * (ti + 16 * (rm + 2 * (rc + 8 * (cf + 2 * (GENERATOR_VERSION + GENERATOR_VERSION_SPAN * sm))))));
     return ((currentSeed >>> 0) + meta * 4294967296).toString(36).toUpperCase();
   }
 
@@ -2963,15 +3260,15 @@
     const rm = meta % 2; meta = Math.floor(meta / 2);
     const rc = meta % 8; meta = Math.floor(meta / 8);
     const cf = meta % 2; meta = Math.floor(meta / 2);
-    // The version is the LAST field, so it takes the whole remainder — it
-    // used to be masked `% 8`, which silently wrapped version 8 back to 0
-    // and stamped every fresh code as stale. packShareCode leaves 21 bits
-    // above the 32-bit seed and 13 bits of settings, so this holds a
-    // version up to 255 before the 2^53 integer limit bites.
-    const gv = meta;
+    // The version field used to be masked `% 8`, which silently wrapped
+    // version 8 back to 0 and stamped every fresh code as stale. It is now
+    // 7 bits (versions up to 127), with the Slaughter Mode flag above it.
+    const gv = meta % GENERATOR_VERSION_SPAN;
+    const sm = Math.floor(meta / GENERATOR_VERSION_SPAN) % 2;
     return {
       seed,
       generator: gv,
+      slaughter: sm === 1,
       difficulty: shareDiffOrder[diffIdx] || 'balanced',
       timeMode: tm ? 'fixed' : 'auto',
       timeLimit: timeOrder[ti] || '5 Minutes',
@@ -3023,6 +3320,7 @@
     const cfg = unpackShareCode(compact);
     if (!cfg) return false;
     if (difficultyCaps[cfg.difficulty]) currentDifficulty = cfg.difficulty;
+    setSlaughterMode(cfg.slaughter, false);
     applyControlValue('timeMode', cfg.timeMode);
     applyControlValue('timeLimit', cfg.timeLimit);
     applyControlValue('roundMode', cfg.roundMode);
@@ -3068,6 +3366,13 @@
   // metadata — a full roundsData copy would be redundant.
   const HISTORY_KEY = 'ripatorium-history-v1';
   const HISTORY_MAX = 10;
+  // The card shows one horde at a time; 0 is the most recent roll.
+  let historyPage = 0;
+
+  function stepHistoryPage(delta) {
+    historyPage += delta;
+    renderHistory();
+  }
 
   function loadHistory() {
     try {
@@ -3083,10 +3388,11 @@
       // Revisiting an old roll regenerates it — keep its place in the
       // list rather than duplicating or reshuffling under the player.
       if (h.some(e => e && e.q === q)) return;
+      historyPage = 0;
       h.unshift({
         q,
         name: campaignInfo.name,
-        diff: difficultyLabel(currentDifficulty),
+        diff: difficultyLabel(currentDifficulty) + (slaughterMode ? ' · Slaughter Mode' : ''),
         arena: document.getElementById('arena').value,
         rounds: roundsData.length,
         ts: Date.now()
@@ -3124,20 +3430,30 @@
     const h = loadHistory();
     if (!h.length) {
       list.innerHTML = '<p class="arena-desc">Your last ' + HISTORY_MAX + ' rolls will be remembered here.</p>';
+      historyPage = 0;
       return;
     }
+    historyPage = Math.max(0, Math.min(historyPage, h.length - 1));
+    const e = h[historyPage];
     const currentQ = buildShareLink().split('?')[1];
-    list.innerHTML = h.map(e => {
-      const isCurrent = e.q === currentQ;
-      const stale = !isCurrent && historyEntryIsStale(e);
-      return `<div class="history-entry${isCurrent ? ' current' : ''}"
+    const isCurrent = e.q === currentQ;
+    const stale = !isCurrent && historyEntryIsStale(e);
+    const atNewest = historyPage === 0;
+    const atOldest = historyPage === h.length - 1;
+    list.innerHTML = `<div class="history-entry${isCurrent ? ' current' : ''}"
         ${isCurrent ? '' : `onclick="restoreHistoryEntry('${e.q}')"`}
         title="${isCurrent ? 'This is the current horde' : 'Click to bring this horde back'}">
         <div class="h-name">${e.name || 'Unnamed Horde'}</div>
         <div class="h-meta">${e.diff} &middot; ${e.arena} &middot; ${e.rounds} round${e.rounds > 1 ? 's' : ''} &middot; ${relTime(e.ts)}</div>
         ${stale ? '<div class="h-stale">&#9888; older ruleset &mdash; will reroll differently</div>' : ''}
+      </div>
+      <div class="history-nav">
+        <button type="button" class="btn-secondary history-btn" onclick="stepHistoryPage(-1)"
+          ${atNewest ? 'disabled' : ''} aria-label="Previous (newer) horde">&lsaquo; Previous</button>
+        <span class="history-count" aria-live="polite">${historyPage + 1} / ${h.length}</span>
+        <button type="button" class="btn-secondary history-btn" onclick="stepHistoryPage(1)"
+          ${atOldest ? 'disabled' : ''} aria-label="Next (older) horde">Next &rsaquo;</button>
       </div>`;
-    }).join('');
   }
 
   /* ================= PERSISTENCE ================= */
@@ -3154,6 +3470,8 @@
       persistedControls.forEach(id => { controls[id] = document.getElementById(id).value; });
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         difficulty: currentDifficulty,
+        slaughterMode,
+        showRounds,
         seed: currentSeed,
         controls,
         roundsData,
@@ -3177,6 +3495,8 @@
         }
       });
       currentDifficulty = saved.difficulty || 'balanced';
+      slaughterMode = saved.slaughterMode === true;
+      showRounds = saved.showRounds === true;
       roundsData = saved.roundsData;
       campaignInfo = saved.campaignInfo || campaignInfo;
       return true;
@@ -3190,13 +3510,14 @@
   function buildExportText() {
     const endlessOn = document.getElementById('endless').value === 'On';
     const arenaName = document.getElementById('arena').value;
-    let out = `=== ${(campaignInfo.name || 'Ripatorium Setup').toUpperCase()} — ${difficultyLabel(currentDifficulty).toUpperCase()} ===\n`;
+    let out = `=== ${(campaignInfo.name || 'Ripatorium Setup').toUpperCase()} — ${difficultyLabel(currentDifficulty).toUpperCase()}${slaughterMode ? ' — SLAUGHTER MODE' : ''} ===\n`;
     // The campaign-level identifier is the share URL. The old export
     // printed a bare base-36 seed under the label "Passcode", which
     // nothing in the app or the game accepts — and it collided with the
     // round-level "In-Game Passcode" below, which is a real, usable code.
     out += `Share link: ${buildShareLink()}\n`;
     out += `Arena: ${arenaName}\n`;
+    if (slaughterMode) out += `Game Mode: Slaughter Mode\n`;
     out += `Endless Mode: ${document.getElementById('endless').value}\n`;
     out += `Continuous Spawning: ${document.getElementById('continuous').value}\n`;
     out += `Global Time Limit: ${endlessOn ? 'N/A (Endless Mode)' : document.getElementById('timeLimit').value}\n`;
@@ -3271,6 +3592,52 @@
     if (regenerate) generateBalancedArena();
   }
 
+  // Slaughter Mode locks the controls its format fixes. Values are left
+  // as the player set them — they're simply ignored while the mode is on —
+  // so switching it back off returns the player's own round and time
+  // settings rather than whatever the mode forced.
+  const SLAUGHTER_LOCKED = ['endless', 'continuous', 'timeMode', 'roundMode', 'roundCounts'];
+  const SLAUGHTER_LOCK_TITLE = 'Set by Slaughter Mode';
+
+  function setSlaughterMode(on, regenerate) {
+    slaughterMode = !!on;
+    const btn = document.getElementById('slaughterToggle');
+    if (btn) {
+      btn.setAttribute('aria-checked', slaughterMode ? 'true' : 'false');
+      btn.classList.toggle('on', slaughterMode);
+      const state = btn.querySelector('.sm-state');
+      if (state) state.textContent = slaughterMode ? 'On' : 'Off';
+    }
+    const desc = document.getElementById('slaughterDesc');
+    if (desc) desc.hidden = !slaughterMode;
+    SLAUGHTER_LOCKED.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.disabled = slaughterMode;
+      const chip = el.closest && el.closest('.chip');
+      if (chip) {
+        chip.classList.toggle('locked', slaughterMode);
+        chip.title = slaughterMode ? SLAUGHTER_LOCK_TITLE : '';
+      }
+    });
+    // The format controls mean nothing in Slaughter Mode — hide them
+    // rather than leave greyed-out rows that look broken.
+    document.querySelectorAll('.std-only').forEach(el => { el.hidden = slaughterMode; });
+    const note = document.getElementById('slaughterPanelNote');
+    if (note) note.hidden = !slaughterMode;
+    if (slaughterMode) {
+      document.getElementById('manualRoundContainer').style.display = 'none';
+    } else {
+      document.getElementById('manualRoundContainer').style.display =
+        document.getElementById('roundMode').value === 'manual' ? 'flex' : 'none';
+    }
+    if (regenerate) generateBalancedArena();
+  }
+
+  document.getElementById('slaughterToggle').addEventListener('click', () => {
+    setSlaughterMode(!slaughterMode, true);
+  });
+
   document.getElementById('intensityPicker').addEventListener('click', e => {
     const btn = e.target.closest('.intensity-btn');
     if (btn) setDifficulty(btn.dataset.value, true);
@@ -3300,9 +3667,17 @@
   });
 
   window.onload = function () {
+    // Read the demons-shown preference first: a shared link skips
+    // loadState, and would otherwise reset it on the visitor's next save.
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      setShowRounds(!!(saved && saved.showRounds === true));
+    } catch (e) { setShowRounds(false); }
     if (loadFromUrl()) return;
     const restored = loadState();
     setDifficulty(currentDifficulty, false);
+    setSlaughterMode(slaughterMode, false);
+    setShowRounds(showRounds);
     applyContentFilterUI();
     document.getElementById('manualRoundContainer').style.display =
       document.getElementById('roundMode').value === 'manual' ? 'flex' : 'none';
