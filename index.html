@@ -1083,7 +1083,7 @@
     </button>
     <p class="slaughter-desc" id="slaughterDesc" hidden>
       Five rounds. Twenty minutes. Each descent darker than the last &mdash;
-      and the final gate opens on a handful of demons, none of them small.
+      and the final gate opens on twelve demons, none of them small.
     </p>
 
     <span class="intensity-label">Choose Your Intensity</span>
@@ -1454,8 +1454,11 @@
       // superheavy caps now limit it: none on Aspiring Slayer, one on
       // Hurt Me Plenty.
       { name: "Cosmic Elemental", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.0, combat: "ranged", flying: true },
-      { name: "Warlock", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
-      { name: "Warlock Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged" },
+      // Warlocks are SUPERHEAVY (Prerit, 2026-10-06), like the Archviles
+      // and Cosmic Elemental. Warlock sits at the superheavy floor (6.0);
+      // its Leader keeps the usual Leader step above its base.
+      { name: "Warlock", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.0, combat: "ranged" },
+      { name: "Warlock Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 8.0, combat: "ranged" },
       { name: "Vagary Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.5, combat: "ranged" }
     ]
   };
@@ -1763,19 +1766,31 @@
   const SLAUGHTER_LADDER = ['balanced', 'sweaty', 'nightmare', 'ultranightmare', 'slaughterhouse'];
   const SLAUGHTER_ROUNDS = SLAUGHTER_LADDER.length;
   const SLAUGHTER_BODIES = 60;
-  // ...except the Slaughterhouse rung, which fields 10-15 (Prerit: 60 was
-  // a cliff, 15-25 still "too high and difficult"). It is a boss round —
-  // fewer bodies, every one heavy or worse — so it escalates in threat
-  // PER DEMON rather than in total clear time; at 10-15 bodies it cannot
-  // out-last a 60-demon Ultra Nightmare round and isn't meant to. The
-  // count is rolled per campaign and is a hard range.
-  const SLAUGHTER_SH_BODIES = { min: 10, max: 15 };
+  // ...except the Slaughterhouse finale: exactly 9 heavies and 3
+  // superheavies, each total split at random with repeats allowed (Prerit, after 60, then
+  // 15-25, then 10-15 all played too hard). It is a boss round, so it
+  // escalates in threat PER DEMON rather than in total clear time.
+  // 9 heavies + 3 superheavies = 12 (Prerit). 6 was too tame; 15 left
+  // the whole fight within seconds of the 20-minute clock — he wants
+  // players to have some breathing room, not a cut-throat finish.
+  const SLAUGHTER_FINALE = { heavy: 9, superheavy: 3 };
 
   function slaughterRungBodies(key) {
-    if (key !== 'slaughterhouse') return SLAUGHTER_BODIES;
-    const span = SLAUGHTER_SH_BODIES.max - SLAUGHTER_SH_BODIES.min + 1;
-    return SLAUGHTER_SH_BODIES.min + Math.floor(rand() * span);
+    return key === 'slaughterhouse'
+      ? SLAUGHTER_FINALE.heavy + SLAUGHTER_FINALE.superheavy
+      : SLAUGHTER_BODIES;
   }
+
+  // Per-family caps inside one Slaughter Mode round (Prerit, after a
+  // playtest: "the major challenge comes from too many enemies from the
+  // same family"). Measured before: one heavy family carried more than 3
+  // bodies in 54-86% of rounds — eight Knights of three kinds, or seven
+  // Imp Stalkers — and a single fodder family reached 52 of the 60.
+  // The fodder cap means every round's chaff comes from at least two
+  // families.
+  // Heavy cap raised 3 -> 5 after a second playtest: 3 restricted too
+  // much and rounds felt too easy. 5 still stops the 8-12 walls.
+  const SLAUGHTER_FAMILY_CAPS = { fodder: 25, heavy: 5, superheavy: 2 };
   // Each rung composes at its intensity's full budget (0.75 on the arc
   // is the 1.0x point of its durability scale) — it is that intensity at
   // strength, not its warm-up round.
@@ -1814,7 +1829,7 @@
   // Escalation fallback: if no composition attempt out-weighs the previous
   // round, the round's durability budget grows in these steps and
   // composes again (headcount stays at 60, so the mix gets heavier).
-  const SLAUGHTER_ESCALATION_STEPS = [1, 1.08, 1.16, 1.25, 1.35, 1.5];
+  const SLAUGHTER_ESCALATION_STEPS = [1, 1.08, 1.16, 1.25, 1.35, 1.5, 1.65, 1.8];
 
   // Campaign-wide respawn budget: a share of the campaign's own ceiling
   // (rounds x the per-round cap), rather than a flat count. Taking a
@@ -2241,6 +2256,20 @@
     let currentRoundDurability = 0;
     let currentRoundDemonCount = 0;
 
+    // How many more bodies of this demon's FAMILY the round may take
+    // (Slaughter Mode only — see SLAUGHTER_FAMILY_CAPS), rounded down to
+    // the demon's slider step. Unlimited everywhere else.
+    const familyCaps = opts.familyCaps || null;
+    function familyRoom(e) {
+      if (!familyCaps) return Infinity;
+      const fam = demonFamily(e.name);
+      let have = 0;
+      for (const n in roundEnemies) if (roundEnemies[n] > 0 && demonFamily(n) === fam) have += roundEnemies[n];
+      const cap = familyCaps[e.role] == null ? Infinity : familyCaps[e.role];
+      const step = e.step || 1;
+      return Math.max(0, Math.floor((cap - have) / step) * step);
+    }
+
     // Every place below that would normally reach for a cheap body to
     // pad a round draws from this pool instead. On a fodder-free
     // intensity (Slaughterhouse) it is the heavy pool, so the "top up
@@ -2275,7 +2304,7 @@
         const superCandidate = candidatePool[0];
         const weight = getDemonWeight(superCandidate);
         const remainingSuperBudget = roundMaxSuperHeavy - superheaviesUsed;
-        let count = Math.min(rollEnemyCount(superCandidate) || 1, remainingSuperBudget, maxSuperPerSpecies);
+        let count = Math.min(rollEnemyCount(superCandidate) || 1, remainingSuperBudget, maxSuperPerSpecies, familyRoom(superCandidate));
 
         while (count > 0 && (
           (currentRoundDurability + (count * weight) > bigDemonBudget) ||
@@ -2335,7 +2364,7 @@
 
       heavySlotsUsed++;
       const hWeight = getDemonWeight(heavyCandidate);
-      let heavyCount = rollEnemyCount(heavyCandidate);
+      let heavyCount = Math.min(rollEnemyCount(heavyCandidate), familyRoom(heavyCandidate));
 
       while (heavyCount > 0 && (
         (currentRoundDurability + (heavyCount * hWeight) > bigDemonBudget) ||
@@ -2364,6 +2393,7 @@
       const fWeight = getDemonWeight(fodderCandidate);
       let fodderCount = rollEnemyCount(fodderCandidate);
       if (fodderCount === 0) fodderCount = fodderCandidate.step || 5;
+      fodderCount = Math.min(fodderCount, familyRoom(fodderCandidate));
 
       while (fodderCount > 0 && (
         (currentRoundDurability + (fodderCount * fWeight) > scaledMaxDurability) ||
@@ -2414,6 +2444,7 @@
       if (!existingCount && conflictsWithExisting(topUp.name, roundEnemies)) { floorGuard++; continue; }
       if (currentRoundDemonCount + addCount > scaledMaxDemonCount) { floorGuard++; continue; }
       if (currentRoundDurability + addCount * addWeight > scaledMaxDurability) { floorGuard++; continue; }
+      if (addCount > familyRoom(topUp)) { floorGuard++; continue; }
       roundEnemies[topUp.name] = existingCount + addCount;
       currentRoundDurability += addCount * addWeight;
       currentRoundDemonCount += addCount;
@@ -2477,7 +2508,7 @@
               const have = roundEnemies[e.name] || 0;
               return { e, have, step: have ? (e.step || 1) : Math.max(e.step || 1, e.min || 1), w: getDemonWeight(e) };
             })
-            .filter(c => c.step <= room && c.have + c.step <= c.e.max)
+            .filter(c => c.step <= room && c.have + c.step <= c.e.max && c.step <= familyRoom(c.e))
             .filter(c => c.have > 0 || !conflictsWithExisting(c.e.name, roundEnemies));
           if (!cands.length) continue;
           const helpsRole = c => !deficit || c.e.combat === deficit.role || c.e.combat === 'mixed';
@@ -2538,6 +2569,7 @@
         if (existing + step > e.max) continue;
         if (currentRoundDurability + step * w > scaledMaxDurability * roleOverflow) continue;
         if (currentRoundDemonCount + step > scaledMaxDemonCount * roleOverflow) continue;
+        if (step > familyRoom(e)) continue;
         roundEnemies[e.name] = existing + step;
         currentRoundDurability += step * w;
         currentRoundDemonCount += step;
@@ -2589,6 +2621,7 @@
           if (existing + buy.step > buy.e.max) continue;
           if (currentRoundDurability - freedDur + buy.step * buy.w > scaledMaxDurability * roleOverflow) continue;
           if (currentRoundDemonCount - freedCount + buy.step > scaledMaxDemonCount * roleOverflow) continue;
+          if (buy.step > familyRoom(buy.e)) continue;
           roundEnemies[sell.name] -= sell.step;
           if (roundEnemies[sell.name] <= 0) delete roundEnemies[sell.name];
           roundEnemies[buy.e.name] = existing + buy.step;
@@ -2695,6 +2728,67 @@
   // so it gets a deeper retry budget than the dissimilarity check alone.
   const SLAUGHTER_COMPOSE_ATTEMPTS = 24;
 
+  // Slaughter Mode finale: exactly SLAUGHTER_FINALE heavies and
+  // superheavies, each total split at random across species (freshest
+  // families first), with the combat-role floor satisfied (retried until
+  // it is).
+  function composeSlaughterFinale(allHeavy, allSuperHeavy, lastRoundFamilies, campaignFamilies) {
+    let last = null;
+    for (let attempt = 0; attempt < 60; attempt++) {
+      const roundEnemies = {};
+      // Superheavies: exactly SLAUGHTER_FINALE.superheavy in total, but
+      // split at random — three different ones, a pair and a single, or
+      // all three of one species where its slider allows (Prerit: same
+      // family is fine, the total is what matters).
+      let supers = 0;
+      const superPool = attempt < 20
+        ? preferFresh(shuffleArray(allSuperHeavy), lastRoundFamilies, campaignFamilies)
+        : shuffleArray(allSuperHeavy);
+      const superCap = difficultyCaps.slaughterhouse.maxSuperPerSpecies;
+      for (const e of superPool) {
+        const left = SLAUGHTER_FINALE.superheavy - supers;
+        if (left <= 0) break;
+        if (conflictsWithExisting(e.name, roundEnemies)) continue;
+        const most = Math.min(left, e.max, superCap);
+        const n = 1 + Math.floor(rand() * most);
+        roundEnemies[e.name] = n;
+        supers += n;
+      }
+      // Heavies: exactly SLAUGHTER_FINALE.heavy in total, split at random
+      // the same way — doubles allowed, within each species' slider max
+      // and step and the Slaughter heavy-family cap.
+      let heavies = 0;
+      const famHeavy = {};
+      const heavyPool = attempt < 20
+        ? preferFresh(shuffleArray(allHeavy), lastRoundFamilies, campaignFamilies)
+        : shuffleArray(allHeavy);
+      for (const e of heavyPool) {
+        const left = SLAUGHTER_FINALE.heavy - heavies;
+        if (left <= 0) break;
+        if (conflictsWithExisting(e.name, roundEnemies)) continue;
+        const fam = demonFamily(e.name);
+        const step = e.step || 1;
+        const room = Math.min(left, e.max, SLAUGHTER_FAMILY_CAPS.heavy - (famHeavy[fam] || 0));
+        const steps = Math.floor(room / step);
+        if (steps < 1) continue;
+        const n = step * (1 + Math.floor(rand() * steps));
+        roundEnemies[e.name] = n;
+        famHeavy[fam] = (famHeavy[fam] || 0) + n;
+        heavies += n;
+      }
+      let durability = 0;
+      for (const n in roundEnemies) {
+        const e = getEnemyByName(n);
+        durability += roundEnemies[n] * getDemonWeight(e) + (isLeaderName(n) ? (LEADER_TAX[e.role] || 0) : 0);
+      }
+      last = { roundEnemies, durability, demonCount: supers + heavies };
+      const c = combatRoleCounts(roundEnemies);
+      if (supers === SLAUGHTER_FINALE.superheavy && heavies === SLAUGHTER_FINALE.heavy &&
+          Math.min(c.melee, c.ranged) >= combatRoleFloor(c.total)) return last;
+    }
+    return last;
+  }
+
   // Jaccard overlap of the two rounds' demon FAMILIES (see demonFamily).
   function roundSimilarity(enemiesA, enemiesB) {
     const a = [...familiesOf(enemiesA)];
@@ -2708,9 +2802,14 @@
     return priorRounds.reduce((worst, prior) => Math.max(worst, roundSimilarity(enemies, prior.enemies)), 0);
   }
 
-  function generateBalancedArena(seed) {
+  // clockRetry is internal: Slaughter Mode re-rolls (deterministically,
+  // from the same seed) the rare campaign whose estimate overruns its
+  // fixed 20-minute clock. Retry 0 is the plain seed, so every normal
+  // campaign — and every share link — is unchanged.
+  function generateBalancedArena(seed, clockRetry) {
     currentSeed = (seed == null) ? newSeed() : (seed >>> 0);
-    rngState = currentSeed | 0;
+    const retry = clockRetry || 0;
+    rngState = (currentSeed + retry * 0x9E3779B9) | 0;
     campaignInfo.name = rollCampaignName();
     const difficultyKey = currentDifficulty;
     // Slaughter Mode's clock is fixed at 20 minutes and its fight is fixed
@@ -2908,11 +3007,22 @@
         fodderReserve: roundCaps.fodderReserve,
         maxBodies: slaughterMode ? roundBodies : roundCaps.maxBodies,
         targetBodies: roundBodies,
+        familyCaps: slaughterMode ? SLAUGHTER_FAMILY_CAPS : null,
         roundProgress, finaleHighNote
       };
-      let composed = composeRound(composeOpts);
+      const slaughterFinale = slaughterMode && roundIsSH;
+      let composed = slaughterFinale
+        ? composeSlaughterFinale(allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies)
+        : composeRound(composeOpts);
       let bestSimilarity = maxRoundSimilarity(composed.roundEnemies, roundsData);
-      if (slaughterMode) {
+      if (slaughterFinale) {
+        // Fixed 6 + 3 roster: only the dissimilarity rule is left to chase.
+        for (let attempt = 1; attempt < COMPOSE_ATTEMPTS && bestSimilarity > MAX_ROUND_SIMILARITY; attempt++) {
+          const retry = composeSlaughterFinale(allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies);
+          const similarity = maxRoundSimilarity(retry.roundEnemies, roundsData);
+          if (similarity < bestSimilarity) { bestSimilarity = similarity; composed = retry; }
+        }
+      } else if (slaughterMode) {
         // Two requirements, in priority order: the round must out-weigh
         // the one before it (the escalation rule), and it should differ
         // from every earlier round (the usual dissimilarity rule). The
@@ -2927,8 +3037,11 @@
         const better = (a, b) => (a.esc !== b.esc) ? a.esc : a.sim < b.sim;
         let best = score(composed);
         for (const boost of SLAUGHTER_ESCALATION_STEPS) {
+          // With family caps (no family above 3 heavies), more budget alone
+          // can stall: the extra has to go to more heavy SPECIES.
           const opts = boost === 1 ? composeOpts : Object.assign({}, composeOpts, {
-            scaledMaxDurability: Math.round(scaledMaxDurability * boost)
+            scaledMaxDurability: Math.round(scaledMaxDurability * boost),
+            scaledHeavyVarieties: scaledHeavyVarieties + SLAUGHTER_ESCALATION_STEPS.indexOf(boost)
           });
           for (let attempt = 0; attempt < SLAUGHTER_COMPOSE_ATTEMPTS && !(best.esc && best.sim <= MAX_ROUND_SIMILARITY); attempt++) {
             const retry = composeRound(opts);
@@ -2972,6 +3085,14 @@
         previousRoundBodies = currentRoundDemonCount;
       }
       campaignDurabilityFractions.push(currentRoundDurability / roundCaps.maxDurability);
+    }
+
+    if (slaughterMode && retry < 8) {
+      let secs = ROUND_OVERHEAD_SECONDS * roundsData.length;
+      roundsData.forEach(r => { secs += roundSeconds(r.enemies, r.respawns, true); });
+      if (secs * TIME_SAFETY > timeLimitMinutes(SLAUGHTER_SETTINGS.timeLimit) * 60) {
+        return generateBalancedArena(currentSeed, retry + 1);
+      }
     }
 
     campaignInfo.intensityScore = campaignDurabilityFractions.reduce((a, b) => a + b, 0) / campaignDurabilityFractions.length;
@@ -3478,7 +3599,8 @@
   // 11 = round variety judged by demon FAMILY (Zombies/Blighted/Hallowed
   //      are one family), so rounds stop reading as "last round plus more".
   // 12 = Cosmic Elemental reclassified heavy -> superheavy.
-  const GENERATOR_VERSION = 12;
+  // 13 = Warlock and Warlock Leader reclassified heavy -> superheavy.
+  const GENERATOR_VERSION = 13;
   // Width of the version field in a share code (see packShareCode).
   const GENERATOR_VERSION_SPAN = 128;
 
