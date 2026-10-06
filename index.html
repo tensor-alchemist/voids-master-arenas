@@ -1069,7 +1069,7 @@
     </button>
     <p class="slaughter-desc" id="slaughterDesc" hidden>
       Five rounds. Twenty minutes. Each descent darker than the last &mdash;
-      and the final gate opens on fewer demons, none of them small.
+      and the final gate opens on a handful of demons, none of them small.
     </p>
 
     <span class="intensity-label">Choose Your Intensity</span>
@@ -1744,13 +1744,13 @@
   const SLAUGHTER_LADDER = ['balanced', 'sweaty', 'nightmare', 'ultranightmare', 'slaughterhouse'];
   const SLAUGHTER_ROUNDS = SLAUGHTER_LADDER.length;
   const SLAUGHTER_BODIES = 60;
-  // ...except the Slaughterhouse rung, which fields 15-25 (Prerit,
-  // 2026-10-06). Sixty fodder-free bodies meant ~55 heavies across ~20
-  // species and more than double the previous round's clear time; at
-  // 15-25 it is Slaughterhouse at its own natural size — fewer bodies,
-  // every one of them heavy or worse. The count is rolled per campaign
-  // and is a hard range, not a target to approach.
-  const SLAUGHTER_SH_BODIES = { min: 15, max: 25 };
+  // ...except the Slaughterhouse rung, which fields 10-15 (Prerit: 60 was
+  // a cliff, 15-25 still "too high and difficult"). It is a boss round —
+  // fewer bodies, every one heavy or worse — so it escalates in threat
+  // PER DEMON rather than in total clear time; at 10-15 bodies it cannot
+  // out-last a 60-demon Ultra Nightmare round and isn't meant to. The
+  // count is rolled per campaign and is a hard range.
+  const SLAUGHTER_SH_BODIES = { min: 10, max: 15 };
 
   function slaughterRungBodies(key) {
     if (key !== 'slaughterhouse') return SLAUGHTER_BODIES;
@@ -1761,13 +1761,20 @@
   // is the 1.0x point of its durability scale) — it is that intensity at
   // strength, not its warm-up round.
   const SLAUGHTER_RUNG_PROGRESS = 0.75;
+  // The first three rungs read as too gentle in play; they get a little
+  // more durability budget, which at a fixed 60 bodies means more heavies
+  // in place of fodder rather than more bodies.
+  // Budget alone barely moves the first rung: Hurt Me Plenty's round is
+  // capped by how many heavy SPECIES it may field, so it also gets extra
+  // heavy-species slots.
+  const SLAUGHTER_RUNG_BOOST = { balanced: 1.3, sweaty: 1.25, nightmare: 1.15 };
+  const SLAUGHTER_RUNG_EXTRA_HEAVY_SPECIES = { balanced: 2, sweaty: 1, nightmare: 1 };
   // Campaign-wide pickups and powerups are one game setting, so they are
   // rolled once from the ladder's middle rung.
   const SLAUGHTER_RESOURCE_TIER = 'nightmare';
   // Fixed game settings (Prerit, 2026-10-06): a 20-minute fight rather
   // than Endless, with generous, fixed resources. Berserk is the one
-  // powerup still rolled. 20 minutes is the longest window the game
-  // offers, and the ladder's estimated clear time averages ~17 minutes.
+  // powerup still rolled.
   const SLAUGHTER_SETTINGS = {
     endless: 'Off', continuous: 'On', timeLimit: '20 Minutes',
     healthAmmo: 'Respawn', bfcAmmo: '3', shotgunAmmo: '10'
@@ -1903,6 +1910,46 @@
   // Soft-demotes anything present in `usedSet` to the back of the list so
   // recently-seen enemies are picked last, without hard-excluding them
   // (small variety pools would otherwise dead-end).
+  // What a demon PLAYS like, for variety purposes. Zombies, Blighted
+  // Zombies and Hallowed Zombies are three species but one experience;
+  // judging variety by species name let 72% of a round's bodies come from
+  // a family the previous round had already fielded, so each round read
+  // as "last round, plus a few more". Variety is now judged by family.
+  const DEMON_FAMILIES = [
+    // Order matters: the more specific pattern must come first. Imp
+    // Stalkers are heavies that play nothing like fodder Imps, and the
+    // Agaddon Brutes are a different demon from the Agaddon Hunter line —
+    // lumping them together made a fodder Imp in one round push every
+    // Imp Stalker down in the next, halving how often they appeared.
+    ['zombie', /Zombie/], ['soldier', /Soldier/], ['stalker', /Imp Stalker/], ['imp', /Imp/], ['knight', /Knight/],
+    ['pinky', /Pinky/], ['arachnotron', /Arachnotron/], ['mancubus', /Mancubus/],
+    ['revenant', /Revenant/], ['whiplash', /Whiplash/], ['acolyte', /Acolyte/],
+    ['caco', /Cacodemon/], ['drone', /Drone/], ['cyber', /Cyberdemon/],
+    ['elemental', /Elemental/], ['baron', /Cosmic Baron/], ['brute', /Agaddon Brute/], ['agaddon', /Agaddon/],
+    ['komodo', /Komodo/], ['vagary', /Vagary/], ['archvile', /Archvile/],
+    ['warlock', /Warlock/], ['buzzsaw', /Buzzsaw/]
+  ];
+  function demonFamily(name) {
+    for (const [fam, re] of DEMON_FAMILIES) if (re.test(name)) return fam;
+    return name;
+  }
+  function familiesOf(enemies) {
+    return new Set(Object.keys(enemies).filter(n => enemies[n] > 0).map(demonFamily));
+  }
+
+  // Orders candidates so families the campaign hasn't fielded yet come
+  // first, then families from earlier rounds, and last round's families
+  // last. Stable, so the arena-bias order underneath survives as the
+  // tie-break. Soft, like preferUnused: small pools still fill.
+  function preferFresh(list, lastRoundFamilies, campaignFamilies) {
+    const fresh = [], older = [], recent = [];
+    list.forEach(e => {
+      const f = demonFamily(e.name);
+      (lastRoundFamilies.has(f) ? recent : (campaignFamilies.has(f) ? older : fresh)).push(e);
+    });
+    return [...fresh, ...older, ...recent];
+  }
+
   function preferUnused(list, usedSet) {
     const unused = list.filter(e => !usedSet.has(e.name));
     const used = list.filter(e => usedSet.has(e.name));
@@ -2151,7 +2198,7 @@
   function composeRound(opts) {
     const {
       r, totalRounds, difficultyKey, relentless, noFodder, selectedArena,
-      allFodder, allHeavy, allSuperHeavy, previousRoundEnemyNames,
+      allFodder, allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies,
       scaledMaxDurability, scaledMaxDemonCount, scaledSuperChance,
       scaledHeavyVarieties, scaledFodderVarieties,
       roundMaxSuperHeavy, maxSuperPerSpecies, fodderReserve, maxBodies,
@@ -2190,7 +2237,7 @@
         let candidatePool = allSuperHeavy.filter(e =>
           !superSpeciesUsed.has(e.name) && !conflictsWithExisting(e.name, roundEnemies)
         );
-        candidatePool = preferArenaBias(preferUnused(shuffleArray(candidatePool), previousRoundEnemyNames), selectedArena);
+        candidatePool = preferFresh(preferArenaBias(shuffleArray(candidatePool), selectedArena), previousRoundFamilies, campaignFamilies);
         if (candidatePool.length === 0) break;
 
         const superCandidate = candidatePool[0];
@@ -2247,7 +2294,7 @@
     // whole shuffled list until it has PLACED (or fairly attempted)
     // the target number of varieties, so unlucky shuffles don't quietly
     // produce under-filled rounds.
-    let shuffledHeavies = preferArenaBias(preferUnused(shuffleArray(allHeavy), previousRoundEnemyNames), selectedArena);
+    let shuffledHeavies = preferFresh(preferArenaBias(shuffleArray(allHeavy), selectedArena), previousRoundFamilies, campaignFamilies);
     let heavySlotsUsed = 0;
     for (let i = 0; i < shuffledHeavies.length && heavySlotsUsed < scaledHeavyVarieties; i++) {
       const heavyCandidate = shuffledHeavies[i];
@@ -2276,7 +2323,7 @@
     }
 
     let shuffledFodder = scaledFodderVarieties > 0
-      ? preferArenaBias(preferUnused(shuffleArray(allFodder), previousRoundEnemyNames), selectedArena)
+      ? preferFresh(preferArenaBias(shuffleArray(allFodder), selectedArena), previousRoundFamilies, campaignFamilies)
       : [];
     for (let i = 0; i < scaledFodderVarieties; i++) {
       const fodderCandidate = shuffledFodder[i];
@@ -2402,8 +2449,12 @@
             .filter(c => c.have > 0 || !conflictsWithExisting(c.e.name, roundEnemies));
           if (!cands.length) continue;
           const helpsRole = c => !deficit || c.e.combat === deficit.role || c.e.combat === 'mixed';
+          // Bulk goes onto families the last round didn't field, so the
+          // round's biggest stack is its own, not last round's again.
+          const fresh = c => previousRoundFamilies.has(demonFamily(c.e.name)) ? 0 : 1;
           cands.sort((a, b) =>
             (helpsRole(b) - helpsRole(a)) ||
+            (fresh(b) - fresh(a)) ||
             ((b.have > 0) - (a.have > 0)) ||
             (a.w - b.w) ||
             (b.step - a.step));
@@ -2612,9 +2663,10 @@
   // so it gets a deeper retry budget than the dissimilarity check alone.
   const SLAUGHTER_COMPOSE_ATTEMPTS = 24;
 
+  // Jaccard overlap of the two rounds' demon FAMILIES (see demonFamily).
   function roundSimilarity(enemiesA, enemiesB) {
-    const a = Object.keys(enemiesA).filter(n => enemiesA[n] > 0);
-    const b = new Set(Object.keys(enemiesB).filter(n => enemiesB[n] > 0));
+    const a = [...familiesOf(enemiesA)];
+    const b = familiesOf(enemiesB);
     if (a.length === 0 || b.size === 0) return 0;
     const shared = a.filter(n => b.has(n)).length;
     return shared / (a.length + b.size - shared);
@@ -2694,13 +2746,15 @@
     // get trimmed caps to compensate rather than being priced at zero.
     const continuousCapFactor = continuousOn ? 0.85 : 1.0;
 
-    let previousRoundEnemyNames = new Set();
+    let previousRoundFamilies = new Set();
+    const campaignFamilies = new Set();
     let campaignDurabilityFractions = [];
     // Slaughter Mode's escalation guarantee is measured in estimated clear
     // seconds (all waves, Continuous Spawning included) — the same model
     // the time limits use, so "harder" means "more fight", not "bigger
     // number on one slider".
     let previousRoundLoad = 0;
+    let previousRoundBodies = 1;
 
     // Campaign-wide respawn budget — a share of rounds x the per-round
     // cap, spread across the rounds along the campaign arc. Rounds that
@@ -2774,12 +2828,14 @@
       const respawnPressure = roundIsSH ? 1 : 1 - (roundRespawns - 1) * 0.12;
       const roundMaxSuperHeavy = roundCaps.maxSuperHeavyCount;
 
-      let scaledMaxDurability = Math.round(roundCaps.maxDurability * (0.7 + 0.4 * roundProgress) * continuousCapFactor * respawnPressure);
+      const rungBoost = slaughterMode ? (SLAUGHTER_RUNG_BOOST[roundKey] || 1) : 1;
+      let scaledMaxDurability = Math.round(roundCaps.maxDurability * (0.7 + 0.4 * roundProgress) * continuousCapFactor * respawnPressure * rungBoost);
       let scaledMaxDemonCount = slaughterMode
         ? roundBodies
         : Math.round(roundCaps.maxDemonCount * (0.8 + 0.25 * roundProgress) * continuousCapFactor * respawnPressure * (selectedArena.densityMult || 1.0));
       const scaledSuperChance = roundCaps.superChance * (0.5 + 0.5 * qualityProgress);
-      const scaledHeavyVarieties = Math.max(1, Math.round(roundCaps.heavyVarieties * (0.7 + 0.45 * qualityProgress)) - (selectedArena.varietyShift || 0));
+      const scaledHeavyVarieties = Math.max(1, Math.round(roundCaps.heavyVarieties * (0.7 + 0.45 * qualityProgress)) - (selectedArena.varietyShift || 0))
+        + (slaughterMode ? (SLAUGHTER_RUNG_EXTRA_HEAVY_SPECIES[roundKey] || 0) : 0);
       const scaledFodderVarieties = roundNoFodder
         ? 0
         : Math.max(1, Math.round(roundCaps.fodderVarieties * (0.8 + 0.3 * roundProgress)) + (selectedArena.varietyShift || 0));
@@ -2813,7 +2869,7 @@
       // the threshold can't be met (tiny pools on low variety counts).
       const composeOpts = {
         r, totalRounds, difficultyKey: roundKey, relentless: roundRelentless, noFodder: roundNoFodder, selectedArena,
-        allFodder, allHeavy, allSuperHeavy, previousRoundEnemyNames,
+        allFodder, allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies,
         scaledMaxDurability, scaledMaxDemonCount, scaledSuperChance,
         scaledHeavyVarieties, scaledFodderVarieties,
         roundMaxSuperHeavy, maxSuperPerSpecies: roundCaps.maxSuperPerSpecies,
@@ -2832,30 +2888,22 @@
         // the durability budget steps up and the round composes again, so
         // escalation is enforced through the normal composition rules
         // rather than by bolting bodies on afterwards.
-        const loadOf = c => roundSeconds(c.roundEnemies, roundRespawns, true);
-        const score = c => ({ esc: loadOf(c) > previousRoundLoad, sim: maxRoundSimilarity(c.roundEnemies, roundsData) });
+        // The boss rung escalates per demon (see SLAUGHTER_SH_BODIES).
+        const loadOf = c => roundSeconds(c.roundEnemies, roundRespawns, true) / (roundIsSH ? Math.max(1, c.demonCount) : 1);
+        const prevLoad = roundIsSH ? previousRoundLoad / Math.max(1, previousRoundBodies) : previousRoundLoad;
+        const score = c => ({ esc: loadOf(c) > prevLoad, sim: maxRoundSimilarity(c.roundEnemies, roundsData) });
         const better = (a, b) => (a.esc !== b.esc) ? a.esc : a.sim < b.sim;
         let best = score(composed);
-        // The Slaughterhouse rung's rolled headcount can be too small to
-        // top a heavy Ultra Nightmare round at all; if every budget step
-        // fails, its count climbs (within SLAUGHTER_SH_BODIES) and tries
-        // again. The other rungs are fixed at 60, so they never grow.
-        const maxBodiesForRung = roundIsSH ? SLAUGHTER_SH_BODIES.max : roundBodies;
-        for (let bodies = roundBodies; bodies <= maxBodiesForRung && !best.esc; bodies += 2) {
-          for (const boost of SLAUGHTER_ESCALATION_STEPS) {
-            const opts = (boost === 1 && bodies === roundBodies) ? composeOpts : Object.assign({}, composeOpts, {
-              scaledMaxDurability: Math.round(scaledMaxDurability * boost),
-              scaledMaxDemonCount: bodies,
-              maxBodies: bodies,
-              targetBodies: bodies
-            });
-            for (let attempt = 0; attempt < SLAUGHTER_COMPOSE_ATTEMPTS && !(best.esc && best.sim <= MAX_ROUND_SIMILARITY); attempt++) {
-              const retry = composeRound(opts);
-              const sc = score(retry);
-              if (better(sc, best)) { best = sc; composed = retry; }
-            }
-            if (best.esc) break;
+        for (const boost of SLAUGHTER_ESCALATION_STEPS) {
+          const opts = boost === 1 ? composeOpts : Object.assign({}, composeOpts, {
+            scaledMaxDurability: Math.round(scaledMaxDurability * boost)
+          });
+          for (let attempt = 0; attempt < SLAUGHTER_COMPOSE_ATTEMPTS && !(best.esc && best.sim <= MAX_ROUND_SIMILARITY); attempt++) {
+            const retry = composeRound(opts);
+            const sc = score(retry);
+            if (better(sc, best)) { best = sc; composed = retry; }
           }
+          if (best.esc) break;
         }
         bestSimilarity = best.sim;
       } else {
@@ -2885,8 +2933,12 @@
       if (slaughterMode) roundEntry.tier = roundKey;
       roundsData.push(roundEntry);
 
-      previousRoundEnemyNames = new Set(Object.keys(roundEnemies).filter(n => roundEnemies[n] > 0));
-      if (slaughterMode) previousRoundLoad = roundSeconds(roundEnemies, roundRespawns, true);
+      previousRoundFamilies = familiesOf(roundEnemies);
+      previousRoundFamilies.forEach(f => campaignFamilies.add(f));
+      if (slaughterMode) {
+        previousRoundLoad = roundSeconds(roundEnemies, roundRespawns, true);
+        previousRoundBodies = currentRoundDemonCount;
+      }
       campaignDurabilityFractions.push(currentRoundDurability / roundCaps.maxDurability);
     }
 
@@ -3391,7 +3443,9 @@
   // 10 = variant ordering enforced: base < Champion < Leader (five families
   //      had Champion above Leader) and Cosmic Baron Leader promoted to
   //      superheavy to sit above its own base.
-  const GENERATOR_VERSION = 10;
+  // 11 = round variety judged by demon FAMILY (Zombies/Blighted/Hallowed
+  //      are one family), so rounds stop reading as "last round plus more".
+  const GENERATOR_VERSION = 11;
   // Width of the version field in a share code (see packShareCode).
   const GENERATOR_VERSION_SPAN = 128;
 
