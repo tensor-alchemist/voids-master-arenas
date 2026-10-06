@@ -998,18 +998,32 @@
     .history-nav {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
       margin-top: 10px;
     }
-    .history-btn { padding: 6px 12px; font-size: 0.72rem; }
-    .history-btn:disabled,
-    .history-btn:disabled:hover { opacity: 0.35; cursor: default; box-shadow: none; background: transparent; }
-    .history-count {
-      font-size: 0.75rem;
+    .history-page {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.74rem;
+      min-width: 2.2em;
+      padding: 5px 8px;
+      border-radius: 3px;
+      border: 1px solid var(--panel-border);
+      background: linear-gradient(180deg, rgba(58, 42, 32, 0.5), var(--input-bg));
       color: var(--text-muted);
+      cursor: pointer;
       font-variant-numeric: tabular-nums;
-      letter-spacing: 1px;
+      transition: all 0.18s ease;
+    }
+    .history-page:hover { border-color: var(--accent-gold); color: var(--text-main); }
+    .history-page:focus-visible { outline: 2px solid var(--accent-gold-bright); outline-offset: 2px; }
+    .history-page.active {
+      background: linear-gradient(180deg, rgba(211, 55, 43, 0.25), rgba(211, 55, 43, 0.08));
+      border-color: var(--accent-red);
+      color: #ffd9d4;
+      cursor: default;
     }
 
     .history-entry .h-meta {
@@ -1434,7 +1448,12 @@
       { name: "Archvile", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.5, combat: "ranged" },
       { name: "Armoured Archvile", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 8.0, combat: "ranged" },
       { name: "Cosmic Baron Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.5, combat: "mixed" },
-      { name: "Cosmic Elemental", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged", flying: true },
+      // Cosmic Elemental is SUPERHEAVY (Prerit, 2026-10-06), like the
+      // Archviles: classed heavy at w=3.5 it was priced as a mid heavy.
+      // Weighted at the superheavy floor (Vagary/Komodo, 6.0), so the
+      // superheavy caps now limit it: none on Aspiring Slayer, one on
+      // Hurt Me Plenty.
+      { name: "Cosmic Elemental", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.0, combat: "ranged", flying: true },
       { name: "Warlock", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
       { name: "Warlock Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged" },
       { name: "Vagary Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.5, combat: "ranged" }
@@ -1772,6 +1791,19 @@
   // Campaign-wide pickups and powerups are one game setting, so they are
   // rolled once from the ladder's middle rung.
   const SLAUGHTER_RESOURCE_TIER = 'nightmare';
+  // One of the first three rounds, picked at random, runs TWO waves
+  // (Prerit, 2026-10-06), so Continuous Spawning has a second wave to
+  // feed. It takes the usual second-wave roster trim (respawnPressure).
+  // Because a doubled round always out-lasts the next, escalation in
+  // Slaughter Mode is judged per wave: every roster is tougher than the
+  // one before it, and the double round is an endurance spike on top.
+  const SLAUGHTER_DOUBLE_WAVE_ROUNDS = 3;
+
+  function slaughterWaves() {
+    const waves = SLAUGHTER_LADDER.map(() => 1);
+    waves[Math.floor(rand() * SLAUGHTER_DOUBLE_WAVE_ROUNDS)] = 2;
+    return waves;
+  }
   // Fixed game settings (Prerit, 2026-10-06): a 20-minute fight rather
   // than Endless, with generous, fixed resources. Berserk is the one
   // powerup still rolled.
@@ -2768,7 +2800,7 @@
       campaignRespawnBudget = Math.max(totalRounds, Math.min(campaignRespawnBudget, Math.round(fitMinutes * 0.8)));
     }
     const respawnAllocation = slaughterMode
-      ? SLAUGHTER_LADDER.map(() => 1)
+      ? slaughterWaves()
       : distributeRespawnBudget(totalRounds, campaignRespawnBudget, difficultyKey);
 
     // Fixed time mode: split the player's clock into a per-round seconds
@@ -2889,7 +2921,7 @@
         // escalation is enforced through the normal composition rules
         // rather than by bolting bodies on afterwards.
         // The boss rung escalates per demon (see SLAUGHTER_SH_BODIES).
-        const loadOf = c => roundSeconds(c.roundEnemies, roundRespawns, true) / (roundIsSH ? Math.max(1, c.demonCount) : 1);
+        const loadOf = c => roundSeconds(c.roundEnemies, 1, true) / (roundIsSH ? Math.max(1, c.demonCount) : 1);
         const prevLoad = roundIsSH ? previousRoundLoad / Math.max(1, previousRoundBodies) : previousRoundLoad;
         const score = c => ({ esc: loadOf(c) > prevLoad, sim: maxRoundSimilarity(c.roundEnemies, roundsData) });
         const better = (a, b) => (a.esc !== b.esc) ? a.esc : a.sim < b.sim;
@@ -2936,7 +2968,7 @@
       previousRoundFamilies = familiesOf(roundEnemies);
       previousRoundFamilies.forEach(f => campaignFamilies.add(f));
       if (slaughterMode) {
-        previousRoundLoad = roundSeconds(roundEnemies, roundRespawns, true);
+        previousRoundLoad = roundSeconds(roundEnemies, 1, true);
         previousRoundBodies = currentRoundDemonCount;
       }
       campaignDurabilityFractions.push(currentRoundDurability / roundCaps.maxDurability);
@@ -3445,7 +3477,8 @@
   //      superheavy to sit above its own base.
   // 11 = round variety judged by demon FAMILY (Zombies/Blighted/Hallowed
   //      are one family), so rounds stop reading as "last round plus more".
-  const GENERATOR_VERSION = 11;
+  // 12 = Cosmic Elemental reclassified heavy -> superheavy.
+  const GENERATOR_VERSION = 12;
   // Width of the version field in a share code (see packShareCode).
   const GENERATOR_VERSION_SPAN = 128;
 
@@ -3590,7 +3623,7 @@
   // share query (which reconstructs the campaign exactly) plus display
   // metadata — a full roundsData copy would be redundant.
   const HISTORY_KEY = 'ripatorium-history-v1';
-  const HISTORY_MAX = 10;
+  const HISTORY_MAX = 18;
   // The card shows at least HISTORY_MIN_PAGE_SIZE hordes per page, and
   // more when the card has room: it stretches to the campaign card's
   // height, so a tall campaign card buys more entries rather than empty
@@ -3599,8 +3632,8 @@
   let historyPageSize = HISTORY_MIN_PAGE_SIZE;
   let historyPage = 0;
 
-  function stepHistoryPage(delta) {
-    historyPage += delta;
+  function goHistoryPage(page) {
+    historyPage = page;
     renderHistoryPage();
   }
 
@@ -3697,8 +3730,6 @@
     const pages = Math.ceil(h.length / historyPageSize);
     historyPage = Math.max(0, Math.min(historyPage, pages - 1));
     const currentQ = buildShareLink().split('?')[1];
-    const atNewest = historyPage === 0;
-    const atOldest = historyPage === pages - 1;
     const entries = h.slice(historyPage * historyPageSize, (historyPage + 1) * historyPageSize).map(e => {
       const isCurrent = e.q === currentQ;
       const stale = !isCurrent && historyEntryIsStale(e);
@@ -3711,12 +3742,11 @@
       </div>`;
     }).join('');
     list.innerHTML = `${entries}
-      <div class="history-nav">
-        <button type="button" class="btn-secondary history-btn" onclick="stepHistoryPage(1)"
-          ${atOldest ? 'disabled' : ''} aria-label="Previous (older) hordes">&lsaquo; Previous</button>
-        <span class="history-count" aria-live="polite">${historyPage + 1} / ${pages}</span>
-        <button type="button" class="btn-secondary history-btn" onclick="stepHistoryPage(-1)"
-          ${atNewest ? 'disabled' : ''} aria-label="Next (newer) hordes">Next &rsaquo;</button>
+      <div class="history-nav" role="navigation" aria-label="Previous hordes pages">
+        ${Array.from({ length: pages }, (_, i) => `<button type="button"
+          class="history-page${i === historyPage ? ' active' : ''}" onclick="goHistoryPage(${i})"
+          ${i === historyPage ? 'aria-current="page"' : ''}
+          title="${i === 0 ? 'Latest rolls' : (i === pages - 1 ? 'Oldest rolls' : 'Page ' + (i + 1))}">${i + 1}</button>`).join('')}
       </div>`;
   }
 
