@@ -528,6 +528,8 @@
     }
 
     .card-header h2 { flex: 1 1 auto; min-width: 0; }
+    .campaign-title-block { flex: 1 1 auto; min-width: 0; }
+    .campaign-title-block .campaign-subtitle { margin: 4px 0 0; }
 
     h2 {
       margin: 0;
@@ -1082,8 +1084,9 @@
       <span class="sm-state">Off</span>
     </button>
     <p class="slaughter-desc" id="slaughterDesc" hidden>
-      Five rounds. Twenty minutes. Each descent darker than the last &mdash;
-      and the final gate opens on twelve demons, none of them small.
+      One long descent through every circle of the pit &mdash; each gate darker than the last,
+      each horde crueler than the one it buries. At the bottom wait the great beasts, few and terrible,
+      and a clock that does not forgive.
     </p>
 
     <span class="intensity-label">Choose Your Intensity</span>
@@ -1184,7 +1187,10 @@
     <div class="rounds-column" id="roundsColumn">
       <div class="card global-config-card">
         <div class="card-header">
-          <h2 id="campaignTitle">Generated Campaign</h2>
+          <div class="campaign-title-block">
+            <h2 id="campaignTitle">Generated Campaign</h2>
+            <p class="arena-desc campaign-subtitle" id="arenaDesc"></p>
+          </div>
           <div class="header-actions">
             <button class="btn-secondary" onclick="copyShareLink()">Copy Link</button>
             <button class="btn-secondary" onclick="copySetup()">Copy Setup</button>
@@ -1242,7 +1248,6 @@
             <span class="passcode-heading">In-game passcodes</span>
             <div class="passcode-list" id="passcodeList"></div>
           </div>
-          <p class="arena-desc" id="arenaDesc"></p>
           <div id="campaignNotes"></div>
           <button type="button" class="btn-secondary rounds-toggle" id="roundsToggle"
             aria-expanded="false" aria-controls="roundCardsContainer">Show demons</button>
@@ -1530,12 +1535,12 @@
   };
 
   const difficultyBlurbs = {
-    easy: "A fair training pit. No superheavies, generous resources, room to learn the parry.",
-    balanced: "The intended experience — real pressure, honest resources.",
-    sweaty: "Heavies stack up, continuous spawning likely. Bring your fundamentals.",
-    nightmare: "Superheavies from round one. The arena stops being polite.",
-    ultranightmare: "The hardest encounter the sliders can express. Superheavies every round, guaranteed superheavy finale, thin powerups. Survive it once and it counts.",
-    slaughterhouse: "No fodder. No mercy. Nothing below heavy on the board, and no Berserk, BFC or .93 rounds to lean on. For the master of master slayers."
+    easy: "The gates stand open and the dead are slow to learn. Find your footing, trust your shield, and let the parry become instinct.",
+    balanced: "Hell as it was meant to be met — honest steel, honest wounds, and a horde that will not wait for you to be ready.",
+    sweaty: "The pit grows teeth. Heavier things push through the chaff, and every hesitation is answered in blood.",
+    nightmare: "The arena forgets its manners. Giants walk among the damned from the first bell, and the air itself turns against you.",
+    ultranightmare: "The deepest dark the pit can summon. Every round is crowned with titans, every mercy is rationed — survive it once and the dead will speak your name.",
+    slaughterhouse: "No chaff to hide behind, no glory to feed on, no miracle weapon at your back. Only the great beasts of the pit — and you, alone among them."
   };
 
   // Arenas are taken into account lightly, not as a full simulation of
@@ -1770,10 +1775,20 @@
   // superheavies, each total split at random with repeats allowed (Prerit, after 60, then
   // 15-25, then 10-15 all played too hard). It is a boss round, so it
   // escalates in threat PER DEMON rather than in total clear time.
-  // 9 heavies + 3 superheavies = 12 (Prerit). 6 was too tame; 15 left
-  // the whole fight within seconds of the 20-minute clock — he wants
-  // players to have some breathing room, not a cut-throat finish.
-  const SLAUGHTER_FINALE = { heavy: 9, superheavy: 3 };
+  // 15 heavies + 3 superheavies = 18 (Prerit, 2026-10-07 playtest).
+  // Back up from 9+3 now that rounds 1-4 are lighter (superheavy caps,
+  // a 45-per-wave double round), which frees clock for the finale.
+  const SLAUGHTER_FINALE = { heavy: 15, superheavy: 3 };
+
+  // Playtest rules (Prerit, 2026-10-07) to make the run "a bit doable":
+  //  - superheavies per round climb 0 / 1 / 1 / 2 before the finale's 3;
+  //  - the double-wave round fields 45 a wave (90 in all), not 60;
+  //  - rounds 3 and 4 always field 6-9 Hallowed Zombies — they drop
+  //    health, so the two hardest 60-demon rounds carry their own
+  //    sustain. (DLC demon: Base Game Only campaigns can't include them.)
+  const SLAUGHTER_SUPER_CAPS = [0, 1, 1, 2];
+  const SLAUGHTER_DOUBLE_WAVE_BODIES = 45;
+  const SLAUGHTER_HALLOWED = { rounds: [3, 4], min: 6, max: 9, name: 'Hallowed Zombies' };
 
   function slaughterRungBodies(key) {
     return key === 'slaughterhouse'
@@ -1819,12 +1834,12 @@
     waves[Math.floor(rand() * SLAUGHTER_DOUBLE_WAVE_ROUNDS)] = 2;
     return waves;
   }
-  // Fixed game settings (Prerit, 2026-10-06): a 20-minute fight rather
-  // than Endless, with generous, fixed resources. Berserk is the one
-  // powerup still rolled.
+  // Fixed game settings (Prerit): a 20-minute fight rather than Endless,
+  // with generous, fixed resources. BFC capped at 2 and Berserk fixed at
+  // Once after the 2026-10-07 playtest.
   const SLAUGHTER_SETTINGS = {
     endless: 'Off', continuous: 'On', timeLimit: '20 Minutes',
-    healthAmmo: 'Respawn', bfcAmmo: '3', shotgunAmmo: '10'
+    healthAmmo: 'Respawn', berserk: 'Once', bfcAmmo: '2', shotgunAmmo: '10'
   };
   // Escalation fallback: if no composition attempt out-weighs the previous
   // round, the round's durability budget grows in these steps and
@@ -2259,6 +2274,23 @@
     // How many more bodies of this demon's FAMILY the round may take
     // (Slaughter Mode only — see SLAUGHTER_FAMILY_CAPS), rounded down to
     // the demon's slider step. Unlimited everywhere else.
+    // Species a round must field (Slaughter Mode's Hallowed Zombies),
+    // placed first and protected from every later shed or swap.
+    const forced = opts.forcedEnemies || null;
+    if (forced) {
+      for (const [n, c] of Object.entries(forced)) {
+        const e = getEnemyByName(n);
+        roundEnemies[n] = c;
+        currentRoundDemonCount += c;
+        currentRoundDurability += c * getDemonWeight(e);
+      }
+    }
+    const forcedFloor = n => (forced && forced[n]) || 0;
+    // A forced species' rolled count is final: later passes may not top
+    // it up (otherwise the fill piles onto it and 6 nearly always becomes
+    // the slider max of 9).
+    const maxOf = e => (forced && forced[e.name] != null) ? forced[e.name] : e.max;
+
     const familyCaps = opts.familyCaps || null;
     function familyRoom(e) {
       if (!familyCaps) return Infinity;
@@ -2394,6 +2426,11 @@
       let fodderCount = rollEnemyCount(fodderCandidate);
       if (fodderCount === 0) fodderCount = fodderCandidate.step || 5;
       fodderCount = Math.min(fodderCount, familyRoom(fodderCandidate));
+      const fodderHave = roundEnemies[fodderCandidate.name] || 0;
+      if (fodderHave) {
+        const fStep = fodderCandidate.step || 1;
+        fodderCount = Math.min(fodderCount, Math.floor((maxOf(fodderCandidate) - fodderHave) / fStep) * fStep);
+      }
 
       while (fodderCount > 0 && (
         (currentRoundDurability + (fodderCount * fWeight) > scaledMaxDurability) ||
@@ -2437,7 +2474,7 @@
       const addCount = topUp.step || 5;
       const addWeight = getDemonWeight(topUp);
       const existingCount = roundEnemies[topUp.name] || 0;
-      if (existingCount + addCount > topUp.max) { floorGuard++; continue; }
+      if (existingCount + addCount > maxOf(topUp)) { floorGuard++; continue; }
       // The filler pool can contain armoured/unarmoured siblings of what
       // is already on the board, and it can now push real headcount, so
       // the top-up has to respect both guards the main passes do.
@@ -2508,7 +2545,7 @@
               const have = roundEnemies[e.name] || 0;
               return { e, have, step: have ? (e.step || 1) : Math.max(e.step || 1, e.min || 1), w: getDemonWeight(e) };
             })
-            .filter(c => c.step <= room && c.have + c.step <= c.e.max && c.step <= familyRoom(c.e))
+            .filter(c => c.step <= room && c.have + c.step <= maxOf(c.e) && c.step <= familyRoom(c.e))
             .filter(c => c.have > 0 || !conflictsWithExisting(c.e.name, roundEnemies));
           if (!cands.length) continue;
           const helpsRole = c => !deficit || c.e.combat === deficit.role || c.e.combat === 'mixed';
@@ -2566,7 +2603,7 @@
       let added = false;
       for (const { e, step, w } of pool) {
         const existing = roundEnemies[e.name] || 0;
-        if (existing + step > e.max) continue;
+        if (existing + step > maxOf(e)) continue;
         if (currentRoundDurability + step * w > scaledMaxDurability * roleOverflow) continue;
         if (currentRoundDemonCount + step > scaledMaxDemonCount * roleOverflow) continue;
         if (step > familyRoom(e)) continue;
@@ -2610,6 +2647,7 @@
           return { name: n, step, w: getEnemyWeightByName(n) };
         })
         .filter(x => currentRoundDemonCount - x.step > 0)
+        .filter(x => roundEnemies[x.name] - x.step >= forcedFloor(x.name))
         .sort((a, b) => (b.step * b.w) - (a.step * a.w));
 
       let swapped = false;
@@ -2618,7 +2656,7 @@
         const freedCount = sell.step;
         for (const buy of wanted) {
           const existing = (roundEnemies[buy.e.name] || 0);
-          if (existing + buy.step > buy.e.max) continue;
+          if (existing + buy.step > maxOf(buy.e)) continue;
           if (currentRoundDurability - freedDur + buy.step * buy.w > scaledMaxDurability * roleOverflow) continue;
           if (currentRoundDemonCount - freedCount + buy.step > scaledMaxDemonCount * roleOverflow) continue;
           if (buy.step > familyRoom(buy.e)) continue;
@@ -2653,7 +2691,8 @@
       };
       let capGuard = 0;
       while (currentRoundDemonCount > maxBodies && capGuard < 400) {
-        const names = Object.keys(roundEnemies).filter(n => roundEnemies[n] > 0);
+        const names = Object.keys(roundEnemies)
+          .filter(n => roundEnemies[n] > 0 && roundEnemies[n] - stepOf(n) >= forcedFloor(n));
         if (!names.length) break;
         const lowest = Math.min(...names.map(shedTier));
         const pool = names.filter(n => shedTier(n) === lowest);
@@ -2927,7 +2966,8 @@
       const roundIsSH = roundKey === 'slaughterhouse';
       const roundRelentless = roundKey === 'ultranightmare' || roundIsSH;
       const roundNoFodder = roundCaps.fodderVarieties === 0;
-      const roundBodies = slaughterMode ? slaughterRungBodies(roundKey) : 0;
+      const roundBodies = !slaughterMode ? 0
+        : (respawnAllocation[r - 1] === 2 ? SLAUGHTER_DOUBLE_WAVE_BODIES : slaughterRungBodies(roundKey));
 
       // Campaign arc: round 1 is a fair warm-up, intensity peaks late in
       // the campaign, and (below Ultra Nightmare) the finale eases off.
@@ -2957,7 +2997,18 @@
       // singles — the opposite of what this intensity pass is for.
       // Slaughterhouse opts out; "no bar held" is its whole premise.
       const respawnPressure = roundIsSH ? 1 : 1 - (roundRespawns - 1) * 0.12;
-      const roundMaxSuperHeavy = roundCaps.maxSuperHeavyCount;
+      const roundMaxSuperHeavy = slaughterMode && r <= SLAUGHTER_SUPER_CAPS.length
+        ? Math.min(SLAUGHTER_SUPER_CAPS[r - 1], roundCaps.maxSuperHeavyCount)
+        : roundCaps.maxSuperHeavyCount;
+      // Rounds 3 and 4 of Slaughter Mode always carry Hallowed Zombies
+      // (6 or 9 — the slider steps in 3s), when the DLC pool has them.
+      let forcedEnemies = null;
+      if (slaughterMode && SLAUGHTER_HALLOWED.rounds.includes(r) && allFodder.some(e => e.name === SLAUGHTER_HALLOWED.name)) {
+        const hz = getEnemyByName(SLAUGHTER_HALLOWED.name);
+        const options = [];
+        for (let n = SLAUGHTER_HALLOWED.min; n <= Math.min(SLAUGHTER_HALLOWED.max, hz.max); n += (hz.step || 1)) options.push(n);
+        forcedEnemies = { [SLAUGHTER_HALLOWED.name]: options[Math.floor(rand() * options.length)] };
+      }
 
       const rungBoost = slaughterMode ? (SLAUGHTER_RUNG_BOOST[roundKey] || 1) : 1;
       let scaledMaxDurability = Math.round(roundCaps.maxDurability * (0.7 + 0.4 * roundProgress) * continuousCapFactor * respawnPressure * rungBoost);
@@ -3008,6 +3059,7 @@
         maxBodies: slaughterMode ? roundBodies : roundCaps.maxBodies,
         targetBodies: roundBodies,
         familyCaps: slaughterMode ? SLAUGHTER_FAMILY_CAPS : null,
+        forcedEnemies,
         roundProgress, finaleHighNote
       };
       const slaughterFinale = slaughterMode && roundIsSH;
@@ -3031,8 +3083,11 @@
         // escalation is enforced through the normal composition rules
         // rather than by bolting bodies on afterwards.
         // The boss rung escalates per demon (see SLAUGHTER_SH_BODIES).
-        const loadOf = c => roundSeconds(c.roundEnemies, 1, true) / (roundIsSH ? Math.max(1, c.demonCount) : 1);
-        const prevLoad = roundIsSH ? previousRoundLoad / Math.max(1, previousRoundBodies) : previousRoundLoad;
+        // Escalation is judged PER DEMON: rounds now differ in size (60,
+        // 45-a-wave on the double round, 18 in the finale), so only the
+        // average threat of what walks in compares fairly across them.
+        const loadOf = c => roundSeconds(c.roundEnemies, 1, true) / Math.max(1, c.demonCount);
+        const prevLoad = previousRoundLoad / Math.max(1, previousRoundBodies);
         const score = c => ({ esc: loadOf(c) > prevLoad, sim: maxRoundSimilarity(c.roundEnemies, roundsData) });
         const better = (a, b) => (a.esc !== b.esc) ? a.esc : a.sim < b.sim;
         let best = score(composed);
@@ -4012,7 +4067,7 @@
   // as the player set them — they're simply ignored while the mode is on —
   // so switching it back off returns the player's own round and time
   // settings rather than whatever the mode forced.
-  const SLAUGHTER_LOCKED = ['endless', 'continuous', 'timeMode', 'roundMode', 'roundCounts',
+  const SLAUGHTER_LOCKED = ['endless', 'continuous', 'timeMode', 'roundMode', 'roundCounts', 'berserk',
     'timeLimit', 'healthAmmo', 'bfcAmmo', 'shotgunAmmo'];
   const SLAUGHTER_LOCK_TITLE = 'Set by Slaughter Mode';
 
