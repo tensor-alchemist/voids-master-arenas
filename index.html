@@ -1405,7 +1405,10 @@
       { name: "Whiplash", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "mixed" },
       { name: "Acolyte", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged", flying: true },
       { name: "Acolyte Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "ranged", flying: true },
-      { name: "Cacodemon Hybrid", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "mixed", flying: true }
+      // Repriced 3.0 -> 4.5 (2026-10-10): it throws shield walls that block
+      // your fire AND shield other demons, plus staggering beams — it was
+      // priced like a plain Hell Knight while protecting the whole horde.
+      { name: "Cacodemon Hybrid", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.5, combat: "mixed", flying: true }
     ],
     superheavy: [
       { name: "Cyberdemon", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.0, combat: "mixed" },
@@ -1421,11 +1424,13 @@
       { name: "Vagary Champion", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 7.5, combat: "ranged" }
     ],
     dlc: [
-      { name: "Blighted Zombies", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.0, combat: "melee" },
+      // 1.0 -> 1.3: explodes on death into damaging mist that lingers.
+      { name: "Blighted Zombies", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.3, combat: "melee" },
       { name: "Hallowed Zombies", min: 0, max: 9, step: 3, role: "fodder", baseWeight: 1.2, combat: "melee" },
       { name: "Maykr Drone", min: 0, max: 15, step: 5, role: "fodder", baseWeight: 1.2, combat: "ranged", flying: true },
       { name: "Blighted Hell Knight", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "melee" },
-      { name: "Buzzsaw", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.0, combat: "melee" },
+      // 3.0 -> 4.0: shielded, nimble, and denies the area around it up close.
+      { name: "Buzzsaw", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "melee" },
       { name: "Nightmare Revenant", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "ranged" },
       { name: "Nightmare Whiplash", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 3.5, combat: "mixed" },
       { name: "Whiplash Leader", min: 0, max: 3, step: 1, role: "heavy", baseWeight: 4.0, combat: "mixed" },
@@ -1453,17 +1458,15 @@
       { name: "Archvile", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.5, combat: "ranged" },
       { name: "Armoured Archvile", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 8.0, combat: "ranged" },
       { name: "Cosmic Baron Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.5, combat: "mixed" },
-      // Cosmic Elemental is SUPERHEAVY (Prerit, 2026-10-06), like the
-      // Archviles: classed heavy at w=3.5 it was priced as a mid heavy.
-      // Weighted at the superheavy floor (Vagary/Komodo, 6.0), so the
-      // superheavy caps now limit it: none on Aspiring Slayer, one on
-      // Hurt Me Plenty.
-      { name: "Cosmic Elemental", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.0, combat: "ranged", flying: true },
-      // Warlocks are SUPERHEAVY (Prerit, 2026-10-06), like the Archviles
-      // and Cosmic Elemental. Warlock sits at the superheavy floor (6.0);
-      // its Leader keeps the usual Leader step above its base.
-      { name: "Warlock", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.0, combat: "ranged" },
-      { name: "Warlock Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 8.0, combat: "ranged" },
+      // Cosmic Elemental is SUPERHEAVY (Prerit, 2026-10-06): it flies and
+      // throws flaming skulls that explode on contact. 6.5 — just above
+      // the superheavy floor (2026-10-10 balancing).
+      { name: "Cosmic Elemental", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 6.5, combat: "ranged", flying: true },
+      // Warlocks are SUPERHEAVY (Prerit, 2026-10-06) and BUFF the demons
+      // around them in an area, as well as teleporting away when pressed —
+      // a disruptor, priced at 7.0 / 9.0 (2026-10-10 balancing).
+      { name: "Warlock", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 7.0, combat: "ranged" },
+      { name: "Warlock Leader", min: 0, max: 3, step: 1, role: "superheavy", baseWeight: 9.0, combat: "ranged" },
       { name: "Vagary Leader", min: 0, max: 1, step: 1, role: "superheavy", baseWeight: 8.5, combat: "ranged" }
     ]
   };
@@ -1805,6 +1808,31 @@
   // families.
   // Heavy cap raised 3 -> 5 after a second playtest: 3 restricted too
   // much and rounds felt too easy. 5 still stops the 8-12 walls.
+  // Disruptors: demons whose threat is what they do to the FIGHT — shield
+  // the horde, summon, buff, teleport away, or go invisible — rather
+  // than their own health. Stacking them is what made Slaughter Mode
+  // feel unfair, so each round caps them (by body count) on top of the
+  // family caps. Finale included.
+  const DISRUPTORS = new Set([
+    'Cacodemon Hybrid', 'Acolyte', 'Acolyte Leader', 'Nightmare Imp Stalker',
+    'Archvile', 'Armoured Archvile', 'Warlock', 'Warlock Leader'
+  ]);
+  const SLAUGHTER_DISRUPTOR_CAPS = [1, 2, 2, 3, 3];
+  // Normal mode had the same stacking — up to 8 disruptors in an
+  // Aspiring Slayer round, 13 in Slaughterhouse — so it is capped per
+  // intensity too (Prerit, 2026-10-10).
+  // Normal mode gets a heavy-family cap only (no fodder/superheavy family
+  // caps): it still produced walls of up to 8-12 of one heavy family — the
+  // "eight Knights" problem Slaughter Mode had. The cap escalates with
+  // intensity (Prerit, 2026-10-10): harder tiers may lean harder on one
+  // family, but nothing is unlimited.
+  // Shared with Slaughter Mode, whose rounds each take their rung's cap.
+  const HEAVY_FAMILY_CAPS = { easy: 5, balanced: 6, sweaty: 7, nightmare: 8, ultranightmare: 9, slaughterhouse: 10 };
+  const NORMAL_DISRUPTOR_CAPS = { easy: 1, balanced: 2, sweaty: 2, nightmare: 3, ultranightmare: 3, slaughterhouse: 4 };
+  // Slaughter Mode family caps. Heavy history: 3 (too restrictive) -> 5 ->
+  // now each round takes its rung's HEAVY_FAMILY_CAPS entry (6/7/8/9,
+  // finale 10), the same escalating scale as normal mode (Prerit,
+  // 2026-10-10); the heavy value here is only a fallback.
   const SLAUGHTER_FAMILY_CAPS = { fodder: 25, heavy: 5, superheavy: 2 };
   // Each rung composes at its intensity's full budget (0.75 on the arc
   // is the 1.0x point of its durability scale) — it is that intensity at
@@ -2292,14 +2320,26 @@
     const maxOf = e => (forced && forced[e.name] != null) ? forced[e.name] : e.max;
 
     const familyCaps = opts.familyCaps || null;
+    const disruptorCap = opts.disruptorCap == null ? Infinity : opts.disruptorCap;
+    // Also enforces the per-round disruptor cap, so every placement pass
+    // that already respects family room respects it too.
     function familyRoom(e) {
-      if (!familyCaps) return Infinity;
-      const fam = demonFamily(e.name);
-      let have = 0;
-      for (const n in roundEnemies) if (roundEnemies[n] > 0 && demonFamily(n) === fam) have += roundEnemies[n];
-      const cap = familyCaps[e.role] == null ? Infinity : familyCaps[e.role];
+      let room = Infinity;
+      if (familyCaps) {
+        const fam = demonFamily(e.name);
+        let have = 0;
+        for (const n in roundEnemies) if (roundEnemies[n] > 0 && demonFamily(n) === fam) have += roundEnemies[n];
+        const cap = familyCaps[e.role] == null ? Infinity : familyCaps[e.role];
+        room = cap - have;
+      }
+      if (disruptorCap !== Infinity && DISRUPTORS.has(e.name)) {
+        let have = 0;
+        for (const n in roundEnemies) if (roundEnemies[n] > 0 && DISRUPTORS.has(n)) have += roundEnemies[n];
+        room = Math.min(room, disruptorCap - have);
+      }
+      if (room === Infinity) return Infinity;
       const step = e.step || 1;
-      return Math.max(0, Math.floor((cap - have) / step) * step);
+      return Math.max(0, Math.floor(room / step) * step);
     }
 
     // Every place below that would normally reach for a cheap body to
@@ -2370,9 +2410,16 @@
       (finaleHighNote && difficultyCaps[difficultyKey].maxSuperHeavyCount > 0)
     );
     if (finaleNeedsRoyalty) {
-      const cheapest = [...allSuperHeavy]
-        .filter(e => !conflictsWithExisting(e.name, roundEnemies))
-        .sort((a, b) => getDemonWeight(a) - getDemonWeight(b))[0];
+      // A cheap superheavy, picked at random. Taking [0] of a sort
+      // always handed the tie to whichever came first in the data, so this
+      // fallback fielded a Komodo every time — tripling Komodo frequency on
+      // Hurt Me Plenty (15% of rounds vs ~4% for every other superheavy).
+      const royaltyPool = allSuperHeavy.filter(e => !conflictsWithExisting(e.name, roundEnemies) && familyRoom(e) >= 1);
+      const lightest = royaltyPool.length ? Math.min(...royaltyPool.map(getDemonWeight)) : 0;
+      // "Cheap" means within 1.0 of the lightest — an exact tie still left
+      // the two lightest species (Komodo, Vagary) splitting every fallback.
+      const tied = royaltyPool.filter(e => getDemonWeight(e) <= lightest + 1.0);
+      const cheapest = tied.length ? tied[Math.floor(rand() * tied.length)] : null;
       if (cheapest) {
         roundEnemies[cheapest.name] = 1;
         currentRoundDurability += getDemonWeight(cheapest);
@@ -2784,14 +2831,19 @@
         ? preferFresh(shuffleArray(allSuperHeavy), lastRoundFamilies, campaignFamilies)
         : shuffleArray(allSuperHeavy);
       const superCap = difficultyCaps.slaughterhouse.maxSuperPerSpecies;
+      const finaleDisruptorCap = SLAUGHTER_DISRUPTOR_CAPS[SLAUGHTER_DISRUPTOR_CAPS.length - 1];
+      let disruptors = 0;
       for (const e of superPool) {
         const left = SLAUGHTER_FINALE.superheavy - supers;
         if (left <= 0) break;
         if (conflictsWithExisting(e.name, roundEnemies)) continue;
-        const most = Math.min(left, e.max, superCap);
+        const dRoom = DISRUPTORS.has(e.name) ? finaleDisruptorCap - disruptors : Infinity;
+        if (dRoom <= 0) continue;
+        const most = Math.min(left, e.max, superCap, dRoom);
         const n = 1 + Math.floor(rand() * most);
         roundEnemies[e.name] = n;
         supers += n;
+        if (DISRUPTORS.has(e.name)) disruptors += n;
       }
       // Heavies: exactly SLAUGHTER_FINALE.heavy in total, split at random
       // the same way — doubles allowed, within each species' slider max
@@ -2807,13 +2859,15 @@
         if (conflictsWithExisting(e.name, roundEnemies)) continue;
         const fam = demonFamily(e.name);
         const step = e.step || 1;
-        const room = Math.min(left, e.max, SLAUGHTER_FAMILY_CAPS.heavy - (famHeavy[fam] || 0));
+        const dRoom = DISRUPTORS.has(e.name) ? finaleDisruptorCap - disruptors : Infinity;
+        const room = Math.min(left, e.max, HEAVY_FAMILY_CAPS.slaughterhouse - (famHeavy[fam] || 0), dRoom);
         const steps = Math.floor(room / step);
         if (steps < 1) continue;
         const n = step * (1 + Math.floor(rand() * steps));
         roundEnemies[e.name] = n;
         famHeavy[fam] = (famHeavy[fam] || 0) + n;
         heavies += n;
+        if (DISRUPTORS.has(e.name)) disruptors += n;
       }
       let durability = 0;
       for (const n in roundEnemies) {
@@ -3058,7 +3112,10 @@
         fodderReserve: roundCaps.fodderReserve,
         maxBodies: slaughterMode ? roundBodies : roundCaps.maxBodies,
         targetBodies: roundBodies,
-        familyCaps: slaughterMode ? SLAUGHTER_FAMILY_CAPS : null,
+        familyCaps: slaughterMode
+          ? Object.assign({}, SLAUGHTER_FAMILY_CAPS, { heavy: HEAVY_FAMILY_CAPS[roundKey] })
+          : { heavy: HEAVY_FAMILY_CAPS[difficultyKey] },
+        disruptorCap: slaughterMode ? SLAUGHTER_DISRUPTOR_CAPS[r - 1] : NORMAL_DISRUPTOR_CAPS[difficultyKey],
         forcedEnemies,
         roundProgress, finaleHighNote
       };
@@ -3241,6 +3298,215 @@
     }
   }
 
+  /* ================= CAMPAIGN STORY ================= */
+
+  // A short poetic story under the campaign title, assembled from three
+  // pools: an opening for the ARENA, a line for the THEME of the title's
+  // words, and a closing for the INTENSITY (or Slaughter Mode). Lines can
+  // carry the title itself ({title}), so the same pieces read differently
+  // for every name. It draws from its own random stream keyed off the
+  // seed — never from rand() — so it changes no fight, needs no version
+  // bump, and a share link always tells the same story. Changing the
+  // arena chip rewrites only the opening.
+  const STORY_OPENINGS = {
+    "City of Ry'uul": [
+      "Ry'uul's broken avenues still hold the shape of a city that once prayed.",
+      "Wind moves through the shattered colonnades of Ry'uul like a held breath.",
+      "In Ry'uul the stones remember processions, and tonight a new one gathers in the wide streets.",
+      "The old capital of Ry'uul lies open to the sky, its avenues wide enough for an army of the damned.",
+      "Dust settles on the toppled statues of Ry'uul, waiting for the ground to shake again."
+    ],
+    "Village of Khalim": [
+      "Khalim's walls were built to keep wolves out, not what is coming now.",
+      "Smoke rises from the cramped rooftops of Khalim, and the narrow lanes have gone quiet.",
+      "In Khalim every alley ends at a wall, and every wall has eyes above it.",
+      "The bells of Khalim rang once at dusk, then never again.",
+      "Khalim is small enough to cross in a breath, and tonight it will feel endless."
+    ],
+    "Harbor of Souls": [
+      "Black water laps at the piers of the Harbor of Souls, and something answers from beneath.",
+      "No ship has left the Harbor of Souls in an age; tonight the tide brings cargo of its own.",
+      "Fog rolls over the long docks of the Harbor of Souls, hiding everything but the footsteps.",
+      "The Harbor of Souls keeps its sightlines open; there will be nowhere to hide from what comes ashore.",
+      "Lanterns gutter along the Harbor of Souls, one by one, as the dead wade in."
+    ],
+    "Hell's Core": [
+      "At Hell's Core the ground is a crust over fire, and it is thinning.",
+      "Obsidian teeth rise from the magma of Hell's Core, and every one of them is warm.",
+      "The air at Hell's Core shimmers with heat enough to blister thought.",
+      "Hell's Core breathes in long, burning pulses, and each one sends more of them up from below.",
+      "Nothing grows at Hell's Core except the horde."
+    ],
+    "Osseus": [
+      "The bone-halls of Osseus remember every footstep.",
+      "In Osseus the walls are made of the fallen, and they lean in to listen.",
+      "Osseus winds upward in spires of rib and skull, a cathedral built from the losing side.",
+      "The corridors of Osseus twist like a dying thing, and every turn has been walked by the dead.",
+      "Marrow-dust drifts through Osseus, and somewhere above, something is rattling awake."
+    ],
+    "Classic Hell": [
+      "Classic Hell has not changed in a long time: flat stone, red sky, and a door that only opens one way.",
+      "The old Hell waits in its simple geometry, the way it always has.",
+      "In Classic Hell the rules are ancient and the halls are fast. Keep moving.",
+      "Hard-edged shadows stretch across Classic Hell, and the demons know every corner by heart.",
+      "Classic Hell remembers the first Slayer. It has been waiting for the next."
+    ]
+  };
+
+  // Themes are read off the title's own words, first match wins, so a new
+  // title word needs no bookkeeping: it either matches a theme or falls
+  // through to 'ruin'.
+  const STORY_THEMES = [
+    ['frost', /cocytus|styx|frozen|frost|\bcold|rime|winter|black water/],
+    ['fire', /\bash|burn|cinder|\bember|fire|forge|furnace|kiln|pyre|scorch|smould|molten|boil|scald|blister|bellows|foundry|gehenna|avernus|immolat|vitrif/],
+    ['blood', /blood|crimson|bleed|gore|viscera|sinew|teeth|nail|butcher|abattoir|slaughter|meatgrinder|carrion|charnel|flagell|exsanguin|eviscer|mangled|rending|ravenous|starving|hunger|feast|tannery|red hours|many mouths|rictus|malebolge/],
+    ['ritual', /rite|vigil|psalm|hymn|choir|chorus|canticle|litany|liturgy|vespers|novena|sermon|sacrament|communion|benediction|doctrine|requiem|antiphon|oratory|chancel|nave|cathedral|cloister|shrine|altar|reliquary|sanctum|belfry|bell|toll|consecrat|hallowed|sanctified|sacred|sinless|profane|unholy|desecrat|apostasy|anathema|malediction|passion|penance|tithe|inquisition|zealot|saints|repent|elegy|dirge|threnody|nocturne|lullaby|anthem|overture|symphony|rondo|refrain|cacophony|advent|rapture|jubilee|pilgrimage|procession|effigy|liturgy/],
+    ['storm', /maelstrom|tempest|deluge|cascade|thunder|howl|shriek|scream|ulul|wrath|cataclysm/],
+    ['beast', /feral|savage|rabid|howl|gnash|stampede|menagerie|hunt|carnival|wild|migration|harvest|belphegor/],
+    ['void', /abyss|tartarus|thanatos|erebus|limbo|sheol|nameless|silent|silence|sightless|hollow|yawning|obsidian|blackened|chasm|descent|perdition|damnation|xal goroth|nothing|despair|dread|sorrow|lament|mourn|weep|quietus|abaddon|acheron/],
+    ['war', /siege|gauntlet|crucible|dominion|onslaught|fusillade|reckoning|judgment|verdict|sentence|trial|ordeal|harrowing|bastion|garrison|rampart|keep|marches|iron|rust|long knives|culling|winnowing|scourging|atrocity|havoc|bedlam|annihilat|obliterat|subjugat|attrition|decimat|argent|deimos|phobos|dis\b|pandemonium/]
+  ];
+
+  const STORY_THEME_LINES = {
+    fire: [
+      "Tonight the fires have a name, {title}, and they are hungry.",
+      "Embers fall like slow rain, and every one of them is looking for you.",
+      "The furnaces beneath have been stoked for this; you can hear them roaring through the stone.",
+      "Heat bends the air into shapes that almost look like faces.",
+      "They lit this pyre long before you arrived, and kept a place for you on it."
+    ],
+    frost: [
+      "A cold older than Hell creeps in. They call it {title}, and it freezes the breath in your chest.",
+      "Frost spreads where no frost should be, and the dead beneath the ice are stirring.",
+      "The frozen river under everything has cracked, and what drowned there is climbing out.",
+      "Your breath hangs white in the air; even the fire here has forgotten how to be warm.",
+      "Something sleeps in the cold here, and the noise is waking it."
+    ],
+    blood: [
+      "The ground is already red. {title} only asks for more.",
+      "Old blood soaks the stones, and the horde has come to add its own.",
+      "There is a hunger in the air that smells of iron and teeth.",
+      "Every hymn sung here was sung in blood, and the choir has returned.",
+      "The scent of the slain carries far, and it has called everything within reach."
+    ],
+    ritual: [
+      "Somewhere a choir is singing {title}, and every verse is a summons.",
+      "The rite was begun long ago; you are only its final word.",
+      "Candles burn with black flame, and the bells toll for no one living.",
+      "The priests of the horde have drawn their circle, and you are standing in it.",
+      "Each prayer here ends in a scream, and the litany is far from finished."
+    ],
+    ruin: [
+      "This place fell once already. {title} is the second time.",
+      "Graves lie open, and their tenants have not gone far.",
+      "What was buried here did not stay buried, and it has been gathering.",
+      "The ruins hold their breath as the first footsteps echo through the dust.",
+      "Every stone here was a monument once. Tonight they are only cover."
+    ],
+    void: [
+      "The dark here has weight. They named it {title}, and it is pressing in.",
+      "Stars wheel wrong above, and something between them is watching.",
+      "The abyss has opened its mouth, and the horde pours out of it like breath.",
+      "Silence falls heavy and total, until the first scream breaks it.",
+      "Beyond the edge of the arena, the void leans closer to see what you will do."
+    ],
+    storm: [
+      "The sky has turned against the ground, and {title} is breaking over the arena.",
+      "Thunder rolls without lightning, and every crack of it brings more of them.",
+      "Wind howls through the arena, carrying screams that are not yet yours.",
+      "The storm has a pulse, and it is quickening.",
+      "Rain falls black and hot, and the horde marches through it without slowing."
+    ],
+    beast: [
+      "Something feral has caught your scent. They call the hunt {title}.",
+      "Howls echo from every direction at once, and they are getting closer.",
+      "The pack has gathered, and it has been starving for a long time.",
+      "Claws scrape stone in the dark, patient, counting your steps.",
+      "Nothing here is tame, and nothing here is afraid of you. Yet."
+    ],
+    war: [
+      "The horde has marched for days to reach this field. They call the battle {title}.",
+      "Banners of flayed hide rise over the ranks, and the drums begin.",
+      "Iron rings against iron as the siege lines tighten.",
+      "This is a war of attrition, and Hell has more soldiers than you have shells.",
+      "The verdict was decided before you arrived. It is yours to overturn."
+    ]
+  };
+
+  const STORY_CLOSINGS = {
+    easy: [
+      "Learn their rhythm. The pit is patient with those who are.",
+      "Find your footing; this night is a lesson, not a grave.",
+      "The dead are slow here. Make them slower.",
+      "Breathe, parry, strike. The rest will come."
+    ],
+    balanced: [
+      "Meet it head on. That is what you came for.",
+      "It will hurt. It is supposed to.",
+      "Hold the line and let them break against it.",
+      "This is Hell as it was meant to be met."
+    ],
+    sweaty: [
+      "Every mistake will be collected, with interest.",
+      "The heavy ones are coming through the chaff. Be ready.",
+      "There is no rest between the waves tonight.",
+      "Fight like the ground is falling away beneath you, because it is."
+    ],
+    nightmare: [
+      "Giants walk among them, and they will not wait their turn.",
+      "The arena has forgotten mercy. So must you.",
+      "Every corner hides something larger than the last.",
+      "Survive the first minute and you may earn the second."
+    ],
+    ultranightmare: [
+      "Few walk out of this. Fewer remember how.",
+      "Every round is crowned with titans; every mercy is rationed.",
+      "If you fall, it will be forever. Do not fall.",
+      "The dead will speak your name, if you live to hear it."
+    ],
+    slaughterhouse: [
+      "No chaff to hide behind. Only the great beasts, and you.",
+      "Nothing small comes through these gates.",
+      "There is no glory to feed on here, only the kill.",
+      "The masters of the pit are waiting, and they are not impatient."
+    ],
+    slaughter: [
+      "And at the bottom of the descent, the great beasts wait, few and terrible.",
+      "Every gate opens on something worse, and the clock does not forgive.",
+      "The descent only goes one way. Keep falling forward.",
+      "Climb down through every circle; the last one has been waiting for you."
+    ]
+  };
+
+  // Its own small PRNG (mulberry32), so the story never touches rand().
+  function storyRng(seed) {
+    let a = (seed ^ 0x51F15EED) >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function storyTheme(title) {
+    const t = String(title || '').toLowerCase();
+    for (const [theme, re] of STORY_THEMES) if (re.test(t)) return theme;
+    return 'ruin';
+  }
+
+  function buildCampaignStory(seed, title, arena, tierKey) {
+    const rng = storyRng(seed >>> 0);
+    const pick = list => list[Math.floor(rng() * list.length)];
+    // Fixed draw order: closing, theme line, opening. The opening is drawn
+    // last so changing the arena alters nothing else in the story.
+    const closing = pick(STORY_CLOSINGS[tierKey] || STORY_CLOSINGS.balanced);
+    const themeLine = pick(STORY_THEME_LINES[storyTheme(title)]);
+    const opening = pick(STORY_OPENINGS[arena] || STORY_OPENINGS["City of Ry'uul"]);
+    return [opening, themeLine.replace('{title}', title || 'this night'), closing].join(' ');
+  }
+
   /* ================= RENDERING ================= */
 
   function difficultyLabel(key) {
@@ -3276,10 +3542,13 @@
   // only refreshes the parts around them. Rebuilding the chip markup here
   // would destroy the controls the generator reads and writes.
   function renderGlobalConfig() {
-    const arenaInfo = getArenaByName(document.getElementById('arena').value);
     document.getElementById('campaignTitle').textContent = campaignInfo.name || 'Generated Campaign';
     document.getElementById('chipSlaughter').hidden = !slaughterMode;
-    document.getElementById('arenaDesc').textContent = arenaInfo.desc;
+    // The story replaces the plain arena description; the arena's
+    // character lives in the story's opening line.
+    document.getElementById('arenaDesc').textContent = buildCampaignStory(
+      currentSeed, campaignInfo.name, document.getElementById('arena').value,
+      slaughterMode ? 'slaughter' : currentDifficulty);
     document.getElementById('campaignNotes').innerHTML = `
       ${campaignInfo.fitNote ? `<p class="fit-note">&#9202; ${campaignInfo.fitNote}</p>` : ''}
       ${campaignInfo.versionNote ? `<p class="stale-note">&#9888; ${campaignInfo.versionNote}</p>` : ''}`;
@@ -3655,7 +3924,12 @@
   //      are one family), so rounds stop reading as "last round plus more".
   // 12 = Cosmic Elemental reclassified heavy -> superheavy.
   // 13 = Warlock and Warlock Leader reclassified heavy -> superheavy.
-  const GENERATOR_VERSION = 13;
+  // 14 = balancing by mechanic, plus per-intensity disruptor caps and
+  //      escalating heavy-family caps (5..10) in normal mode: Cacodemon Hybrid 4.5, Buzzsaw 4.0,
+  //      Blighted Zombies 1.3, Cosmic Elemental 6.5, Warlock 7.0/9.0; the
+  //      forced-royalty fallback breaks weight ties at random (it always
+  //      picked Komodo). Slaughter Mode also caps disruptors per round.
+  const GENERATOR_VERSION = 14;
   // Width of the version field in a share code (see packShareCode).
   const GENERATOR_VERSION_SPAN = 128;
 
@@ -3987,6 +4261,7 @@
     // nothing in the app or the game accepts — and it collided with the
     // round-level "In-Game Passcode" below, which is a real, usable code.
     out += `Share link: ${buildShareLink()}\n`;
+    out += `${buildCampaignStory(currentSeed, campaignInfo.name, arenaName, slaughterMode ? 'slaughter' : currentDifficulty)}\n`;
     out += `Arena: ${arenaName}\n`;
     if (slaughterMode) out += `Game Mode: Slaughter Mode\n`;
     out += `Endless Mode: ${document.getElementById('endless').value}\n`;
