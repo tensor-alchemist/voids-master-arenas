@@ -4,9 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ripatorium Master Arena Randomizer</title>
+  <script>
+    // Colour palette. Nukage is the default; ?palette=<name> picks another
+    // (see the palette blocks at the end of the stylesheet). "rust" is the
+    // original palette, which lives in the base :root variables, so it
+    // needs no block of its own. Set before first paint so there is no
+    // flash of other colours.
+    // Order: a ?palette= link, then the player's saved choice from the
+    // theme picker, then Nukage.
+    var PALETTES = ['nukage', 'rust', 'hellfire', 'techbase', 'bloodmoon', 'arcade'];
+    var pal = 'nukage';
+    try {
+      var fromUrl = new URLSearchParams(location.search).get('palette');
+      var saved = localStorage.getItem('ripatorium-palette');
+      if (PALETTES.indexOf(fromUrl) >= 0) { pal = fromUrl; localStorage.setItem('ripatorium-palette', pal); }
+      else if (PALETTES.indexOf(saved) >= 0) pal = saved;
+    } catch (e) { /* storage blocked: default */ }
+    document.documentElement.setAttribute('data-palette', pal);
+    // The Depth surface style (see DEPTH STYLE in the stylesheet) is
+    // always on; there is no longer a flat option.
+    document.documentElement.setAttribute('data-style', 'depth');
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Eczar:wght@500;600;700;800&family=Cinzel:wght@500;700;900&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Eczar:wght@500;600;700;800&family=Cinzel:wght@500;700;900&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-dark: #0b0908;
@@ -219,9 +240,9 @@
       box-shadow: 0 0 14px rgba(211, 55, 43, 0.4);
     }
 
-    .intensity-btn[data-value="ultranightmare"] { border-color: rgba(155, 77, 255, 0.4); }
+    .intensity-btn[data-value="praetor"] { border-color: rgba(155, 77, 255, 0.4); }
 
-    .intensity-btn[data-value="ultranightmare"].active {
+    .intensity-btn[data-value="praetor"].active {
       background: linear-gradient(180deg, rgba(155, 77, 255, 0.3), rgba(211, 55, 43, 0.15));
       border-color: var(--un-violet);
       color: #e6d4ff;
@@ -380,8 +401,6 @@
       box-shadow: inset 0 1px 0 rgba(255, 220, 200, 0.05);
     }
     .seg-btn:hover { border-color: var(--accent-gold); color: var(--text-main); }
-    .seg-clock { max-width: 440px; }
-    .seg-clock .seg-btn { padding: 6px 9px; min-width: 2.9em; font-size: 0.7rem; }
     .seg-btn:focus-visible { outline: 2px solid var(--accent-gold-bright); outline-offset: 2px; }
     .seg-btn.active {
       background: linear-gradient(180deg, rgba(211, 55, 43, 0.25), rgba(211, 55, 43, 0.08));
@@ -869,12 +888,6 @@
 
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    .fit-note {
-      margin: 10px 0 0;
-      font-size: 0.8rem;
-      color: var(--accent-gold);
-    }
-
     .stale-note {
       margin: 6px 0 0;
       font-size: 0.8rem;
@@ -928,6 +941,8 @@
       min-width: 5.2em;
     }
     .pc-waves { min-width: 4.6em; text-transform: uppercase; letter-spacing: 0.5px; }
+
+
     .pc-code {
       flex: 1 1 auto;
       color: var(--accent-gold-bright);
@@ -1040,6 +1055,748 @@
         transition: none !important;
       }
     }
+      /* =====================================================================
+       V3 THEME — classic 90s-shooter look.
+       Original styling in the spirit of early-90s shooter menus: pixel
+       lettering, flat steel plates with hard bevels, amber status-bar
+       numerals. No id Software logos, faces or textures are used.
+       Deliberately NO glow anywhere: every text-shadow, box-shadow,
+       filter and pulse animation from the base theme is switched off
+       below, and depth comes from hard 2px bevels instead.
+       ===================================================================== */
+    :root {
+      --v3-bg: #120d0a;
+      --v3-bg-dot: #1b140f;
+      --v3-steel: #3b332c;
+      --v3-steel-hi: #7a6c5f;
+      --v3-steel-lo: #0b0807;
+      --v3-plate: #1e1813;
+      --v3-plate-hi: #4a3f36;
+      --v3-red: #b0180c;
+      --v3-red-hi: #ff5a3c;
+      --v3-red-lo: #4a0804;
+      --v3-amber: #ffb22c;
+      --v3-bone: #eadfc8;
+      --v3-muted: #a8988a;
+      --v3-green: #5fd35a;
+      --v3-title: var(--v3-red-hi);
+      --v3-on-red: #fff;
+      --v3-steel-hover: #4a4038;
+      --v3-red-hover: #cc2414;
+      --v3-accent-soft: #e0a58c;
+      --v3-row-a: #17120e;
+      --v3-row-b: #1f1813;
+      --v3-row-hover: #2a2119;
+      --v3-row-line: #0e0a08;
+      --v3-super-name: #ff8c73;
+      --v3-fod-bg: #1d4a1b; --v3-fod-fg: #a6f09f; --v3-fod-hi: #3f8a3a; --v3-fod-lo: #0b1f0a;
+      --v3-hvy-bg: #5a3d0c; --v3-hvy-fg: #ffd27a; --v3-hvy-hi: #a0741f; --v3-hvy-lo: #2a1b04;
+      --v3-sup-bg: #7a1208; --v3-sup-fg: #ffc4b8; --v3-sup-hi: #d2402a; --v3-sup-lo: #330602;
+      --font-pixel: 'Press Start 2P', 'Courier New', monospace;
+      --font-digits: 'VT323', 'Courier New', monospace;
+    }
+
+    *, *::before, *::after {
+      text-shadow: none !important;
+      box-shadow: none !important;
+      filter: none !important;
+      backdrop-filter: none !important;
+      animation: none !important;
+    }
+    header::before, .card::before, .card::after, .overview-cell::after { display: none !important; }
+
+    body {
+      background-color: var(--v3-bg);
+      /* 2x2 ordered-dither dots, the way 256-colour menus shaded flats. */
+      background-image:
+        repeating-conic-gradient(var(--v3-bg-dot) 0 25%, var(--v3-bg) 0 50%),
+        linear-gradient(rgba(18, 13, 10, 0.92), rgba(18, 13, 10, 0.92)),
+        var(--arena-img, none);
+      background-size: 4px 4px, cover, cover;
+      background-repeat: repeat, no-repeat, no-repeat;
+      background-attachment: fixed;
+      color: var(--v3-bone);
+    }
+
+    /* ---- Plates: raised steel with a hard light/dark bevel ---- */
+    header, .card, details.usage-note, .overview-cell {
+      background: var(--v3-steel);
+      border: 3px solid;
+      border-color: var(--v3-steel-hi) var(--v3-steel-lo) var(--v3-steel-lo) var(--v3-steel-hi);
+      border-radius: 0;
+    }
+    header { padding: 26px 20px 22px; }
+    .card { padding: 20px; }
+
+    /* Recessed wells inside plates (inputs, rows, entries). */
+    .chip, .pc-row, .history-entry, .round-card, .enemy-row {
+      border-radius: 0;
+    }
+
+    /* ---- Type ---- */
+    h1 {
+      font-family: var(--font-pixel);
+      font-weight: 700;
+      font-size: clamp(1.6rem, 5vw, 3rem);
+      line-height: 1.1;
+      letter-spacing: 1px;
+      color: var(--v3-title);
+      /* A hard 3px drop shadow, not a glow: it's a second, offset copy of
+         the letters, the way 90s title screens faked depth. */
+      text-shadow: 3px 3px 0 #000 !important;
+    }
+    .tagline, .intensity-label, .gen-label, .ov-label, .passcode-heading {
+      font-family: var(--font-pixel) !important;
+      font-weight: 400;
+      letter-spacing: 1.5px !important;
+      color: var(--v3-muted);
+    }
+    .tagline { font-size: 0.7rem; }
+    .intensity-label, .gen-label { color: var(--v3-amber); font-size: 0.7rem; }
+    .card h2, #campaignTitle, .history-card h2 {
+      font-family: var(--font-pixel);
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--v3-amber);
+    }
+    .sigil { color: var(--v3-title); }
+    .rule { opacity: 1; color: var(--v3-steel-hi); }
+    .rule::before, .rule::after { background: var(--v3-steel-lo); height: 2px; border-bottom: 1px solid var(--v3-steel-hi); }
+    .intensity-desc, .slaughter-desc, .arena-desc { color: var(--v3-muted); }
+    .slaughter-desc { color: var(--v3-accent-soft); }
+
+    /* ---- Buttons: raised bevel, inverted when pressed or selected ---- */
+    .intensity-btn, .seg-btn, .btn-secondary, .slaughter-toggle, .history-page {
+      font-family: var(--font-pixel);
+      font-weight: 400;
+      letter-spacing: 1px;
+      background: var(--v3-steel);
+      color: var(--v3-bone);
+      border: 2px solid;
+      border-color: var(--v3-steel-hi) var(--v3-steel-lo) var(--v3-steel-lo) var(--v3-steel-hi);
+      border-radius: 0;
+      transition: none;
+    }
+    .intensity-btn { font-size: 0.8rem; padding: 9px 16px; }
+    .seg-btn { font-size: 0.72rem; }
+    .intensity-btn:hover, .seg-btn:hover, .btn-secondary:hover, .slaughter-toggle:hover, .history-page:hover {
+      background: var(--v3-steel-hover);
+      color: #fff;
+      border-color: var(--v3-steel-hi) var(--v3-steel-lo) var(--v3-steel-lo) var(--v3-steel-hi);
+    }
+    .intensity-btn.active, .seg-btn.active, .history-page.active,
+    .intensity-btn[data-value="praetor"].active, .intensity-btn[data-value="slaughterhouse"].active {
+      background: var(--v3-red);
+      color: var(--v3-on-red);
+      border-color: var(--v3-red-lo) var(--v3-red-hi) var(--v3-red-hi) var(--v3-red-lo);
+    }
+    .intensity-btn[data-value="praetor"], .intensity-btn[data-value="slaughterhouse"] {
+      border-color: var(--v3-steel-hi) var(--v3-steel-lo) var(--v3-steel-lo) var(--v3-steel-hi);
+    }
+    .intensity-btn:active, .seg-btn:active, .btn-secondary:active, .history-page:active {
+      border-color: var(--v3-steel-lo) var(--v3-steel-hi) var(--v3-steel-hi) var(--v3-steel-lo);
+    }
+    .btn-secondary { color: var(--v3-amber); font-size: 0.72rem; }
+
+    .btn-action {
+      font-family: var(--font-pixel);
+      font-weight: 700;
+      font-size: clamp(0.95rem, 3.6vw, 1.25rem);
+      letter-spacing: 2px;
+      white-space: nowrap;
+      padding: 13px clamp(18px, 5vw, 40px);
+      background: var(--v3-red);
+      color: var(--v3-on-red);
+      border: 3px solid;
+      border-color: var(--v3-red-hi) var(--v3-red-lo) var(--v3-red-lo) var(--v3-red-hi);
+      border-radius: 0;
+      transition: none;
+      max-width: 100%;
+    }
+    .btn-action:hover { background: var(--v3-red-hover); transform: none; }
+    .btn-action:active {
+      transform: none;
+      border-color: var(--v3-red-lo) var(--v3-red-hi) var(--v3-red-hi) var(--v3-red-lo);
+    }
+
+    /* Slaughter switch: a two-state lamp, not a glowing pill. */
+    .slaughter-toggle { font-size: 0.74rem; padding: 7px 14px 7px 9px; }
+    .sm-track { border-radius: 0; background: var(--v3-steel-lo); border: 2px solid; border-color: var(--v3-steel-lo) var(--v3-steel-hi) var(--v3-steel-hi) var(--v3-steel-lo); }
+    .sm-knob { border-radius: 0; background: var(--v3-muted); }
+    .slaughter-toggle.on { background: var(--v3-red); color: var(--v3-on-red); border-color: var(--v3-red-hi) var(--v3-red-lo) var(--v3-red-lo) var(--v3-red-hi); }
+    .slaughter-toggle.on .sm-track { background: var(--v3-red-lo); border-color: var(--v3-red-lo) var(--v3-red-hi) var(--v3-red-hi) var(--v3-red-lo); }
+    .slaughter-toggle.on .sm-knob { background: var(--v3-amber); }
+    .slaughter-toggle.on .sm-state { color: var(--v3-amber); }
+
+    *:focus-visible { outline: 2px solid var(--v3-amber) !important; outline-offset: 2px; }
+
+    /* ---- Status-bar strip: amber pixel numerals on recessed plates ---- */
+    .overview-cell { background: var(--v3-plate); border-color: var(--v3-steel-lo) var(--v3-plate-hi) var(--v3-plate-hi) var(--v3-steel-lo); padding: 8px 12px 6px; }
+    .overview-cell .ov-label { font-size: 0.6rem; }
+    .overview-cell .ov-value {
+      font-family: var(--font-digits);
+      font-weight: 400;
+      font-size: calc(2.1rem * var(--ds, 1));
+      line-height: 1;
+      letter-spacing: 1px;
+      color: var(--v3-amber);
+      text-transform: uppercase;
+    }
+
+    details.usage-note { padding: 12px 16px; }
+    details.usage-note summary { font-family: var(--font-pixel); font-size: 0.78rem; color: var(--v3-amber); }
+
+    /* ---- Layout: the campaign is the main column; history sits beside it ---- */
+    .grid-layout { grid-template-columns: minmax(0, 1fr) 320px; }
+    #roundsColumn { grid-column: 1; }
+    #roundCardsContainer { grid-column: 1; }
+    .history-card { grid-column: 2; align-self: start; }
+    @media (max-width: 900px) {
+      .grid-layout { grid-template-columns: minmax(0, 1fr); }
+      #roundsColumn, #roundCardsContainer, .history-card { grid-column: auto; }
+    }
+    .history-entry {
+      background: var(--v3-plate);
+      border: 2px solid;
+      border-color: var(--v3-steel-lo) var(--v3-plate-hi) var(--v3-plate-hi) var(--v3-steel-lo);
+    }
+    .history-entry:hover { border-color: var(--v3-amber); }
+    .history-entry.current { border-color: var(--v3-red-hi); }
+    .history-entry .h-name { font-family: var(--font-pixel); font-size: 0.82rem; color: var(--v3-amber); }
+
+    /* ---- Game settings: an even grid of labelled tiles ---- */
+    .global-config-card .config-chips {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 6px;
+    }
+    .chip {
+      background: var(--v3-plate);
+      border: 2px solid;
+      border-color: var(--v3-steel-lo) var(--v3-plate-hi) var(--v3-plate-hi) var(--v3-steel-lo);
+      padding: 6px 10px 7px;
+    }
+    .chip-edit {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      min-width: 0;
+    }
+    .chip-edit:hover, .chip-edit:focus-within { border-color: var(--v3-amber); }
+    .chip-k {
+      font-family: var(--font-pixel);
+      font-size: 0.6rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--v3-muted);
+      white-space: nowrap;
+    }
+    .chip-edit select, .chip-edit input[type="number"], .chip-edit b {
+      font-family: var(--font-digits);
+      font-size: calc(1.35rem * var(--ds, 1));
+      font-weight: 400;
+      line-height: 1.05;
+      color: var(--v3-amber);
+      width: 100%;
+      max-width: 100%;
+      text-overflow: ellipsis;
+    }
+    .chip-edit input[type="number"] { width: 3em; }
+    .chip.chip-slaughter { grid-column: 1 / -1; font-family: var(--font-pixel); font-size: 0.72rem; color: var(--v3-on-red); background: var(--v3-red); border-color: var(--v3-red-hi) var(--v3-red-lo) var(--v3-red-lo) var(--v3-red-hi); }
+    .chip.locked, .chip.disabled { opacity: 0.6; }
+
+    /* ---- Passcodes: aligned columns; code never breaks mid-way ---- */
+    .pc-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 5.2em auto 3.6em;
+      align-items: center;
+      column-gap: 14px;
+      background: var(--v3-plate);
+      border: 2px solid;
+      border-color: var(--v3-steel-lo) var(--v3-plate-hi) var(--v3-plate-hi) var(--v3-steel-lo);
+      border-left: 4px solid var(--v3-red);
+      padding: 6px 12px;
+      transition: none;
+    }
+    .pc-row:hover { border-color: var(--v3-amber); border-left-color: var(--v3-amber); }
+    .pc-round { font-family: var(--font-pixel); font-weight: 400; letter-spacing: 0.5px; color: var(--v3-bone); min-width: 0; font-size: 0.74rem; }
+    .rl-num { color: var(--v3-muted); }
+    .rl-name { color: var(--v3-bone); }
+    .pc-waves { font-family: var(--font-pixel); font-size: 0.62rem; color: var(--v3-muted); min-width: 0; white-space: nowrap; }
+    .pc-code {
+      font-family: var(--font-code, var(--font-digits));
+      font-size: calc(1.6rem * var(--ds, 1));
+      line-height: 1;
+      letter-spacing: 2px;
+      color: var(--v3-amber);
+      white-space: nowrap;
+      overflow-wrap: normal;
+      justify-self: start;
+    }
+    .pc-copy { font-family: var(--font-pixel); font-size: 0.62rem; color: var(--v3-amber); justify-self: end; }
+    .pc-row.unavailable { grid-template-columns: minmax(0, 1fr) 5.2em; border-left-color: var(--v3-steel-hi); }
+    .pc-row.unavailable .pc-missing { grid-column: 1 / -1; }
+    @media (max-width: 560px) {
+      .pc-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "round waves" "code copy";
+        row-gap: 4px;
+      }
+      .pc-round { grid-area: round; }
+      .pc-waves { grid-area: waves; justify-self: end; }
+      .pc-code { grid-area: code; font-size: calc(1.45rem * var(--ds, 1)); letter-spacing: 1px; }
+      .pc-copy { grid-area: copy; }
+    }
+
+    /* ---- Round rosters ---- */
+    .round-card {
+      background: var(--v3-steel);
+      border: 3px solid;
+      border-color: var(--v3-steel-hi) var(--v3-steel-lo) var(--v3-steel-lo) var(--v3-steel-hi);
+    }
+    .round-title { font-family: var(--font-pixel); font-weight: 700; font-size: 0.95rem; letter-spacing: 1px; color: var(--v3-amber); }
+    .round-title .rl-num { color: var(--v3-bone); }
+    .round-title .rl-name { color: var(--v3-amber); }
+    .round-meta { font-family: var(--font-pixel); font-size: 0.6rem; color: var(--v3-muted); }
+    .round-meta b { font-family: var(--font-digits); font-size: calc(1.15rem * var(--ds, 1)); font-weight: 400; color: var(--v3-amber); }
+    /* Roster: a recessed dark plate with pixel-groove row dividers,
+       flat two-tone striping, pixel names and status-bar counts. */
+    .round-card { padding: 14px 16px 16px; }
+    .round-title-row {
+      align-items: center;
+      margin: -2px 0 10px;
+      padding: 6px 10px;
+      background: var(--v3-plate);
+      border: 2px solid;
+      border-color: var(--v3-steel-lo) var(--v3-plate-hi) var(--v3-plate-hi) var(--v3-steel-lo);
+    }
+    .round-card .enemy-row:first-of-type { border-top: 2px solid var(--v3-steel-lo); }
+    .enemy-row {
+      gap: 10px;
+      padding: 5px 10px;
+      margin: 0;
+      background: var(--v3-row-a);
+      border-left: 2px solid var(--v3-steel-lo);
+      border-right: 2px solid var(--v3-plate-hi);
+      border-bottom: 2px solid var(--v3-row-line);
+      box-shadow: none;
+      transition: none;
+    }
+    .enemy-row:nth-of-type(even) { background: var(--v3-row-b); }
+    .enemy-row:last-of-type { border-bottom: 2px solid var(--v3-plate-hi); }
+    .enemy-row:hover { background: var(--v3-row-hover); }
+    .enemy-row .enemy-name {
+      font-family: var(--font-pixel);
+      font-weight: 500;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+      color: var(--v3-bone);
+    }
+    .enemy-row.is-superheavy .enemy-name { color: var(--v3-super-name); font-weight: 600; }
+    .enemy-row .enemy-count {
+      font-family: var(--font-digits);
+      font-weight: 400;
+      font-size: calc(1.6rem * var(--ds, 1));
+      line-height: 1;
+      min-width: 2.6em;
+      color: var(--v3-green);
+    }
+    .enemy-row .enemy-count i { font-family: var(--font-digits); font-size: 0.8em; opacity: 0.6; }
+    .enemy-row.is-heavy .enemy-count { color: var(--v3-amber); }
+    .enemy-row.is-superheavy .enemy-count { color: var(--v3-red-hi); }
+
+    /* Role tags: solid flat blocks with a hard bevel, one colour per role. */
+    .role-badge {
+      border-radius: 0;
+      min-width: 6.4em;
+      justify-content: center;
+      padding: 1px 6px 2px;
+      font-family: var(--font-digits) !important;
+      font-weight: 400;
+      font-size: calc(1rem * var(--ds, 1));
+      letter-spacing: 1px;
+      line-height: 1.1;
+      border: 2px solid;
+    }
+    .role-badge .ic { width: 9px; height: 9px; }
+    .role-fodder { background: var(--v3-fod-bg); color: var(--v3-fod-fg); border-color: var(--v3-fod-hi) var(--v3-fod-lo) var(--v3-fod-lo) var(--v3-fod-hi); }
+    .role-heavy { background: var(--v3-hvy-bg); color: var(--v3-hvy-fg); border-color: var(--v3-hvy-hi) var(--v3-hvy-lo) var(--v3-hvy-lo) var(--v3-hvy-hi); }
+    .role-superheavy { background: var(--v3-sup-bg); color: var(--v3-sup-fg); border-color: var(--v3-sup-hi) var(--v3-sup-lo) var(--v3-sup-lo) var(--v3-sup-hi); }
+
+    /* ---- Misc ---- */
+    .toast { border-radius: 0; font-family: var(--font-pixel); font-size: 0.75rem; background: var(--v3-steel); border: 2px solid; border-color: var(--v3-steel-hi) var(--v3-steel-lo) var(--v3-steel-lo) var(--v3-steel-hi); color: var(--v3-amber); }
+    .credits-footer { color: var(--v3-muted); }
+    .stale-note { color: var(--v3-red-hi); }
+
+    /* Legibility pass: pixel lettering only where it is large enough to
+       read (title, headings, buttons). At small sizes its 2/8, 5/S and C/O
+       collapse into each other, so small labels use the body face and
+       every digit on the page uses VT323. */
+    .tagline, .intensity-label, .gen-label, .ov-label, .passcode-heading,
+    .chip-k, .pc-waves, .round-meta, .pc-copy {
+      font-family: var(--font-body) !important;
+      font-weight: 600;
+      font-size: 0.66rem;
+      letter-spacing: 1.5px !important;
+      text-transform: uppercase;
+    }
+    .intensity-label, .gen-label { font-size: 0.72rem; }
+    .tagline { font-size: 0.72rem; letter-spacing: 3px !important; }
+    .seg-btn {
+      font-family: var(--font-digits);
+      font-size: calc(1.15rem * var(--ds, 1));
+      letter-spacing: 1px;
+      padding: 3px 12px 4px;
+      min-width: 2.4em;
+    }
+    .pc-round { font-size: 0.82rem; }
+    .rl-num { font-family: var(--font-digits); font-size: calc(1.25rem * var(--ds, 1)); letter-spacing: 1px; text-transform: uppercase; }
+    .round-title .rl-num { font-size: calc(1.35rem * var(--ds, 1)); }
+    .history-entry .h-meta { font-size: 0.72rem; }
+    /* Arena names run long ("Village of Khalim"), so that tile spans two
+       columns. 3 columns x 3 rows = Arena (2) + the other seven tiles, so
+       no tile is ever left alone on a row. */
+    .global-config-card .config-chips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .config-chips > .chip-edit:first-of-type { grid-column: span 2; }
+
+    /* Font pass 2. Press Start 2P (headings, buttons) is the clearest
+       blocky face but runs very wide, so it is set small and only ever in
+       one weight. Anything a player has to READ — demon names, round
+       names, history names — is VT323, whose C/O, B/8 and 2/8 stay
+       distinct where Pixelify's collapsed ("Cosmic" read as "Oosmic"). */
+    h1 { font-weight: 400; font-size: calc(clamp(1.05rem, 3.6vw, 2.05rem) * var(--ps, 1)); line-height: 1.45; letter-spacing: 0; }
+    .card h2, #campaignTitle, .history-card h2 { font-weight: 400; font-size: calc(clamp(0.8rem, 2.4vw, 1.05rem) * var(--ps, 1)); line-height: 1.5; letter-spacing: 0.5px; }
+    .intensity-btn { font-size: calc(0.62rem * var(--ps, 1)); padding: 10px 14px; line-height: 1.4; }
+    .btn-action { font-weight: 400; font-size: calc(clamp(0.72rem, 2.8vw, 0.95rem) * var(--ps, 1)); letter-spacing: 1px; padding: 15px clamp(16px, 5vw, 36px); }
+    .btn-secondary { font-size: calc(0.55rem * var(--ps, 1)); padding: 8px 12px; line-height: 1.4; }
+    .slaughter-toggle { font-size: calc(0.56rem * var(--ps, 1)); }
+    details.usage-note summary { font-size: calc(0.6rem * var(--ps, 1)); line-height: 1.6; }
+    .history-page { font-family: var(--font-digits); font-size: calc(1.1rem * var(--ds, 1)); }
+    .chip.chip-slaughter { font-size: calc(0.55rem * var(--ps, 1)); line-height: 1.5; }
+    .toast { font-size: calc(0.6rem * var(--ps, 1)); line-height: 1.5; }
+    .enemy-row .enemy-name, .rl-name, .history-entry .h-name, .pc-round {
+      font-family: var(--font-digits) !important;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+    .enemy-row .enemy-name { font-size: calc(1.3rem * var(--ds, 1)); line-height: 1.1; }
+    .enemy-row.is-superheavy .enemy-name { font-weight: 400; }
+    .pc-round { font-size: calc(1.25rem * var(--ds, 1)); line-height: 1.1; }
+    .rl-name { text-transform: uppercase; }
+    .round-title { font-family: var(--font-digits); font-weight: 400; font-size: calc(1.45rem * var(--ds, 1)); letter-spacing: 1px; line-height: 1.1; }
+    .round-title .rl-num { font-size: inherit; }
+    .history-entry .h-name { font-size: calc(1.3rem * var(--ds, 1)); line-height: 1.1; }
+
+    @media (max-width: 560px) {
+      body { padding: 14px 10px 28px; }
+      header { padding: 20px 12px 18px; }
+      .card { padding: 14px; }
+      /* Phone: 2 columns, every tile single-width -> 8 tiles, 4 full rows. */
+      .global-config-card .config-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .config-chips > .chip-edit:first-of-type { grid-column: auto; }
+      .chip-edit select, .chip-edit input[type="number"], .chip-edit b { font-size: calc(1.2rem * var(--ds, 1)); }
+      /* Rosters: slimmer tags so demon names keep one line. */
+      .enemy-row { gap: 8px; padding: 5px 8px; }
+      .role-badge { min-width: 0; width: 4.9em; padding: 1px 3px 2px; font-size: calc(0.85rem * var(--ds, 1)); letter-spacing: 0; }
+      .role-badge .ic { display: none; }
+      .enemy-row .enemy-name { font-size: calc(1.15rem * var(--ds, 1)); }
+      .enemy-row .enemy-count { font-size: calc(1.4rem * var(--ds, 1)); min-width: 2.2em; }
+      .overview-cell .ov-value { font-size: calc(1.8rem * var(--ds, 1)); }
+    }
+
+    /* ---- Theme picker: two-tone bevelled swatches, top-right of the header ---- */
+    header { position: relative; }
+    /* The theme picker sits in a strip across the top of the header. */
+    .prefs {
+      display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center;
+      gap: 8px 18px; margin: -10px -6px 10px;
+    }
+    .theme-picker { display: flex; align-items: center; gap: 5px; }
+    .theme-label {
+      font-family: var(--font-body); font-weight: 600; font-size: 0.62rem;
+      letter-spacing: 1.5px; text-transform: uppercase; color: var(--v3-muted);
+      margin-right: 3px;
+    }
+    .theme-swatch {
+      width: 22px; height: 22px; padding: 0; cursor: pointer;
+      background: linear-gradient(135deg, var(--sw-a) 0 50%, var(--sw-b) 50% 100%);
+      border: 2px solid; border-radius: 0;
+      border-color: var(--v3-steel-hi) var(--v3-steel-lo) var(--v3-steel-lo) var(--v3-steel-hi);
+    }
+    .theme-swatch:hover { border-color: var(--v3-bone); }
+    .theme-swatch[aria-checked="true"] { outline: 2px solid var(--v3-bone); outline-offset: 1px; }
+    @media (max-width: 700px) {
+      .prefs { justify-content: center; margin: -6px 0 12px; }
+    }
+
+    /* ---- Distinct zeros: a centre dot on every 0 the page draws ---- */
+    .zero { position: relative; display: inline-block; }
+    .zero::after {
+      content: ''; position: absolute; left: 50%; top: 52%;
+      width: 0.15em; height: 0.15em; min-width: 2px; min-height: 2px;
+      background: currentColor; transform: translate(-50%, -50%);
+    }
+    /* Drawn by the page because neither VT323 nor Press Start 2P separates 0 from O. */
+
+    /* Setting tiles: value text visible, select invisible on top. */
+    .config-chips .chip-edit { position: relative; }
+    .config-chips .chip-edit select {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      opacity: 0; z-index: 1; cursor: pointer;
+    }
+    .config-chips .chip-edit select:disabled { cursor: default; }
+    .chip-edit .chip-v {
+      font-family: var(--font-digits);
+      font-size: calc(1.35rem * var(--ds, 1));
+      font-weight: 400; line-height: 1.05; color: var(--v3-amber);
+      display: block; width: 100%; padding-right: 14px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23c9973b'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right center; background-size: 8px 5px;
+    }
+    .chip-edit .chip-v.locked { background-image: none; }
+    .chip-edit:focus-within { border-color: var(--v3-amber); }
+    @media (max-width: 560px) {
+      .chip-edit .chip-v { font-size: calc(1.2rem * var(--ds, 1)); }
+    }
+
+    /* ---- Palette options. Default is Nukage (set in <head>); ?palette=<name> picks another, ?palette=rust the original. ---- */
+    :root[data-palette="nukage"] {
+      --v3-bg: #0b1009; --v3-bg-dot: #121a0e; --v3-steel: #33402b; --v3-steel-hi: #6f8c58; --v3-steel-lo: #060904;
+      --v3-plate: #161f10; --v3-plate-hi: #3d4f2f;
+      --v3-red: #4e9c12; --v3-red-hi: #a4ff4f; --v3-red-lo: #1b3a04; --v3-on-red: #081204; --v3-red-hover: #5cb318;
+      --v3-title: #a4ff4f; --v3-amber: #e8ff3a; --v3-bone: #e6eed4; --v3-muted: #9eac8c; --v3-green: #a4ff4f;
+      --v3-steel-hover: #3e4d33; --v3-accent-soft: #cfe8a6;
+      --v3-row-a: #121a0d; --v3-row-b: #192312; --v3-row-hover: #243218; --v3-row-line: #060904; --v3-super-name: #ff9a7a;
+      --v3-fod-bg: #24421a; --v3-fod-fg: #bfff92; --v3-fod-hi: #4c8a36; --v3-fod-lo: #0c1a08;
+      --v3-hvy-bg: #4c4a0d; --v3-hvy-fg: #f6f06c; --v3-hvy-hi: #8f8a1f; --v3-hvy-lo: #1f1e04;
+      --v3-sup-bg: #6b1a0c; --v3-sup-fg: #ffb7a1; --v3-sup-hi: #c4452a; --v3-sup-lo: #2a0702;
+    }
+    :root[data-palette="techbase"] {
+      --v3-bg: #0b0e13; --v3-bg-dot: #121722; --v3-steel: #3a4250; --v3-steel-hi: #7f8a9c; --v3-steel-lo: #05070a;
+      --v3-plate: #151a23; --v3-plate-hi: #3c4657;
+      --v3-red: #c41a1a; --v3-red-hi: #ff5a52; --v3-red-lo: #4d0606; --v3-on-red: #ffffff; --v3-red-hover: #de2525;
+      --v3-title: #ffd400; --v3-amber: #ffd400; --v3-bone: #e7ecf3; --v3-muted: #99a4b4; --v3-green: #4fe07a;
+      --v3-steel-hover: #475161; --v3-accent-soft: #c9d5e8;
+      --v3-row-a: #11151d; --v3-row-b: #192029; --v3-row-hover: #232b38; --v3-row-line: #07090d; --v3-super-name: #ff8f8f;
+      --v3-fod-bg: #164a3a; --v3-fod-fg: #8ff2c9; --v3-fod-hi: #2f8a6c; --v3-fod-lo: #061f17;
+      --v3-hvy-bg: #5a4a08; --v3-hvy-fg: #ffe066; --v3-hvy-hi: #a38a1c; --v3-hvy-lo: #231c02;
+      --v3-sup-bg: #701010; --v3-sup-fg: #ffb5b5; --v3-sup-hi: #c93a3a; --v3-sup-lo: #2c0404;
+    }
+    :root[data-palette="hellfire"] {
+      --v3-bg: #130500; --v3-bg-dot: #1e0a02; --v3-steel: #4b2511; --v3-steel-hi: #a95b2c; --v3-steel-lo: #090200;
+      --v3-plate: #210c03; --v3-plate-hi: #5b2d13;
+      --v3-red: #e3390a; --v3-red-hi: #ff9330; --v3-red-lo: #5a1300; --v3-on-red: #fff3d1; --v3-red-hover: #ff4d14;
+      --v3-title: #ffcf1f; --v3-amber: #ffd423; --v3-bone: #ffead0; --v3-muted: #c99d7d; --v3-green: #bdff3e;
+      --v3-steel-hover: #5c3018; --v3-accent-soft: #ffbd8e;
+      --v3-row-a: #1a0802; --v3-row-b: #251005; --v3-row-hover: #34180a; --v3-row-line: #090200; --v3-super-name: #ffa060;
+      --v3-fod-bg: #2f4a10; --v3-fod-fg: #d6ff8c; --v3-fod-hi: #5e8a22; --v3-fod-lo: #101c03;
+      --v3-hvy-bg: #7a4a00; --v3-hvy-fg: #ffd96e; --v3-hvy-hi: #c27e10; --v3-hvy-lo: #2c1a00;
+      --v3-sup-bg: #8c1000; --v3-sup-fg: #ffc3a3; --v3-sup-hi: #e0431f; --v3-sup-lo: #330500;
+    }
+    :root[data-palette="bloodmoon"] {
+      --v3-bg: #11050b; --v3-bg-dot: #1b0a13; --v3-steel: #3c1e2f; --v3-steel-hi: #7f4b68; --v3-steel-lo: #070205;
+      --v3-plate: #1c0b15; --v3-plate-hi: #4a2439;
+      --v3-red: #a6123f; --v3-red-hi: #ff5482; --v3-red-lo: #43051a; --v3-on-red: #ffffff; --v3-red-hover: #c21a4d;
+      --v3-title: #ff5482; --v3-amber: #ffcb4d; --v3-bone: #f2dee7; --v3-muted: #b593a5; --v3-green: #7fe2a2;
+      --v3-steel-hover: #4b263a; --v3-accent-soft: #eaa2be;
+      --v3-row-a: #16080f; --v3-row-b: #200d18; --v3-row-hover: #2d1423; --v3-row-line: #070205; --v3-super-name: #ff93b4;
+      --v3-fod-bg: #1f4033; --v3-fod-fg: #a0f2c6; --v3-fod-hi: #3e7a62; --v3-fod-lo: #0a1a13;
+      --v3-hvy-bg: #5c3a0c; --v3-hvy-fg: #ffd47c; --v3-hvy-hi: #a06c1e; --v3-hvy-lo: #241604;
+      --v3-sup-bg: #7c0d30; --v3-sup-fg: #ffbacd; --v3-sup-hi: #d2365f; --v3-sup-lo: #300312;
+    }
+    :root[data-palette="arcade"] {
+      --v3-bg: #09091a; --v3-bg-dot: #10102a; --v3-steel: #2b2b5c; --v3-steel-hi: #6464b4; --v3-steel-lo: #03030b;
+      --v3-plate: #11112d; --v3-plate-hi: #35356c;
+      --v3-red: #e0156e; --v3-red-hi: #ff63ab; --v3-red-lo: #4a0626; --v3-on-red: #ffffff; --v3-red-hover: #ff2a85;
+      --v3-title: #2fe4e8; --v3-amber: #ffd51c; --v3-bone: #eff0ff; --v3-muted: #9c9ece; --v3-green: #40ff8e;
+      --v3-steel-hover: #383872; --v3-accent-soft: #9fd9ff;
+      --v3-row-a: #0e0e25; --v3-row-b: #161638; --v3-row-hover: #21214b; --v3-row-line: #04040e; --v3-super-name: #ff7dc2;
+      --v3-fod-bg: #0e4a3a; --v3-fod-fg: #73ffd4; --v3-fod-hi: #2a8f73; --v3-fod-lo: #04190f;
+      --v3-hvy-bg: #5a4a08; --v3-hvy-fg: #ffe65e; --v3-hvy-hi: #a68f1c; --v3-hvy-lo: #211b02;
+      --v3-sup-bg: #6b0a3b; --v3-sup-fg: #ffa9d4; --v3-sup-hi: #d6307f; --v3-sup-lo: #2a0216;
+    }
+
+    /* =====================================================================
+       DEPTH STYLE (data-style="depth", always set on <html>).
+       Depth without glow: hard unblurred offset shadows, stepped bevels
+       with top lighting, procedural metal textures, corner rivets, hazard
+       stripes and buttons that physically press in. Everything is drawn
+       with gradients from the active palette's colours, so it works with
+       every theme and font. The flat theme switches all box-shadows off
+       with !important; the rules below out-rank it by specificity.
+       ===================================================================== */
+    :root[data-style="depth"] {
+      --d-drop: rgba(0, 0, 0, 0.62);
+      --d-light: rgba(255, 255, 255, 0.07);
+      --d-dark: rgba(0, 0, 0, 0.32);
+      --d-off: 6px;
+      --d-btn: 3px;
+    }
+
+    /* 1 + 2. Raised plates: hard drop shadow, a second bevel step, top light. */
+    :root[data-style="depth"] header,
+    :root[data-style="depth"] .card,
+    :root[data-style="depth"] details.usage-note,
+    :root[data-style="depth"] .round-card {
+      box-shadow:
+        var(--d-off) var(--d-off) 0 var(--d-drop),
+        inset 3px 3px 0 var(--d-light),
+        inset -3px -3px 0 var(--d-dark) !important;
+    }
+    /* Recessed wells: a hard inner shadow from the top-left. */
+    :root[data-style="depth"] .overview-cell,
+    :root[data-style="depth"] .chip,
+    :root[data-style="depth"] .pc-row,
+    :root[data-style="depth"] .history-entry,
+    :root[data-style="depth"] .round-title-row {
+      box-shadow: inset 3px 3px 0 rgba(0, 0, 0, 0.45), inset -1px -1px 0 var(--d-light) !important;
+    }
+
+    /* 3. Textures. Header: diamond tread plate under banded top light. */
+    :root[data-style="depth"] header {
+      background-color: var(--v3-steel);
+      background-image:
+        linear-gradient(180deg, var(--d-light) 0 4px, transparent 4px calc(100% - 16px), rgba(0, 0, 0, 0.18) calc(100% - 16px)),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 12px),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 12px);
+      padding-bottom: 36px;
+    }
+    /* Cards: fine horizontal grating with banded top light. */
+    :root[data-style="depth"] .card,
+    :root[data-style="depth"] details.usage-note,
+    :root[data-style="depth"] .round-card {
+      background-color: var(--v3-steel);
+      background-image:
+        linear-gradient(180deg, var(--d-light) 0 3px, transparent 3px calc(100% - 8px), rgba(0, 0, 0, 0.16) calc(100% - 8px)),
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.11) 0 1px, transparent 1px 4px);
+    }
+    /* Wells: dark wire mesh. */
+    :root[data-style="depth"] .overview-cell,
+    :root[data-style="depth"] .chip,
+    :root[data-style="depth"] .pc-row,
+    :root[data-style="depth"] .history-entry {
+      background-image:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 3px);
+    }
+    /* Background: a tiled pixel brick wall under a dark wash. */
+    :root[data-style="depth"] body {
+      background-image:
+        linear-gradient(color-mix(in srgb, var(--v3-bg) 45%, transparent), color-mix(in srgb, var(--v3-bg) 45%, transparent)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='32' shape-rendering='crispEdges'%3E%3Cg fill='rgba(255,255,255,0.06)'%3E%3Crect x='2' y='0' width='30' height='2'/%3E%3Crect x='34' y='0' width='30' height='2'/%3E%3Crect x='0' y='16' width='16' height='2'/%3E%3Crect x='18' y='16' width='30' height='2'/%3E%3Crect x='50' y='16' width='14' height='2'/%3E%3C/g%3E%3Cg fill='rgba(0,0,0,0.6)'%3E%3Crect x='0' y='14' width='64' height='2'/%3E%3Crect x='0' y='30' width='64' height='2'/%3E%3Crect x='0' y='0' width='2' height='14'/%3E%3Crect x='32' y='0' width='2' height='14'/%3E%3Crect x='16' y='16' width='2' height='14'/%3E%3Crect x='48' y='16' width='2' height='14'/%3E%3C/g%3E%3C/svg%3E"),
+        var(--arena-img, none);
+      background-size: auto, 64px 32px, cover;
+      background-repeat: no-repeat, repeat, no-repeat;
+    }
+
+    /* 4. Rivets: a bevelled pixel square in each corner of every plate. */
+    :root[data-style="depth"] .card,
+    :root[data-style="depth"] .round-card { position: relative; }
+    :root[data-style="depth"] .card::after,
+    :root[data-style="depth"] .round-card::after,
+    :root[data-style="depth"] header .rivets {
+      content: '';
+      display: block !important;
+      position: absolute;
+      inset: 6px;
+      pointer-events: none;
+      background:
+        linear-gradient(var(--v3-steel-hi), var(--v3-steel-hi)) 0 0 / 3px 3px no-repeat,
+        linear-gradient(var(--v3-steel-lo), var(--v3-steel-lo)) 0 0 / 6px 6px no-repeat,
+        linear-gradient(var(--v3-steel-hi), var(--v3-steel-hi)) calc(100% - 3px) 0 / 3px 3px no-repeat,
+        linear-gradient(var(--v3-steel-lo), var(--v3-steel-lo)) 100% 0 / 6px 6px no-repeat,
+        linear-gradient(var(--v3-steel-hi), var(--v3-steel-hi)) 0 calc(100% - 3px) / 3px 3px no-repeat,
+        linear-gradient(var(--v3-steel-lo), var(--v3-steel-lo)) 0 100% / 6px 6px no-repeat,
+        linear-gradient(var(--v3-steel-hi), var(--v3-steel-hi)) calc(100% - 3px) calc(100% - 3px) / 3px 3px no-repeat,
+        linear-gradient(var(--v3-steel-lo), var(--v3-steel-lo)) 100% 100% / 6px 6px no-repeat;
+    }
+    header .rivets { display: none; }
+    :root[data-style="depth"] header .rivets { inset: 8px 8px 24px 8px; }
+
+    /* 5. Hazard stripes: the header's bottom edge (red while Slaughter Mode
+       is on), the ends of the Slaughter Mode bar, and the top edge of each
+       round card's header. */
+    :root[data-style="depth"] header::after {
+      content: '';
+      display: block !important;
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 12px;
+      background: repeating-linear-gradient(-45deg, var(--v3-amber) 0 10px, #111 10px 20px);
+      border-top: 2px solid var(--v3-steel-lo);
+    }
+    :root[data-style="depth"]:has(.slaughter-toggle.on) header::after {
+      background: repeating-linear-gradient(-45deg, var(--v3-red-hi) 0 10px, #111 10px 20px);
+    }
+    :root[data-style="depth"] .chip.chip-slaughter {
+      background:
+        linear-gradient(90deg, transparent 0 34px, var(--v3-red) 34px calc(100% - 34px), transparent calc(100% - 34px)),
+        repeating-linear-gradient(-45deg, var(--v3-amber) 0 8px, #111 8px 16px);
+      text-align: center;
+    }
+    :root[data-style="depth"] .round-title-row {
+      background-image: repeating-linear-gradient(-45deg, var(--v3-amber) 0 6px, #111 6px 12px);
+      background-size: 100% 4px;
+      background-repeat: no-repeat;
+      background-position: top left;
+      padding-top: 10px;
+    }
+
+    /* 6. Tactile buttons: they stand on a hard shadow and press into it.
+       Selected options stay pressed in. */
+    :root[data-style="depth"] .intensity-btn,
+    :root[data-style="depth"] .seg-btn,
+    :root[data-style="depth"] .btn-secondary,
+    :root[data-style="depth"] .slaughter-toggle,
+    :root[data-style="depth"] .history-page,
+    :root[data-style="depth"] .theme-swatch {
+      box-shadow: var(--d-btn) var(--d-btn) 0 var(--d-drop) !important;
+      transition: transform 60ms steps(1), box-shadow 60ms steps(1) !important;
+    }
+    :root[data-style="depth"] .intensity-btn,
+    :root[data-style="depth"] .seg-btn,
+    :root[data-style="depth"] .btn-secondary,
+    :root[data-style="depth"] .slaughter-toggle,
+    :root[data-style="depth"] .history-page {
+      background-image: linear-gradient(180deg, var(--d-light) 0 2px, transparent 2px 60%, rgba(0, 0, 0, 0.16) 60%);
+    }
+    :root[data-style="depth"] .btn-action {
+      box-shadow: 5px 5px 0 var(--d-drop), inset 0 3px 0 rgba(255, 255, 255, 0.2), inset 0 -4px 0 rgba(0, 0, 0, 0.28) !important;
+      transition: transform 60ms steps(1), box-shadow 60ms steps(1) !important;
+    }
+    :root[data-style="depth"] .intensity-btn:active,
+    :root[data-style="depth"] .seg-btn:active,
+    :root[data-style="depth"] .btn-secondary:active,
+    :root[data-style="depth"] .slaughter-toggle:active,
+    :root[data-style="depth"] .history-page:active,
+    :root[data-style="depth"] .theme-swatch:active,
+    :root[data-style="depth"] .intensity-btn.active,
+    :root[data-style="depth"] .seg-btn.active,
+    :root[data-style="depth"] .history-page.active,
+    :root[data-style="depth"] .slaughter-toggle.on {
+      transform: translate(var(--d-btn), var(--d-btn));
+      box-shadow: 0 0 0 var(--d-drop) !important;
+    }
+    :root[data-style="depth"] .btn-action:active {
+      transform: translate(5px, 5px);
+      box-shadow: 0 0 0 var(--d-drop), inset 0 3px 0 rgba(0, 0, 0, 0.28) !important;
+    }
+    /* Spawn the Horde flashes for a beat when it fires (a colour change,
+       not a glow). */
+    :root[data-style="depth"] .btn-action.flash { background: var(--v3-red-hi); color: var(--v3-on-red); }
+    /* Locked controls don't pretend to be pressable. */
+    :root[data-style="depth"] .intensity-picker.locked .intensity-btn { box-shadow: none !important; transform: none; }
+
+    @media (max-width: 560px) {
+      :root[data-style="depth"] { --d-off: 4px; }
+      :root[data-style="depth"] .chip.chip-slaughter {
+        background:
+          linear-gradient(90deg, transparent 0 18px, var(--v3-red) 18px calc(100% - 18px), transparent calc(100% - 18px)),
+          repeating-linear-gradient(-45deg, var(--v3-amber) 0 8px, #111 8px 16px);
+      }
+    }
   </style>
 </head>
 <body>
@@ -1072,6 +1829,18 @@
 
 <div class="container">
   <header>
+    <div class="prefs">
+    <div class="theme-picker" role="radiogroup" aria-label="Theme">
+      <span class="theme-label">Theme</span>
+      <button type="button" class="theme-swatch" role="radio" data-palette="nukage" title="Nukage (default)" aria-label="Nukage" style="--sw-a:#33402b;--sw-b:#a4ff4f"></button>
+      <button type="button" class="theme-swatch" role="radio" data-palette="rust" title="Rust" aria-label="Rust" style="--sw-a:#3b332c;--sw-b:#ff5a3c"></button>
+      <button type="button" class="theme-swatch" role="radio" data-palette="hellfire" title="Hellfire" aria-label="Hellfire" style="--sw-a:#4b2511;--sw-b:#ffcf1f"></button>
+      <button type="button" class="theme-swatch" role="radio" data-palette="techbase" title="Tech Base" aria-label="Tech Base" style="--sw-a:#3a4250;--sw-b:#ffd400"></button>
+      <button type="button" class="theme-swatch" role="radio" data-palette="bloodmoon" title="Blood Moon" aria-label="Blood Moon" style="--sw-a:#3c1e2f;--sw-b:#ff5482"></button>
+      <button type="button" class="theme-swatch" role="radio" data-palette="arcade" title="Arcade" aria-label="Arcade" style="--sw-a:#2b2b5c;--sw-b:#2fe4e8"></button>
+    </div>
+    </div>
+    <span class="rivets" aria-hidden="true"></span>
     <svg class="sigil" aria-hidden="true"><use href="#ic-sigil"/></svg>
     <h1>V01D's Ripatorium Master Arenas</h1>
     <p class="tagline">Doom: The Dark Ages &mdash; Arena Randomizer</p>
@@ -1091,11 +1860,11 @@
 
     <span class="intensity-label">Choose Your Intensity</span>
     <div class="intensity-picker" id="intensityPicker" role="radiogroup" aria-label="Intensity Level">
-      <button class="intensity-btn" data-value="easy" role="radio" aria-checked="false" tabindex="-1">Aspiring Slayer</button>
-      <button class="intensity-btn active" data-value="balanced" role="radio" aria-checked="true" tabindex="0">Hurt Me Plenty</button>
-      <button class="intensity-btn" data-value="sweaty" role="radio" aria-checked="false" tabindex="-1">Ultra Violence</button>
-      <button class="intensity-btn" data-value="nightmare" role="radio" aria-checked="false" tabindex="-1">Nightmare</button>
-      <button class="intensity-btn" data-value="ultranightmare" role="radio" aria-checked="false" tabindex="-1">&#9760; Ultra Nightmare</button>
+      <!-- Three player-facing intensities. Normal and Praetor are blended
+           tiers (HMP+UV, NM+UN); the original tiers stay defined because
+           Slaughter Mode's ladder still climbs through them. -->
+      <button class="intensity-btn active" data-value="normal" role="radio" aria-checked="true" tabindex="0">Normal</button>
+      <button class="intensity-btn" data-value="praetor" role="radio" aria-checked="false" tabindex="-1">&#9760; Praetor</button>
       <button class="intensity-btn" data-value="slaughterhouse" role="radio" aria-checked="false" tabindex="-1">&#128298; Slaughterhouse</button>
     </div>
     <p class="intensity-desc" id="intensityDesc"></p>
@@ -1108,25 +1877,6 @@
         <div class="seg-picker" role="radiogroup" aria-labelledby="lblContent">
           <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="contentFilter" data-value="all">Base + DLC</button>
           <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="contentFilter" data-value="base">Base Game Only</button>
-        </div>
-      </div>
-      <div class="gen-opt std-only">
-        <span class="gen-label" id="lblTime">Time Limit</span>
-        <div class="seg-picker" role="radiogroup" aria-labelledby="lblTime">
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeMode" data-value="auto">Scale to Fight</button>
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeMode" data-value="fixed">Fit to Clock</button>
-        </div>
-        <!-- Only meaningful when fitting the fight to a clock. -->
-        <div class="seg-picker seg-clock" id="genClock" role="radiogroup" aria-label="Clock to fit the fight into" hidden>
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeLimit" data-value="1 Minute" aria-label="1 Minute">1m</button>
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeLimit" data-value="3 Minutes" aria-label="3 Minutes">3m</button>
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeLimit" data-value="5 Minutes" aria-label="5 Minutes">5m</button>
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeLimit" data-value="8 Minutes" aria-label="8 Minutes">8m</button>
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeLimit" data-value="10 Minutes" aria-label="10 Minutes">10m</button>
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeLimit" data-value="13 Minutes" aria-label="13 Minutes">13m</button>
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeLimit" data-value="15 Minutes" aria-label="15 Minutes">15m</button>
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeLimit" data-value="18 Minutes" aria-label="18 Minutes">18m</button>
-          <button type="button" class="seg-btn" role="radio" aria-checked="false" data-target="timeLimit" data-value="20 Minutes" aria-label="20 Minutes">20m</button>
         </div>
       </div>
       <div class="gen-opt std-only">
@@ -1146,10 +1896,6 @@
         <select id="contentFilter" onchange="onContentFilterChange()">
           <option value="all">Base + DLC</option>
           <option value="base">Base Game Only</option>
-        </select>
-        <select id="timeMode" onchange="generateBalancedArena()">
-          <option value="auto">Auto &mdash; Scale Time to Fight</option>
-          <option value="fixed">Fixed &mdash; Fit Fight to Time</option>
         </select>
         <select id="roundMode" onchange="generateBalancedArena()">
           <option value="random" selected>Randomized Rounds (1-5)</option>
@@ -1171,12 +1917,23 @@
     &mdash; or hit <strong>Copy Setup</strong> for a plain-text checklist. Every number this tool
     produces already respects the exact min/max/step limits of the in-game sliders.
     <br><br>
-    Only have a few minutes? Set <strong>Time Limit Mode</strong> to <strong>Fixed</strong>, pick your
-    time, and the generator will build a fight sized to be beatable inside that window. If you don't
-    own the DLC, switch <strong>Content Pool</strong> to <strong>Base Game Only</strong>. Your settings
-    and last campaign are remembered between visits, and pressing <strong>R</strong> rerolls the horde.
-    Rolled something brutal? <strong>Copy Link</strong> grabs a shareable URL &mdash; anyone opening it
-    gets your exact campaign, passcode and all.
+    Pick an intensity: <strong>Normal</strong> for a solid fight with heavies pushing through the chaff,
+    <strong>Praetor</strong> for superheavies from the first round, a climb that never lets up, and a
+    full kit (Health &amp; Ammo always respawning, BFC and .93 Shotgun maxed), or
+    <strong>Slaughterhouse</strong> for nothing but the great beasts and no powerups. Flip on
+    <strong>Slaughter Mode</strong> for a fixed five-round descent through every circle, ending in a
+    boss finale on a 20-minute clock.
+    <br><br>
+    Choose how many <strong>Rounds</strong> you want (or leave it on Random), and if you don't own the
+    DLC, switch <strong>Content Pool</strong> to <strong>Base Game Only</strong>. The time limit is
+    sized automatically from an estimate of how long the fight takes, with no slack to spare. Every
+    setting on the campaign card (arena, time, Health &amp; Ammo, Berserk and the rest) can be changed
+    after the roll.
+    <br><br>
+    Your settings and last campaign are remembered between visits, recent rolls are kept under
+    <strong>Previous Hordes</strong>, and pressing <strong>R</strong> rerolls the horde. Rolled
+    something brutal? <strong>Copy Link</strong> grabs a shareable URL &mdash; anyone opening it gets
+    your exact campaign, passcode and all.
   </details>
 
   <div class="overview-strip" id="overviewStrip"></div>
@@ -1199,7 +1956,7 @@
         <div id="globalConfigBody">
           <div class="config-chips">
             <span class="chip chip-slaughter" id="chipSlaughter" hidden>Slaughter Mode</span>
-            <label class="chip chip-edit">Arena: <select id="arena" onchange="renderResults()">
+            <label class="chip chip-edit"><span class="chip-k">Arena</span><select id="arena" onchange="renderResults()">
           <optgroup label="Base Arenas">
             <option value="City of Ry'uul">City of Ry'uul</option>
             <option value="Village of Khalim">Village of Khalim</option>
@@ -1211,15 +1968,15 @@
             <option value="Classic Hell">Classic Hell</option>
           </optgroup>
         </select></label>
-            <label class="chip chip-edit" id="chipEndless">Endless: <select id="endless" onchange="updateEndlessState(); renderResults()">
+            <label class="chip chip-edit" id="chipEndless"><span class="chip-k">Endless</span><select id="endless" onchange="updateEndlessState(); renderResults()">
           <option value="Off">Off</option>
           <option value="On">On</option>
         </select></label>
-            <label class="chip chip-edit" id="chipContinuous">Continuous Spawning: <select id="continuous" onchange="renderResults()">
+            <label class="chip chip-edit" id="chipContinuous"><span class="chip-k">Continuous Spawning</span><select id="continuous" onchange="renderResults()">
           <option value="Off">Off</option>
           <option value="On">On</option>
         </select></label>
-            <label class="chip chip-edit" id="chipTime">Time: <select id="timeLimit" onchange="onTimeLimitChange()">
+            <label class="chip chip-edit" id="chipTime"><span class="chip-k">Time</span><select id="timeLimit" onchange="renderResults()">
           <option value="1 Minute">1 Minute</option>
           <option value="3 Minutes">3 Minutes</option>
           <option value="5 Minutes" selected>5 Minutes</option>
@@ -1230,19 +1987,19 @@
           <option value="18 Minutes">18 Minutes</option>
           <option value="20 Minutes">20 Minutes</option>
         </select><b id="timeNA" hidden>N/A (Endless)</b></label>
-            <label class="chip chip-edit">Health/Ammo: <select id="healthAmmo" onchange="renderResults()">
+            <label class="chip chip-edit"><span class="chip-k">Health/Ammo</span><select id="healthAmmo" onchange="renderResults()">
           <option value="None">None</option>
           <option value="Once">Once</option>
           <option value="Respawn">Respawn</option>
         </select></label>
-            <label class="chip chip-edit">Berserk: <select id="berserk" onchange="renderResults()">
+            <label class="chip chip-edit"><span class="chip-k">Berserk</span><select id="berserk" onchange="onBerserkChange()">
           <option value="None">None</option>
           <option value="Once">Once</option>
           <option value="Respawn">Respawn</option>
           <option value="Endless">Endless</option>
         </select></label>
-            <label class="chip chip-edit">BFC Ammo: <input type="number" id="bfcAmmo" min="0" max="3" value="1" onchange="renderResults()"></label>
-            <label class="chip chip-edit">.93 Shotgun: <input type="number" id="shotgunAmmo" min="0" max="18" value="12" step="1" onchange="renderResults()"></label>
+            <label class="chip chip-edit"><span class="chip-k">BFC Ammo</span><select id="bfcAmmo" onchange="renderResults()"><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option></select></label>
+            <label class="chip chip-edit"><span class="chip-k">.93 Shotgun</span><select id="shotgunAmmo" onchange="renderResults()"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12" selected>12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option></select></label>
           </div>
           <div class="passcode-block">
             <span class="passcode-heading">In-game passcodes</span>
@@ -1290,12 +2047,12 @@
 
 <script>
   let roundsData = [];
-  let currentDifficulty = 'balanced';
+  let currentDifficulty = 'normal';
   // Slaughter Mode is a campaign FORMAT layered on top of the chosen
   // intensity, not a seventh intensity: the intensity still decides what
   // walks onto the board, Slaughter Mode decides the shape of the night.
   let slaughterMode = false;
-  let campaignInfo = { intensityScore: 0, fitNote: '', versionNote: '' };
+  let campaignInfo = { intensityScore: 0, versionNote: '' };
 
   const timeOrder = ["1 Minute", "3 Minutes", "5 Minutes", "8 Minutes", "10 Minutes", "13 Minutes", "15 Minutes", "18 Minutes", "20 Minutes"];
 
@@ -1519,6 +2276,16 @@
     balanced: { maxDurability: 100, maxDemonCount: 74, maxBodies: 56, maxSuperHeavyCount: 1, superChance: 0.55, maxSuperPerSpecies: 1, fodderReserve: 0.53, fodderVarieties: 4, heavyVarieties: 6 },
     sweaty: { maxDurability: 112, maxDemonCount: 80, maxBodies: 58, maxSuperHeavyCount: 2, superChance: 0.70, maxSuperPerSpecies: 2, fodderReserve: 0.46, fodderVarieties: 5, heavyVarieties: 7 },
     nightmare: { maxDurability: 126, maxDemonCount: 88, maxBodies: 60, maxSuperHeavyCount: 2, superChance: 0.80, maxSuperPerSpecies: 2, fodderReserve: 0.42, fodderVarieties: 5, heavyVarieties: 8 },
+    // Player-facing blends (the picker offers only Normal / Praetor /
+    // Slaughterhouse). Each one fuses two of the original tiers and leans
+    // toward the harder of the pair, so it plays above its old floor:
+    //   normal  = Hurt Me Plenty + Ultra Violence
+    //   praetor = Nightmare + Ultra Nightmare (keeps UN's relentless climb
+    //             and round-1 superheavies, with softer resource starvation)
+    // The original tiers stay below because Slaughter Mode's ladder climbs
+    // through them.
+    normal: { maxDurability: 110, maxDemonCount: 78, maxBodies: 58, maxSuperHeavyCount: 2, superChance: 0.66, maxSuperPerSpecies: 1, fodderReserve: 0.48, fodderVarieties: 5, heavyVarieties: 7 },
+    praetor: { maxDurability: 126, maxDemonCount: 78, maxBodies: 60, maxSuperHeavyCount: 3, superChance: 0.87, maxSuperPerSpecies: 2, fodderReserve: 0.34, fodderVarieties: 5, heavyVarieties: 9 },
     // Ultra Nightmare: the ceiling of what the sliders can express while
     // still being a fight instead of a wall. Durability headroom over
     // Nightmare goes mostly to superheavy presence (4 bodies, guaranteed
@@ -1543,6 +2310,8 @@
     sweaty: "The pit grows teeth. Heavier things push through the chaff, and every hesitation is answered in blood.",
     nightmare: "The arena forgets its manners. Giants walk among the damned from the first bell, and the air itself turns against you.",
     ultranightmare: "The deepest dark the pit can summon. Every round is crowned with titans, every mercy is rationed — survive it once and the dead will speak your name.",
+    normal: "Hell as it was meant to be met — and then some. Heavier things push through the chaff, and every hesitation is answered in blood.",
+    praetor: "The arena forgets its manners. Giants walk among the damned from the first bell, every round climbs higher than the last, and every mercy is rationed.",
     slaughterhouse: "No chaff to hide behind, no glory to feed on, no miracle weapon at your back. Only the great beasts of the pit — and you, alone among them."
   };
 
@@ -1827,8 +2596,8 @@
   // intensity (Prerit, 2026-10-10): harder tiers may lean harder on one
   // family, but nothing is unlimited.
   // Shared with Slaughter Mode, whose rounds each take their rung's cap.
-  const HEAVY_FAMILY_CAPS = { easy: 5, balanced: 6, sweaty: 7, nightmare: 8, ultranightmare: 9, slaughterhouse: 10 };
-  const NORMAL_DISRUPTOR_CAPS = { easy: 1, balanced: 2, sweaty: 2, nightmare: 3, ultranightmare: 3, slaughterhouse: 4 };
+  const HEAVY_FAMILY_CAPS = { easy: 5, balanced: 6, sweaty: 7, nightmare: 8, ultranightmare: 9, slaughterhouse: 10, normal: 7, praetor: 9 };
+  const NORMAL_DISRUPTOR_CAPS = { easy: 1, balanced: 2, sweaty: 2, nightmare: 3, ultranightmare: 3, slaughterhouse: 4, normal: 2, praetor: 3 };
   // Slaughter Mode family caps. Heavy history: 3 (too restrictive) -> 5 ->
   // now each round takes its rung's HEAVY_FAMILY_CAPS entry (6/7/8/9,
   // finale 10), the same escalating scale as normal mode (Prerit,
@@ -1905,7 +2674,8 @@
     // what those two are for.
     const shareMap = {
       easy: 0.34, balanced: 0.39, sweaty: 0.45,
-      nightmare: 0.49, ultranightmare: 0.63, slaughterhouse: 0.73
+      nightmare: 0.49, ultranightmare: 0.63, slaughterhouse: 0.73,
+      normal: 0.43, praetor: 0.57
     };
     const share = (shareMap[difficultyKey] || 0.55) + rand() * 0.16 - 0.06;
     return Math.max(totalRounds, Math.min(ceiling, Math.round(ceiling * share)));
@@ -1938,13 +2708,17 @@
   // it identical. A late round can now open lighter than an early one.
   // Every round still gets at least 1, and the counts always sum to
   // exactly `budget`.
+  // Tiers whose campaigns climb all the way to the finale (no ramp-down)
+  // and may field superheavies from round 1.
+  const RELENTLESS_TIERS = new Set(['ultranightmare', 'praetor', 'slaughterhouse']);
+
   function distributeRespawnBudget(totalRounds, budget, difficultyKey) {
     const PER_ROUND_CAP = MAX_RESPAWNS_PER_ROUND;
-    const escalationMap = { easy: 0.7, balanced: 0.9, sweaty: 1.1, nightmare: 1.3, ultranightmare: 1.5, slaughterhouse: 1.6 };
+    const escalationMap = { easy: 0.7, balanced: 0.9, sweaty: 1.1, nightmare: 1.3, ultranightmare: 1.5, slaughterhouse: 1.6, normal: 1.05, praetor: 1.45 };
     const escalation = escalationMap[difficultyKey] || 0.9;
     const weights = [];
     for (let i = 0; i < totalRounds; i++) {
-      const progress = campaignArc(i + 1, totalRounds, difficultyKey === 'ultranightmare' || difficultyKey === 'slaughterhouse');
+      const progress = campaignArc(i + 1, totalRounds, RELENTLESS_TIERS.has(difficultyKey));
       weights.push(0.6 + escalation * progress + rand() * (0.9 + 0.6 * escalation));
     }
     const sumW = weights.reduce((a, b) => a + b, 0);
@@ -2031,13 +2805,35 @@
   // first, then families from earlier rounds, and last round's families
   // last. Stable, so the arena-bias order underneath survives as the
   // tie-break. Soft, like preferUnused: small pools still fill.
-  function preferFresh(list, lastRoundFamilies, campaignFamilies) {
-    const fresh = [], older = [], recent = [];
-    list.forEach(e => {
+  //
+  // Two rounds of memory, not one. With only last round remembered, the
+  // ~10 heavy families ping-ponged: round 3 re-fielded round 1's demons
+  // (a round shared a big family with the one two back 54% of the time on
+  // Normal, 70% on Praetor, 93% on Slaughterhouse). Order is now: never
+  // fielded -> fielded before but not in the last two rounds (fewest uses
+  // first) -> two rounds back -> last round.
+  // campaignFamilies is a Map of family -> rounds fielded so far.
+  function preferFresh(list, lastRoundFamilies, campaignFamilies, twoBackFamilies) {
+    const twoBack = twoBackFamilies || new Set();
+    const rank = e => {
       const f = demonFamily(e.name);
-      (lastRoundFamilies.has(f) ? recent : (campaignFamilies.has(f) ? older : fresh)).push(e);
-    });
-    return [...fresh, ...older, ...recent];
+      if (lastRoundFamilies.has(f)) return 3;
+      if (twoBack.has(f)) return 2;
+      return campaignFamilies.has(f) ? 1 : 0;
+    };
+    const uses = e => (campaignFamilies.get ? campaignFamilies.get(demonFamily(e.name)) : 0) || 0;
+    return list
+      .map((e, i) => ({ e, i, k: rank(e), u: uses(e) }))
+      .sort((a, b) => (a.k - b.k) || (a.u - b.u) || (a.i - b.i))
+      .map(x => x.e);
+  }
+
+  // Heavies and superheavies a player actually notices, so a family the
+  // last round fielded is kept out of the next one outright whenever the
+  // pool can still fill the round without it.
+  function dropLastRoundBig(list, lastRoundFamilies, needed) {
+    const kept = list.filter(e => !lastRoundFamilies.has(demonFamily(e.name)));
+    return kept.length >= needed ? kept : list;
   }
 
   function preferUnused(list, usedSet) {
@@ -2079,15 +2875,54 @@
   // generation because Continuous Spawning is actually priced into the
   // per-round budget below (trimmed caps), rather than being a cosmetic
   // toggle layered on afterward.
-  function rollEndlessAndContinuous(difficultyKey, fitToTime) {
-    // Fixed time mode is explicitly "I have N minutes" — an infinite-loop
-    // Endless roll would contradict the whole point, so it stays Off.
-    document.getElementById('endless').value = (!fitToTime && rand() < 0.15) ? "On" : "Off";
-    const contChanceMap = { easy: 0.25, balanced: 0.25, sweaty: 0.75, nightmare: 0.75, ultranightmare: 0.9, slaughterhouse: 1.0 };
+  function rollEndlessAndContinuous(difficultyKey) {
+    document.getElementById('endless').value = rand() < 0.15 ? "On" : "Off";
+    const contChanceMap = { easy: 0.25, balanced: 0.25, sweaty: 0.75, nightmare: 0.75, ultranightmare: 0.9, slaughterhouse: 1.0, normal: 0.55, praetor: 0.85 };
     const continuousOn = rand() < (contChanceMap[difficultyKey] || 0.25);
     document.getElementById('continuous').value = continuousOn ? "On" : "Off";
     return continuousOn;
   }
+
+  // Berserk is rolled BEFORE the rounds, because the horde scales with it:
+  // Berserk is a burst of inhuman power, and Endless Berserk is that power
+  // never switching off, so a fight built for bare hands would melt.
+  // The odds are the old post-roll odds evaluated at the median campaign
+  // intensity (0.7 on every intensity, measured over 400 campaigns each),
+  // so how often each value comes up is unchanged.
+  const BERSERK_EXPECTED_SCORE = 0.7;
+  function rollBerserk(difficultyKey) {
+    if (difficultyKey === 'slaughterhouse') return 'None';
+    const isUN = difficultyKey === 'ultranightmare';
+    const isPR = difficultyKey === 'praetor';
+    const restraintCap = isUN ? 0.6 : (isPR ? 0.5 : 0.35);
+    const restraintBonus = isUN ? 0.25 : (isPR ? 0.12 : 0);
+    const powerRestraint = Math.min(restraintCap, Math.max(0, BERSERK_EXPECTED_SCORE - 0.4) * 0.5 + restraintBonus);
+    // id's presets run Berserk None in seven of nine, Once in one, and
+    // Endless in exactly one — Brutality, which pairs it with BFC 0 and a
+    // three-minute clock. Respawn appears nowhere.
+    const bRoll = rand();
+    const noneChance = Math.min(0.8, 0.55 + powerRestraint);
+    const rest = 1 - noneChance;
+    let bVal;
+    if (bRoll < noneChance) bVal = "None";
+    else if (bRoll < noneChance + rest * 0.72) bVal = "Once";
+    else if (bRoll < noneChance + rest * 0.90) bVal = "Respawn";
+    else bVal = "Endless";
+    if ((isUN || isPR) && bVal === 'Endless') bVal = 'Once'; // no rolled Endless on the hard tiers
+    return bVal;
+  }
+
+  // How much harder the horde gets for each Berserk setting: a bigger
+  // threat budget (spent on the big demons — headcount ceilings are
+  // unchanged, so the mix gets heavier, not just more crowded), better
+  // superheavy odds, and for Endless one more superheavy slot per round.
+  // Not applied in Slaughter Mode, whose Berserk is fixed by the format.
+  const BERSERK_BOOST = {
+    None:    { durability: 1.00, superChance: 0.00, extraSuper: 0 },
+    Once:    { durability: 1.08, superChance: 0.05, extraSuper: 0 },
+    Respawn: { durability: 1.16, superChance: 0.10, extraSuper: 0 },
+    Endless: { durability: 1.30, superChance: 0.20, extraSuper: 1 }
+  };
 
   // Phase 2: resource settings are rolled AFTER rounds exist, using how
   // loaded the campaign actually turned out (intensityScore) to bias two
@@ -2110,12 +2945,15 @@
   // the player with no health economy at all rather than a harsh one.
   // Instead the powerups are what get stripped — the fight is meant to be
   // won by play, not by a BFC pass.
-  function rollResourceSettings(difficultyKey, intensityScore) {
+  function rollResourceSettings(difficultyKey, intensityScore, bVal, berserkForced) {
     const isSH = difficultyKey === 'slaughterhouse';
     const isUN = difficultyKey === 'ultranightmare' || isSH;
-    const survivalBoost = isUN ? 0 : Math.min(0.3, Math.max(0, intensityScore - 0.6) * 0.5);
-    const restraintCap = isSH ? 0.85 : (isUN ? 0.6 : 0.35);
-    const restraintBonus = isSH ? 0.6 : (isUN ? 0.25 : 0);
+    // Praetor: halfway between Nightmare's survival-generosity and Ultra
+    // Nightmare's starvation.
+    const isPR = difficultyKey === 'praetor';
+    const survivalBoost = isUN ? 0 : Math.min(isPR ? 0.15 : 0.3, Math.max(0, intensityScore - 0.6) * 0.5);
+    const restraintCap = isSH ? 0.85 : (isUN ? 0.6 : (isPR ? 0.5 : 0.35));
+    const restraintBonus = isSH ? 0.6 : (isUN ? 0.25 : (isPR ? 0.12 : 0));
     const powerRestraint = Math.min(restraintCap, Math.max(0, intensityScore - 0.4) * 0.5 + restraintBonus);
 
     const haRoll = rand();
@@ -2130,6 +2968,10 @@
       // No fodder means no glory-kill health economy — pickups are the
       // only tap there is, so they never go dry here.
       haVal = haRoll < 0.45 ? "Once" : "Respawn";
+    } else if (isPR) {
+      if (haRoll < 0.07) haVal = "None";
+      else if (haRoll < 0.50) haVal = "Once";
+      else haVal = "Respawn";
     } else if (isUN) {
       if (haRoll < 0.15) haVal = "None";
       else if (haRoll < 0.60) haVal = "Once";
@@ -2146,15 +2988,8 @@
     // three-minute clock. Respawn appears nowhere. Ours was rolling
     // Endless on 22% of campaigns: a standing room-clearer that quietly
     // undoes whatever the encounter budget just built.
-    const bRoll = rand();
-    let bVal;
-    const noneChance = Math.min(0.8, 0.55 + powerRestraint);
-    const rest = 1 - noneChance;
-    if (bRoll < noneChance) bVal = "None";
-    else if (bRoll < noneChance + rest * 0.72) bVal = "Once";
-    else if (bRoll < noneChance + rest * 0.90) bVal = "Respawn";
-    else bVal = "Endless";
-    if (isUN && bVal === 'Endless') bVal = 'Once'; // no free room-clearing on UN
+    // Berserk is decided BEFORE the rounds now (rollBerserk) so the horde
+    // can be built to answer it; this pass only writes it out.
     document.getElementById('berserk').value = bVal;
 
     // BFC (0-3) and .93 Shotgun (0-18) ammo pools: same restraint logic,
@@ -2179,105 +3014,27 @@
     // (Once/Respawn above): with no fodder there are no glory kills, so
     // pickups are the only health economy the round has.
     if (isSH) {
-      bVal = 'None';
+      // A Berserk the player chose by hand stands (the fight was built
+      // for it); only the rolled one is stripped.
+      if (!berserkForced) bVal = 'None';
       document.getElementById('berserk').value = bVal;
       document.getElementById('bfcAmmo').value = 0;
       document.getElementById('shotgunAmmo').value = 0;
     }
 
+    // Praetor hands the player a near-full kit: Health & Ammo always
+    // respawns and the .93 Shotgun pool is maxed, but BFC is 1 or 2, not
+    // 3. Three room-clearers per campaign erased exactly the superheavies
+    // Praetor exists to field; id's own presets average under one. The
+    // rolls above still run so the RNG stream is unaffected; the BFC draw
+    // is the last rand() of the campaign, so it shifts nothing.
+    if (isPR) {
+      document.getElementById('healthAmmo').value = 'Respawn';
+      document.getElementById('bfcAmmo').value = rand() < 0.5 ? 1 : 2;
+      document.getElementById('shotgunAmmo').value = 18;
+    }
+
     return bVal;
-  }
-
-  /* ---------- Fixed time mode: fit the fight to the player's clock ---------- */
-
-  function onTimeLimitChange() {
-    if (document.getElementById('timeMode').value === 'fixed') generateBalancedArena();
-    else renderResults();
-  }
-
-  // How many rounds a time window can realistically hold.
-  function maxRoundsForMinutes(minutes) {
-    if (minutes <= 1) return 1;
-    if (minutes <= 3) return 2;
-    if (minutes <= 8) return 3;
-    if (minutes <= 10) return 4;
-    return 5;
-  }
-
-  // Greedy post-generation trim for Fixed time mode: while the round's
-  // estimated clear time exceeds its share of the clock, remove one step
-  // of whichever enemy sheds the most seconds. The round is never emptied,
-  // and steps stay slider-aligned. The melee/ranged mix is preserved
-  // explicitly (see shedBreaksRoleFloor) rather than assumed — shedding on
-  // seconds alone does not protect it. With protectAnchors set
-  // (finale rounds), fodder is exhausted before heavies and heavies
-  // before superheavies, so the closing round's boss anchor is the very
-  // last thing the clock is allowed to take.
-  function trimRoundToSeconds(enemies, secondsCap, respawns, continuousOn, protectAnchors) {
-    const contFactor = continuousOn ? 1.15 : 1.0;
-    const trimTier = name => {
-      if (!isHeavyOrAbove(name)) return 0;
-      const e = getEnemyByName(name);
-      return (e && e.role === 'superheavy') ? 2 : 1;
-    };
-    let guard = 0;
-    while (roundSeconds(enemies, respawns, continuousOn) > secondsCap && guard < 300) {
-      const names = Object.keys(enemies).filter(n => enemies[n] > 0);
-      const totalCount = names.reduce((a, n) => a + enemies[n], 0);
-      let candidates = names;
-      if (protectAnchors) {
-        const lowestTier = Math.min(...names.map(trimTier));
-        candidates = names.filter(n => trimTier(n) === lowestTier);
-      }
-      // Shed the most seconds per step, but never at the cost of the
-      // combat-role floor while a role-safe candidate still exists. The
-      // old version selected on seconds alone and was measured creating
-      // 108 mono-role rounds per 65k — it would quietly take the last
-      // melee body out of a round the mix guarantee had just repaired.
-      let best = null;
-      let bestShed = -1;
-      let bestSafe = null;
-      let bestSafeShed = -1;
-      for (const name of candidates) {
-        const e = getEnemyByName(name);
-        const step = Math.min(e ? (e.step || 1) : 1, enemies[name]);
-        if (totalCount - step <= 0) continue;
-        const shed = step * enemySeconds(name) * respawns * contFactor;
-        if (shed > bestShed) { bestShed = shed; best = { name, step }; }
-        if (shed > bestSafeShed && !shedBreaksRoleFloor(enemies, name, step)) {
-          bestSafeShed = shed; bestSafe = { name, step };
-        }
-      }
-      if (bestSafe) best = bestSafe;
-      if (!best && protectAnchors && candidates.length < names.length) {
-        // The protected tier is all that's left trimmable — fall through
-        // to it rather than stalling above budget.
-        let fallSafe = null, fallSafeShed = -1;
-        for (const name of names) {
-          const e = getEnemyByName(name);
-          const step = Math.min(e ? (e.step || 1) : 1, enemies[name]);
-          if (totalCount - step <= 0) continue;
-          const shed = step * enemySeconds(name) * respawns * contFactor;
-          if (shed > bestShed) { bestShed = shed; best = { name, step }; }
-          if (shed > fallSafeShed && !shedBreaksRoleFloor(enemies, name, step)) {
-            fallSafeShed = shed; fallSafe = { name, step };
-          }
-        }
-        if (fallSafe) best = fallSafe;
-      }
-      if (!best) break;
-      enemies[best.name] -= best.step;
-      if (enemies[best.name] <= 0) delete enemies[best.name];
-      guard++;
-    }
-
-    let durability = 0;
-    let count = 0;
-    for (const [name, c] of Object.entries(enemies)) {
-      durability += c * getEnemyWeightByName(name);
-      count += c;
-    }
-    return { durability, count };
   }
 
   // One full composition attempt for a single round: superheavies ->
@@ -2288,7 +3045,7 @@
   function composeRound(opts) {
     const {
       r, totalRounds, difficultyKey, relentless, noFodder, selectedArena,
-      allFodder, allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies,
+      allFodder, allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies, twoBackFamilies,
       scaledMaxDurability, scaledMaxDemonCount, scaledSuperChance,
       scaledHeavyVarieties, scaledFodderVarieties,
       roundMaxSuperHeavy, maxSuperPerSpecies, fodderReserve, maxBodies,
@@ -2370,7 +3127,9 @@
         let candidatePool = allSuperHeavy.filter(e =>
           !superSpeciesUsed.has(e.name) && !conflictsWithExisting(e.name, roundEnemies)
         );
-        candidatePool = preferFresh(preferArenaBias(shuffleArray(candidatePool), selectedArena), previousRoundFamilies, campaignFamilies);
+        candidatePool = dropLastRoundBig(
+          preferFresh(preferArenaBias(shuffleArray(candidatePool), selectedArena), previousRoundFamilies, campaignFamilies, twoBackFamilies),
+          previousRoundFamilies, 1);
         if (candidatePool.length === 0) break;
 
         const superCandidate = candidatePool[0];
@@ -2434,7 +3193,9 @@
     // whole shuffled list until it has PLACED (or fairly attempted)
     // the target number of varieties, so unlucky shuffles don't quietly
     // produce under-filled rounds.
-    let shuffledHeavies = preferFresh(preferArenaBias(shuffleArray(allHeavy), selectedArena), previousRoundFamilies, campaignFamilies);
+    let shuffledHeavies = dropLastRoundBig(
+      preferFresh(preferArenaBias(shuffleArray(allHeavy), selectedArena), previousRoundFamilies, campaignFamilies, twoBackFamilies),
+      previousRoundFamilies, 1);
     let heavySlotsUsed = 0;
     for (let i = 0; i < shuffledHeavies.length && heavySlotsUsed < scaledHeavyVarieties; i++) {
       const heavyCandidate = shuffledHeavies[i];
@@ -2463,7 +3224,7 @@
     }
 
     let shuffledFodder = scaledFodderVarieties > 0
-      ? preferFresh(preferArenaBias(shuffleArray(allFodder), selectedArena), previousRoundFamilies, campaignFamilies)
+      ? preferFresh(preferArenaBias(shuffleArray(allFodder), selectedArena), previousRoundFamilies, campaignFamilies, twoBackFamilies)
       : [];
     for (let i = 0; i < scaledFodderVarieties; i++) {
       const fodderCandidate = shuffledFodder[i];
@@ -2516,8 +3277,12 @@
     const floorDurability = scaledMaxDurability * floorFraction;
     const floorGuardLimit = noFodder ? 120 : 40;
     let floorGuard = 0;
+    // On a fodder-free round the top-up draws heavies, so it skips last
+    // round's families like the main heavy pass does — it was the single
+    // biggest source of back-to-back repeats on Slaughterhouse.
+    const floorPool = noFodder ? dropLastRoundBig(fillerPool, previousRoundFamilies, 1) : fillerPool;
     while (currentRoundDurability < floorDurability && floorGuard < floorGuardLimit) {
-      const topUp = fillerPool[Math.floor(rand() * fillerPool.length)];
+      const topUp = floorPool[Math.floor(rand() * floorPool.length)];
       const addCount = topUp.step || 5;
       const addWeight = getDemonWeight(topUp);
       const existingCount = roundEnemies[topUp.name] || 0;
@@ -2598,7 +3363,10 @@
           const helpsRole = c => !deficit || c.e.combat === deficit.role || c.e.combat === 'mixed';
           // Bulk goes onto families the last round didn't field, so the
           // round's biggest stack is its own, not last round's again.
-          const fresh = c => previousRoundFamilies.has(demonFamily(c.e.name)) ? 0 : 1;
+          const fresh = c => {
+            const f = demonFamily(c.e.name);
+            return previousRoundFamilies.has(f) ? 0 : (twoBackFamilies && twoBackFamilies.has(f) ? 1 : 2);
+          };
           cands.sort((a, b) =>
             (helpsRole(b) - helpsRole(a)) ||
             (fresh(b) - fresh(a)) ||
@@ -2645,8 +3413,9 @@
       const pool = (noFodder ? [...allHeavy, ...allSuperHeavy] : [...allFodder, ...allHeavy])
         .filter(e => e.combat === roleDeficit.role || e.combat === 'mixed')
         .filter(e => roundEnemies[e.name] > 0 || !conflictsWithExisting(e.name, roundEnemies))
-        .map(e => ({ e, step: Math.max(e.step || 1, e.min || 1), w: getDemonWeight(e) }))
-        .sort((a, b) => (a.step * a.w) - (b.step * b.w));
+        .map(e => ({ e, step: Math.max(e.step || 1, e.min || 1), w: getDemonWeight(e),
+          stale: (roundEnemies[e.name] > 0 || !previousRoundFamilies.has(demonFamily(e.name))) ? 0 : 1 }))
+        .sort((a, b) => (a.stale - b.stale) || ((a.step * a.w) - (b.step * b.w)));
       let added = false;
       for (const { e, step, w } of pool) {
         const existing = roundEnemies[e.name] || 0;
@@ -2682,8 +3451,9 @@
       const wanted = (noFodder ? [...allHeavy, ...allSuperHeavy] : [...allFodder, ...allHeavy])
         .filter(e => e.combat === roleDeficit.role || e.combat === 'mixed')
         .filter(e => roundEnemies[e.name] > 0 || !conflictsWithExisting(e.name, roundEnemies))
-        .map(e => ({ e, step: Math.max(e.step || 1, e.min || 1), w: getDemonWeight(e) }))
-        .sort((a, b) => (a.step * a.w) - (b.step * b.w));
+        .map(e => ({ e, step: Math.max(e.step || 1, e.min || 1), w: getDemonWeight(e),
+          stale: (roundEnemies[e.name] > 0 || !previousRoundFamilies.has(demonFamily(e.name))) ? 0 : 1 }))
+        .sort((a, b) => (a.stale - b.stale) || ((a.step * a.w) - (b.step * b.w)));
       // Sell from the majority role only, heaviest first, and never empty
       // the round or strip its last species.
       const sellable = Object.keys(roundEnemies)
@@ -2818,7 +3588,7 @@
   // superheavies, each total split at random across species (freshest
   // families first), with the combat-role floor satisfied (retried until
   // it is).
-  function composeSlaughterFinale(allHeavy, allSuperHeavy, lastRoundFamilies, campaignFamilies) {
+  function composeSlaughterFinale(allHeavy, allSuperHeavy, lastRoundFamilies, campaignFamilies, twoBackFamilies) {
     let last = null;
     for (let attempt = 0; attempt < 60; attempt++) {
       const roundEnemies = {};
@@ -2828,7 +3598,7 @@
       // family is fine, the total is what matters).
       let supers = 0;
       const superPool = attempt < 20
-        ? preferFresh(shuffleArray(allSuperHeavy), lastRoundFamilies, campaignFamilies)
+        ? preferFresh(shuffleArray(allSuperHeavy), lastRoundFamilies, campaignFamilies, twoBackFamilies)
         : shuffleArray(allSuperHeavy);
       const superCap = difficultyCaps.slaughterhouse.maxSuperPerSpecies;
       const finaleDisruptorCap = SLAUGHTER_DISRUPTOR_CAPS[SLAUGHTER_DISRUPTOR_CAPS.length - 1];
@@ -2851,7 +3621,7 @@
       let heavies = 0;
       const famHeavy = {};
       const heavyPool = attempt < 20
-        ? preferFresh(shuffleArray(allHeavy), lastRoundFamilies, campaignFamilies)
+        ? preferFresh(shuffleArray(allHeavy), lastRoundFamilies, campaignFamilies, twoBackFamilies)
         : shuffleArray(allHeavy);
       for (const e of heavyPool) {
         const left = SLAUGHTER_FINALE.heavy - heavies;
@@ -2899,25 +3669,36 @@
   // from the same seed) the rare campaign whose estimate overruns its
   // fixed 20-minute clock. Retry 0 is the plain seed, so every normal
   // campaign — and every share link — is unchanged.
-  function generateBalancedArena(seed, clockRetry) {
+  // Roster trim per extra wave on Normal (see respawnPressure). Swept
+  // over 600 campaigns: 0.18 with the finale wave swap took 2x-median
+  // spike rounds from 148 to 19 and weak finales from 44% to 0.6%, for a
+  // 5% shorter median campaign. Higher values flatten Normal back below
+  // its blended difficulty (its heaviest rounds vanish by 0.28).
+  const NORMAL_WAVE_PRESSURE = 0.18;
+
+  function generateBalancedArena(seed, clockRetry, forcedBerserk) {
     currentSeed = (seed == null) ? newSeed() : (seed >>> 0);
     const retry = clockRetry || 0;
     rngState = (currentSeed + retry * 0x9E3779B9) | 0;
     campaignInfo.name = rollCampaignName();
     const difficultyKey = currentDifficulty;
-    // Slaughter Mode's clock is fixed at 20 minutes and its fight is fixed
-    // at five rounds of 60, so there is nothing for Fixed time mode to fit.
-    const fitToTime = !slaughterMode && document.getElementById('timeMode').value === 'fixed';
-    const fitMinutes = timeLimitMinutes(document.getElementById('timeLimit').value);
     let continuousOn;
     if (slaughterMode) {
       document.getElementById('endless').value = SLAUGHTER_SETTINGS.endless;
       document.getElementById('continuous').value = SLAUGHTER_SETTINGS.continuous;
       continuousOn = true;
     } else {
-      continuousOn = rollEndlessAndContinuous(difficultyKey, fitToTime);
+      continuousOn = rollEndlessAndContinuous(difficultyKey);
     }
     const selectedArena = rollArena();
+
+    // Berserk first, so every round below is built against it. A value
+    // the player picked on the chip (or a share link carried) is honoured.
+    const berserkForced = !slaughterMode && !!forcedBerserk && !!BERSERK_BOOST[forcedBerserk];
+    const berserkPick = slaughterMode ? SLAUGHTER_SETTINGS.berserk
+      : (berserkForced ? forcedBerserk : rollBerserk(difficultyKey));
+    campaignInfo.forcedBerserk = berserkForced ? forcedBerserk : null;
+    const berserkBoost = slaughterMode ? BERSERK_BOOST.None : BERSERK_BOOST[berserkPick];
 
     const mode = document.getElementById('roundMode').value;
     const manualContainer = document.getElementById('manualRoundContainer');
@@ -2934,25 +3715,14 @@
       totalRounds = parseInt(document.getElementById('roundCounts').value) || 3;
     }
 
-    // Fixed time mode: the clock can only hold so many rounds.
-    campaignInfo.fitNote = '';
     campaignInfo.versionNote = '';
-    if (fitToTime) {
-      const roundCap = maxRoundsForMinutes(fitMinutes);
-      if (totalRounds > roundCap) {
-        campaignInfo.fitNote = `Round count capped at ${roundCap} to stay beatable within ${fitMinutes} minute${fitMinutes > 1 ? 's' : ''}.`;
-        totalRounds = roundCap;
-      } else {
-        campaignInfo.fitNote = `Fight budgeted to fit ${fitMinutes} minute${fitMinutes > 1 ? 's' : ''} at this intensity.`;
-      }
-    }
 
     const capInfo = difficultyCaps[difficultyKey];
     const isUN = difficultyKey === 'ultranightmare';
     const isSH = difficultyKey === 'slaughterhouse';
     // Relentless intensities never ramp back down after the peak — their
     // finale IS the peak, and it always fields royalty.
-    const relentless = isUN || isSH;
+    const relentless = RELENTLESS_TIERS.has(difficultyKey);
     // Fodder-free intensities (Slaughterhouse) put nothing below heavy on
     // the board, including in the generator's own padding fallbacks.
     const noFodder = capInfo.fodderVarieties === 0;
@@ -2971,7 +3741,9 @@
     const continuousCapFactor = continuousOn ? 0.85 : 1.0;
 
     let previousRoundFamilies = new Set();
-    const campaignFamilies = new Set();
+    let twoBackFamilies = new Set();
+    // family -> number of rounds that fielded it (see preferFresh).
+    const campaignFamilies = new Map();
     let campaignDurabilityFractions = [];
     // Slaughter Mode's escalation guarantee is measured in estimated clear
     // seconds (all waves, Continuous Spawning included) — the same model
@@ -2985,29 +3757,23 @@
     // draw a second wave pay for it with a slightly leaner roster (see
     // respawnPressure) rather than having their respawns clamped after
     // the fact.
-    let campaignRespawnBudget = rollCampaignRespawnBudget(difficultyKey, totalRounds);
-    if (fitToTime) {
-      // Short clocks can't absorb 6-8 respawn waves — scale the budget to
-      // the window (roughly 0.8 waves per minute), floored at 1 per round.
-      campaignRespawnBudget = Math.max(totalRounds, Math.min(campaignRespawnBudget, Math.round(fitMinutes * 0.8)));
-    }
+    const campaignRespawnBudget = rollCampaignRespawnBudget(difficultyKey, totalRounds);
     const respawnAllocation = slaughterMode
       ? slaughterWaves()
       : distributeRespawnBudget(totalRounds, campaignRespawnBudget, difficultyKey);
-
-    // Fixed time mode: split the player's clock into a per-round seconds
-    // budget — the exact inverse of autoScaleTimeLimit, in the same units —
-    // escalating gently across rounds while keeping the campaign total on
-    // target.
-    let fitSecondsCaps = null;
-    if (fitToTime) {
-      const budget = Math.max(30, (fitMinutes * 60) / TIME_SAFETY - ROUND_OVERHEAD_SECONDS * totalRounds);
-      const ramp = [];
-      for (let i = 0; i < totalRounds; i++) {
-        ramp.push(0.8 + 0.4 * campaignArc(i + 1, totalRounds, relentless));
+    // Normal: the finale never draws fewer waves than the round before it
+    // that drew the most. A 1-wave finale after a 2-wave peak was what
+    // made Normal campaigns end on a whimper. Swapping keeps the campaign's
+    // total wave budget exactly as rolled.
+    if (!slaughterMode && difficultyKey === 'normal' && totalRounds >= 2) {
+      const last = totalRounds - 1;
+      let peakIdx = 0;
+      for (let i = 1; i < last; i++) if (respawnAllocation[i] > respawnAllocation[peakIdx]) peakIdx = i;
+      if (respawnAllocation[peakIdx] > respawnAllocation[last]) {
+        const t = respawnAllocation[peakIdx];
+        respawnAllocation[peakIdx] = respawnAllocation[last];
+        respawnAllocation[last] = t;
       }
-      const rampSum = ramp.reduce((a, b) => a + b, 0);
-      fitSecondsCaps = ramp.map(w => Math.max(20, budget * (w / rampSum)));
     }
 
     for (let r = 1; r <= totalRounds; r++) {
@@ -3018,7 +3784,7 @@
       const roundKey = slaughterMode ? SLAUGHTER_LADDER[r - 1] : difficultyKey;
       const roundCaps = difficultyCaps[roundKey];
       const roundIsSH = roundKey === 'slaughterhouse';
-      const roundRelentless = roundKey === 'ultranightmare' || roundIsSH;
+      const roundRelentless = RELENTLESS_TIERS.has(roundKey);
       const roundNoFodder = roundCaps.fodderVarieties === 0;
       const roundBodies = !slaughterMode ? 0
         : (respawnAllocation[r - 1] === 2 ? SLAUGHTER_DOUBLE_WAVE_BODIES : slaughterRungBodies(roundKey));
@@ -3050,10 +3816,19 @@
       // knocked them straight down to 2 and flattened every roster into
       // singles — the opposite of what this intensity pass is for.
       // Slaughterhouse opts out; "no bar held" is its whole premise.
-      const respawnPressure = roundIsSH ? 1 : 1 - (roundRespawns - 1) * 0.12;
+      // Normal's ramp-down arc used to swing hard on this: a second wave
+      // doubles a round's clear time while 0.12 only trimmed the roster by
+      // 12%, so every Normal spike round (2x its campaign's median) was a
+      // 2-wave round, and 44% of Normal finales landed under 60% of the
+      // peak — a 1-wave finale after a 2-wave peak. Normal now pays for a
+      // repeat wave with a much leaner roster (NORMAL_WAVE_PRESSURE), so a
+      // 2-wave round is a longer fight rather than a doubled one. Every
+      // other intensity, and Slaughter Mode, keeps 0.12.
+      const wavePressure = (!slaughterMode && difficultyKey === 'normal') ? NORMAL_WAVE_PRESSURE : 0.12;
+      const respawnPressure = roundIsSH ? 1 : 1 - (roundRespawns - 1) * wavePressure;
       const roundMaxSuperHeavy = slaughterMode && r <= SLAUGHTER_SUPER_CAPS.length
         ? Math.min(SLAUGHTER_SUPER_CAPS[r - 1], roundCaps.maxSuperHeavyCount)
-        : roundCaps.maxSuperHeavyCount;
+        : roundCaps.maxSuperHeavyCount + berserkBoost.extraSuper;
       // Rounds 3 and 4 of Slaughter Mode always carry Hallowed Zombies
       // (6 or 9 — the slider steps in 3s), when the DLC pool has them.
       let forcedEnemies = null;
@@ -3065,39 +3840,16 @@
       }
 
       const rungBoost = slaughterMode ? (SLAUGHTER_RUNG_BOOST[roundKey] || 1) : 1;
-      let scaledMaxDurability = Math.round(roundCaps.maxDurability * (0.7 + 0.4 * roundProgress) * continuousCapFactor * respawnPressure * rungBoost);
-      let scaledMaxDemonCount = slaughterMode
+      const scaledMaxDurability = Math.round(roundCaps.maxDurability * (0.7 + 0.4 * roundProgress) * continuousCapFactor * respawnPressure * rungBoost * berserkBoost.durability);
+      const scaledMaxDemonCount = slaughterMode
         ? roundBodies
         : Math.round(roundCaps.maxDemonCount * (0.8 + 0.25 * roundProgress) * continuousCapFactor * respawnPressure * (selectedArena.densityMult || 1.0));
-      const scaledSuperChance = roundCaps.superChance * (0.5 + 0.5 * qualityProgress);
+      const scaledSuperChance = Math.min(1, roundCaps.superChance * (0.5 + 0.5 * qualityProgress) + berserkBoost.superChance);
       const scaledHeavyVarieties = Math.max(1, Math.round(roundCaps.heavyVarieties * (0.7 + 0.45 * qualityProgress)) - (selectedArena.varietyShift || 0))
         + (slaughterMode ? (SLAUGHTER_RUNG_EXTRA_HEAVY_SPECIES[roundKey] || 0) : 0);
       const scaledFodderVarieties = roundNoFodder
         ? 0
         : Math.max(1, Math.round(roundCaps.fodderVarieties * (0.8 + 0.3 * roundProgress)) + (selectedArena.varietyShift || 0));
-
-      // Fixed time mode: shrink the generation caps toward what the
-      // round's seconds budget can hold BEFORE generating, so the
-      // post-generation trim only has to shave edges, not gut the round.
-      // Converting seconds back into a durability cap needs an assumed
-      // seconds-per-weight rate. These are the measured weight-weighted
-      // averages of KILL_SECONDS_PER_WEIGHT over the rosters this
-      // generator actually produces — a fodder-free roster spends its
-      // weight on slower bodies, so it carries its own rate. Keep them in
-      // step with the rates above: setting them too high shrinks the
-      // pre-generation cap and leaves fixed-mode fights using half their
-      // clock.
-      if (fitSecondsCaps) {
-        const contFactor = continuousOn ? 1.15 : 1.0;
-        const waveSeconds = fitSecondsCaps[r - 1] / (roundRespawns * contFactor);
-        const secondsPerWeight = roundNoFodder ? 1.7 : 1.35;
-        const durCapFromTime = Math.max(8, Math.round(waveSeconds / secondsPerWeight));
-        if (durCapFromTime < scaledMaxDurability) {
-          const shrink = durCapFromTime / scaledMaxDurability;
-          scaledMaxDemonCount = Math.max(6, Math.round(scaledMaxDemonCount * shrink));
-          scaledMaxDurability = durCapFromTime;
-        }
-      }
 
       // Compose the round, rerolling the composition when its species mix
       // lands too close to a round already in the campaign — no two
@@ -3105,7 +3857,7 @@
       // the threshold can't be met (tiny pools on low variety counts).
       const composeOpts = {
         r, totalRounds, difficultyKey: roundKey, relentless: roundRelentless, noFodder: roundNoFodder, selectedArena,
-        allFodder, allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies,
+        allFodder, allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies, twoBackFamilies,
         scaledMaxDurability, scaledMaxDemonCount, scaledSuperChance,
         scaledHeavyVarieties, scaledFodderVarieties,
         roundMaxSuperHeavy, maxSuperPerSpecies: roundCaps.maxSuperPerSpecies,
@@ -3121,13 +3873,13 @@
       };
       const slaughterFinale = slaughterMode && roundIsSH;
       let composed = slaughterFinale
-        ? composeSlaughterFinale(allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies)
+        ? composeSlaughterFinale(allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies, twoBackFamilies)
         : composeRound(composeOpts);
       let bestSimilarity = maxRoundSimilarity(composed.roundEnemies, roundsData);
       if (slaughterFinale) {
         // Fixed 6 + 3 roster: only the dissimilarity rule is left to chase.
         for (let attempt = 1; attempt < COMPOSE_ATTEMPTS && bestSimilarity > MAX_ROUND_SIMILARITY; attempt++) {
-          const retry = composeSlaughterFinale(allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies);
+          const retry = composeSlaughterFinale(allHeavy, allSuperHeavy, previousRoundFamilies, campaignFamilies, twoBackFamilies);
           const similarity = maxRoundSimilarity(retry.roundEnemies, roundsData);
           if (similarity < bestSimilarity) { bestSimilarity = similarity; composed = retry; }
         }
@@ -3174,24 +3926,16 @@
         }
       }
       const roundEnemies = composed.roundEnemies;
-      let currentRoundDurability = composed.durability;
-      let currentRoundDemonCount = composed.demonCount;
-
-      // Fixed time mode: final safety trim against the real seconds model,
-      // which the pre-shrunk caps only approximate.
-      if (fitSecondsCaps) {
-        const protectAnchors = finaleHighNote || (roundRelentless && r === totalRounds);
-        const trimmed = trimRoundToSeconds(roundEnemies, fitSecondsCaps[r - 1], roundRespawns, continuousOn, protectAnchors);
-        currentRoundDurability = trimmed.durability;
-        currentRoundDemonCount = trimmed.count;
-      }
+      const currentRoundDurability = composed.durability;
+      const currentRoundDemonCount = composed.demonCount;
 
       const roundEntry = { respawns: roundRespawns, enemies: roundEnemies };
       if (slaughterMode) roundEntry.tier = roundKey;
       roundsData.push(roundEntry);
 
+      twoBackFamilies = previousRoundFamilies;
       previousRoundFamilies = familiesOf(roundEnemies);
-      previousRoundFamilies.forEach(f => campaignFamilies.add(f));
+      previousRoundFamilies.forEach(f => campaignFamilies.set(f, (campaignFamilies.get(f) || 0) + 1));
       if (slaughterMode) {
         previousRoundLoad = roundSeconds(roundEnemies, 1, true);
         previousRoundBodies = currentRoundDemonCount;
@@ -3208,19 +3952,12 @@
     }
 
     campaignInfo.intensityScore = campaignDurabilityFractions.reduce((a, b) => a + b, 0) / campaignDurabilityFractions.length;
-    const berserkVal = rollResourceSettings(slaughterMode ? SLAUGHTER_RESOURCE_TIER : difficultyKey, campaignInfo.intensityScore);
+    const berserkVal = rollResourceSettings(slaughterMode ? SLAUGHTER_RESOURCE_TIER : difficultyKey, campaignInfo.intensityScore, berserkPick, berserkForced);
 
     if (slaughterMode) {
       // Fixed settings override whatever the resource roll produced.
       for (const [id, val] of Object.entries(SLAUGHTER_SETTINGS)) {
         document.getElementById(id).value = val;
-      }
-    } else if (fitToTime) {
-      // The player's clock is authoritative — never overwrite it. But a
-      // "Respawn" Berserk needs an 8-minute window to ever refresh; on a
-      // shorter clock downgrade the powerup instead of the time.
-      if (berserkVal === 'Respawn' && fitMinutes < 8) {
-        document.getElementById('berserk').value = 'Once';
       }
     } else {
       autoScaleTimeLimit(continuousOn, berserkVal);
@@ -3284,17 +4021,15 @@
   function updateEndlessState() {
     const endlessOn = document.getElementById('endless').value === 'On';
     const timeLimitSelect = document.getElementById('timeLimit');
-    const fitToClock = !slaughterMode && document.getElementById('timeMode').value === 'fixed';
-    timeLimitSelect.disabled = endlessOn || slaughterMode || fitToClock;
+    timeLimitSelect.disabled = endlessOn || slaughterMode;
     timeLimitSelect.hidden = endlessOn;
     const na = document.getElementById('timeNA');
     if (na) na.hidden = !endlessOn;
     const chip = timeLimitSelect.closest('.chip');
     if (chip) {
       chip.classList.toggle('disabled', endlessOn);
-      // One place to set the clock: the header row while fitting to it.
-      chip.classList.toggle('locked', slaughterMode || fitToClock);
-      chip.title = slaughterMode ? SLAUGHTER_LOCK_TITLE : (fitToClock ? 'Set by Fit to Clock above' : '');
+      chip.classList.toggle('locked', slaughterMode);
+      chip.title = slaughterMode ? SLAUGHTER_LOCK_TITLE : '';
     }
   }
 
@@ -3464,6 +4199,18 @@
       "If you fall, it will be forever. Do not fall.",
       "The dead will speak your name, if you live to hear it."
     ],
+    normal: [
+      "Meet it head on. That is what you came for.",
+      "The heavy ones are coming through the chaff. Be ready.",
+      "It will hurt. Every mistake will be collected, with interest.",
+      "Hold the line and let them break against it."
+    ],
+    praetor: [
+      "Giants walk among them, and they will not wait their turn.",
+      "Every round is crowned with titans; every mercy is rationed.",
+      "The arena has forgotten mercy. So must you.",
+      "The dead will speak your name, if you live to hear it."
+    ],
     slaughterhouse: [
       "No chaff to hide behind. Only the great beasts, and you.",
       "Nothing small comes through these gates.",
@@ -3509,9 +4256,30 @@
 
   /* ================= RENDERING ================= */
 
+  // Player-facing name of the chosen intensity (read off its button).
   function difficultyLabel(key) {
     const btn = document.querySelector(`.intensity-btn[data-value="${key}"]`);
-    return btn ? btn.textContent.replace(/^[^A-Za-z]+/, '').trim() : key;
+    return btn ? btn.textContent.replace(/^[^A-Za-z]+/, '').trim() : (TIER_NAMES[key] || key);
+  }
+
+  // Slaughter Mode rungs keep their original tier names: the ladder climbs
+  // through all five tiers, most of which no longer have a picker button.
+  const TIER_NAMES = {
+    easy: 'Aspiring Slayer', balanced: 'Hurt Me Plenty', sweaty: 'Ultra Violence',
+    nightmare: 'Nightmare', ultranightmare: 'Ultra Nightmare', slaughterhouse: 'Slaughterhouse',
+    normal: 'Normal', praetor: 'Praetor'
+  };
+  function tierLabel(key) { return TIER_NAMES[key] || key; }
+
+  // Intensities dropped from the picker fold into the one that replaced
+  // them, so old share links, history entries and saved state still load.
+  const RETIRED_TIERS = {
+    easy: 'normal', balanced: 'normal', sweaty: 'normal',
+    nightmare: 'praetor', ultranightmare: 'praetor'
+  };
+  function pickerTier(key) {
+    const k = RETIRED_TIERS[key] || key;
+    return difficultyCaps[k] ? k : null;
   }
 
   // "City of Ry'uul" -> "city-of-ryuul", matching the body[data-arena]
@@ -3533,9 +4301,9 @@
     const totalWaves = roundsData.reduce((a, r) => a + r.respawns, 0);
     document.getElementById('overviewStrip').innerHTML = `
       <div class="overview-cell"><span class="ov-label">Intensity</span><span class="ov-value">${slaughterMode ? 'Slaughter Mode' : difficultyLabel(currentDifficulty)}</span></div>
-      <div class="overview-cell"><span class="ov-label">Rounds</span><span class="ov-value">${roundsData.length}</span></div>
-      <div class="overview-cell"><span class="ov-label">Waves</span><span class="ov-value">${totalWaves}</span></div>
-      <div class="overview-cell"><span class="ov-label">Total Spawns</span><span class="ov-value">${totalSpawns}</span></div>`;
+      <div class="overview-cell"><span class="ov-label">Rounds</span><span class="ov-value">${dotZeros(roundsData.length)}</span></div>
+      <div class="overview-cell"><span class="ov-label">Waves</span><span class="ov-value">${dotZeros(totalWaves)}</span></div>
+      <div class="overview-cell"><span class="ov-label">Total Spawns</span><span class="ov-value">${dotZeros(totalSpawns)}</span></div>`;
   }
 
   // The chips ARE the controls (each wraps the real select/input), so this
@@ -3550,7 +4318,6 @@
       currentSeed, campaignInfo.name, document.getElementById('arena').value,
       slaughterMode ? 'slaughter' : currentDifficulty);
     document.getElementById('campaignNotes').innerHTML = `
-      ${campaignInfo.fitNote ? `<p class="fit-note">&#9202; ${campaignInfo.fitNote}</p>` : ''}
       ${campaignInfo.versionNote ? `<p class="stale-note">&#9888; ${campaignInfo.versionNote}</p>` : ''}`;
   }
 
@@ -3569,9 +4336,29 @@
     }
   }
 
-  // Slaughter Mode rounds carry their rung; show it wherever a round is named.
-  function roundLabel(r, idx) {
-    return `Round ${idx + 1}` + (r.tier ? ` &middot; ${difficultyLabel(r.tier)}` : '');
+  // Every round slot has a fixed name, one per circle of the descent, so
+  // "Round 3" always reads the same in every campaign, Slaughter Mode
+  // included (its rung is kept on the round data but not displayed).
+  const ROUND_NAMES = [
+    'The Iron Gate',
+    'Pit of Ash',
+    'The Bleeding Halls',
+    'Throne of Cinders',
+    'The Abyssal Crown'
+  ];
+  function roundName(idx) { return ROUND_NAMES[idx] || ''; }
+
+  // Every 0 the page draws gets a centre dot (CSS .zero), because none of
+  // the pixel or display faces separates 0 from O on its own. Text only:
+  // the copied passcode and Copy Setup stay plain characters.
+  function dotZeros(v) {
+    return String(v).replace(/0/g, '<span class="zero">0</span>');
+  }
+
+  // "Round 1 - The Iron Gate", split into parts the theme styles.
+  function roundLabelHTML(idx) {
+    const name = roundName(idx);
+    return `<span class="rl-num">Round ${idx + 1}</span>` + (name ? `<span class="rl-sep"> - </span><span class="rl-name">${name}</span>` : '');
   }
 
   function renderPasscodeList() {
@@ -3582,16 +4369,16 @@
       const waves = `${r.respawns} wave${r.respawns > 1 ? 's' : ''}`;
       if (!pass.code) {
         return `<div class="pc-row unavailable">
-          <span class="pc-round">${roundLabel(r, idx)}</span>
+          <span class="pc-round">${roundLabelHTML(idx)}</span>
           <span class="pc-waves">${waves}</span>
           <span class="pc-missing">Unavailable &mdash; not yet mapped: ${pass.blockers.join(', ')}</span>
         </div>`;
       }
       return `<button type="button" class="pc-row" onclick="copyTextToClipboard('${pass.code}', 'Round ${idx + 1} passcode copied &#10003;')"
         title="Copy, then enter it in the Ripatorium passcode field — it sets every demon slider for this round. Wave Respawns still need entering by hand.">
-        <span class="pc-round">${roundLabel(r, idx)}</span>
+        <span class="pc-round">${roundLabelHTML(idx)}</span>
         <span class="pc-waves">${waves}</span>
-        <b class="pc-code">${pass.code}</b>
+        <b class="pc-code">${dotZeros(pass.code)}</b>
         <span class="pc-copy">Copy</span>
       </button>`;
     }).join('');
@@ -3612,14 +4399,14 @@
         return `<div class="enemy-row is-${role}">
           <span class="role-badge role-${role}"><svg class="ic" aria-hidden="true"><use href="#ic-${icon}"/></svg>${role === 'superheavy' ? 'SUPER' : role.toUpperCase()}</span>
           <span class="enemy-name">${name}</span>
-          <span class="enemy-count"><i>&times;</i>${r.enemies[name]}</span>
+          <span class="enemy-count"><i>&times;</i>${dotZeros(r.enemies[name])}</span>
         </div>`;
       }).join('');
 
       html += `<div class="round-card">
         <div class="round-title-row">
-          <span class="round-title">${roundLabel(r, idx)}</span>
-          <span class="round-meta">Waves <b>${r.respawns}</b> &middot; Demons <b>${totalDemons}</b> &middot; Total Spawns <b>${totalDemons * r.respawns}</b></span>
+          <span class="round-title">${roundLabelHTML(idx)}</span>
+          <span class="round-meta">Waves <b>${dotZeros(r.respawns)}</b> &middot; Demons <b>${dotZeros(totalDemons)}</b> &middot; Total Spawns <b>${dotZeros(totalDemons * r.respawns)}</b></span>
         </div>
         ${rows}
       </div>`;
@@ -3632,8 +4419,28 @@
     saveState();
   });
 
+  // Setting tiles show their value as text (so its zeros can be dotted)
+  // with the real <select> stretched invisibly over the tile: clicking,
+  // the native dropdown and the keyboard all still go to the select.
+  function syncChipValues() {
+    document.querySelectorAll('.config-chips .chip-edit select').forEach(sel => {
+      let v = sel.parentElement.querySelector('.chip-v');
+      if (!v) {
+        v = document.createElement('b');
+        v.className = 'chip-v';
+        v.setAttribute('aria-hidden', 'true');
+        sel.insertAdjacentElement('afterend', v);
+      }
+      const opt = sel.options[sel.selectedIndex];
+      v.innerHTML = dotZeros(opt ? opt.text : sel.value);
+      v.hidden = sel.hidden;
+      v.classList.toggle('locked', sel.disabled);
+    });
+  }
+
   function renderResults() {
     updateEndlessState();
+    syncChipValues();
     syncGenOptions();
     renderOverview();
     renderGlobalConfig();
@@ -3898,7 +4705,7 @@
   // of the URL unless the user hand-tweaked it after generation.
   // Append-only: the index is packed into share codes, so reordering
   // this list would silently repoint every link ever shared.
-  const shareDiffOrder = ['easy', 'balanced', 'sweaty', 'nightmare', 'ultranightmare', 'slaughterhouse'];
+  const shareDiffOrder = ['easy', 'balanced', 'sweaty', 'nightmare', 'ultranightmare', 'slaughterhouse', 'normal', 'praetor'];
 
   // Bumped whenever a change to the generator would make an old seed
   // produce a different fight. Share codes carry it, so a link or a
@@ -3929,7 +4736,17 @@
   //      Blighted Zombies 1.3, Cosmic Elemental 6.5, Warlock 7.0/9.0; the
   //      forced-royalty fallback breaks weight ties at random (it always
   //      picked Komodo). Slaughter Mode also caps disruptors per round.
-  const GENERATOR_VERSION = 14;
+  // 15 = picker reduced to Normal / Praetor / Slaughterhouse; Normal and
+  //      Praetor are new blended tiers (HMP+UV, NM+UN). Old intensities
+  //      load as the blend that replaced them.
+  // 16 = Normal: leaner rosters on repeat-wave rounds and the finale never
+  //      draws fewer waves than the peak round.
+  // 17 = demon variety: last round's heavy/superheavy families are kept
+  //      out of the next round, and family picks rotate over a two-round
+  //      memory instead of ping-ponging between two sets.
+  // 18 = Berserk rolled before the rounds and the horde scales with it
+  //      (Once / Respawn / Endless); changing Berserk rebuilds the fight.
+  const GENERATOR_VERSION = 18;
   // Width of the version field in a share code (see packShareCode).
   const GENERATOR_VERSION_SPAN = 128;
 
@@ -3943,7 +4760,9 @@
 
   function packShareCode() {
     const diffIdx = Math.max(0, shareDiffOrder.indexOf(currentDifficulty));
-    const tm = document.getElementById('timeMode').value === 'fixed' ? 1 : 0;
+    // The time-mode bit is always 0 now that Fit to Clock is gone. It
+    // stays in the layout so every existing code still decodes.
+    const tm = 0;
     const ti = Math.max(0, timeOrder.indexOf(document.getElementById('timeLimit').value));
     const rm = document.getElementById('roundMode').value === 'manual' ? 1 : 0;
     const rc = Math.min(7, Math.max(0, (parseInt(document.getElementById('roundCounts').value) || 3) - 1));
@@ -3993,7 +4812,7 @@
     const rolled = campaignInfo.rolled || null;
     for (const [id, key] of Object.entries(rolledControls)) {
       const cur = document.getElementById(id).value;
-      if (!rolled || rolled[id] !== cur) params.set(key, cur);
+      if (!rolled || rolled[id] !== cur || (id === 'berserk' && campaignInfo.forcedBerserk)) params.set(key, cur);
     }
     return location.href.split(/[?#]/)[0] + '?' + params.toString();
   }
@@ -4028,17 +4847,19 @@
     if (!compact) return false;
     const cfg = unpackShareCode(compact);
     if (!cfg) return false;
-    if (difficultyCaps[cfg.difficulty]) currentDifficulty = cfg.difficulty;
+    if (pickerTier(cfg.difficulty)) currentDifficulty = pickerTier(cfg.difficulty);
     setSlaughterMode(cfg.slaughter, false);
-    applyControlValue('timeMode', cfg.timeMode);
     applyControlValue('timeLimit', cfg.timeLimit);
     applyControlValue('roundMode', cfg.roundMode);
     applyControlValue('roundCounts', cfg.roundCounts);
     applyControlValue('contentFilter', cfg.contentFilter);
     setDifficulty(currentDifficulty, false);
     applyContentFilterUI();
-    generateBalancedArena(cfg.seed);
-    if (cfg.generator !== GENERATOR_VERSION) {
+    // A Berserk carried in the link shaped the fight, so it goes in
+    // before generation rather than being painted on afterwards.
+    const linkBerserk = params.get(rolledControls.berserk);
+    generateBalancedArena(cfg.seed, 0, BERSERK_BOOST[linkBerserk] ? linkBerserk : null);
+    if (cfg.generator !== GENERATOR_VERSION || cfg.timeMode === 'fixed') {
       campaignInfo.versionNote = 'Rolled under an older ruleset — the same code now produces a different fight.';
     }
     for (const [id, key] of Object.entries(rolledControls)) {
@@ -4058,7 +4879,7 @@
     const seed = codeToSeed(code);
     if (seed == null) return false;
     const d = params.get('d');
-    if (d && difficultyCaps[d]) currentDifficulty = d;
+    if (d && pickerTier(d)) currentDifficulty = pickerTier(d);
     persistedControls.forEach(id => applyControlValue(id, params.get(id)));
     setDifficulty(currentDifficulty, false);
     applyContentFilterUI();
@@ -4075,11 +4896,11 @@
   // metadata — a full roundsData copy would be redundant.
   const HISTORY_KEY = 'ripatorium-history-v1';
   const HISTORY_MAX = 18;
-  // The card shows at least HISTORY_MIN_PAGE_SIZE hordes per page, and
-  // more when the card has room: it stretches to the campaign card's
-  // height, so a tall campaign card buys more entries rather than empty
-  // space. Page 0 holds the most recent rolls.
-  const HISTORY_MIN_PAGE_SIZE = 3;
+  // The card shows HISTORY_MIN_PAGE_SIZE hordes per page. In the v3 theme
+  // it no longer stretches to the campaign card's height (a near-empty
+  // stretched card read as a broken panel), so there is no spare room to
+  // fill and the page size is simply 6. Page 0 holds the most recent rolls.
+  const HISTORY_MIN_PAGE_SIZE = 6;
   let historyPageSize = HISTORY_MIN_PAGE_SIZE;
   let historyPage = 0;
 
@@ -4113,6 +4934,24 @@
       });
       localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(0, HISTORY_MAX)));
     } catch (e) { /* storage unavailable — history is a nicety, not a need */ }
+  }
+
+  // Changing Berserk rebuilds the same seed's fight at the matching
+  // strength (the horde is built against it). Other chips the player had
+  // already hand-edited are carried over onto the rebuilt campaign.
+  function onBerserkChange() {
+    const val = document.getElementById('berserk').value;
+    if (slaughterMode) { renderResults(); return; }
+    const rolled = campaignInfo.rolled || {};
+    const edits = {};
+    for (const id of Object.keys(rolledControls)) {
+      if (id === 'berserk') continue;
+      const cur = document.getElementById(id).value;
+      if (rolled[id] != null && String(rolled[id]) !== String(cur)) edits[id] = cur;
+    }
+    generateBalancedArena(currentSeed, 0, val);
+    for (const [id, v] of Object.entries(edits)) applyControlValue(id, v);
+    renderResults();
   }
 
   function restoreHistoryEntry(q) {
@@ -4193,7 +5032,7 @@
       </div>`;
     }).join('');
     list.innerHTML = `${entries}
-      <div class="history-nav" role="navigation" aria-label="Previous hordes pages">
+      <div class="history-nav" role="navigation" aria-label="Previous hordes pages"${pages > 1 ? '' : ' hidden'}>
         ${Array.from({ length: pages }, (_, i) => `<button type="button"
           class="history-page${i === historyPage ? ' active' : ''}" onclick="goHistoryPage(${i})"
           ${i === historyPage ? 'aria-current="page"' : ''}
@@ -4205,7 +5044,7 @@
 
   const STORAGE_KEY = 'ripatorium-randomizer-v1';
   const persistedControls = [
-    'arena', 'contentFilter', 'endless', 'continuous', 'timeMode', 'timeLimit',
+    'arena', 'contentFilter', 'endless', 'continuous', 'timeLimit',
     'roundMode', 'roundCounts', 'healthAmmo', 'berserk', 'bfcAmmo', 'shotgunAmmo'
   ];
 
@@ -4236,10 +5075,12 @@
       currentSeed = saved.seed >>> 0;
       persistedControls.forEach(id => {
         if (saved.controls && saved.controls[id] != null) {
-          document.getElementById(id).value = saved.controls[id];
+          // applyControlValue keeps the current value when the saved one
+          // matches no option (e.g. a value from an older version of the page).
+          applyControlValue(id, saved.controls[id]);
         }
       });
-      currentDifficulty = saved.difficulty || 'balanced';
+      currentDifficulty = pickerTier(saved.difficulty) || 'normal';
       slaughterMode = saved.slaughterMode === true;
       showRounds = saved.showRounds === true;
       roundsData = saved.roundsData;
@@ -4274,7 +5115,7 @@
     out += `.93 Shotgun Ammo: ${document.getElementById('shotgunAmmo').value}\n`;
 
     roundsData.forEach((r, idx) => {
-      out += `\n--- ROUND ${idx + 1}${r.tier ? ' — ' + difficultyLabel(r.tier).toUpperCase() : ''} (Wave Respawns: ${r.respawns}) ---\n`;
+      out += `\n--- ROUND ${idx + 1}${roundName(idx) ? ' - ' + roundName(idx).toUpperCase() : ''} (Wave Respawns: ${r.respawns}) ---\n`;
       const activeEnemies = masterDemonOrder.filter(name => r.enemies[name] > 0);
       const totalDemons = activeEnemies.reduce((a, n) => a + r.enemies[n], 0);
       out += activeEnemies.map(name => `- ${name}: ${r.enemies[name]}`).join('\n');
@@ -4342,13 +5183,12 @@
   // as the player set them — they're simply ignored while the mode is on —
   // so switching it back off returns the player's own round and time
   // settings rather than whatever the mode forced.
-  const SLAUGHTER_LOCKED = ['endless', 'continuous', 'timeMode', 'roundMode', 'roundCounts', 'berserk',
+  const SLAUGHTER_LOCKED = ['endless', 'continuous', 'roundMode', 'roundCounts', 'berserk',
     'timeLimit', 'healthAmmo', 'bfcAmmo', 'shotgunAmmo'];
   const SLAUGHTER_LOCK_TITLE = 'Set by Slaughter Mode';
 
   // Slaughter Mode writes its own 20-minute clock over the Time setting.
-  // In Fit to Clock that setting is the player's input, so keep theirs and
-  // hand it back when the mode is switched off.
+  // Keep the player's value and hand it back when the mode is switched off.
   let clockBeforeSlaughter = null;
 
   function setSlaughterMode(on, regenerate) {
@@ -4405,7 +5245,6 @@
   function syncGenOptions() {
     const vals = {
       contentFilter: document.getElementById('contentFilter').value,
-      timeMode: document.getElementById('timeMode').value,
       rounds: document.getElementById('roundMode').value === 'manual'
         ? String(parseInt(document.getElementById('roundCounts').value, 10) || 3)
         : 'random'
@@ -4416,8 +5255,6 @@
       b.classList.toggle('active', on);
       b.setAttribute('aria-checked', on ? 'true' : 'false');
     });
-    const clock = document.getElementById('genClock');
-    if (clock) clock.hidden = slaughterMode || vals.timeMode !== 'fixed';
   }
 
   document.querySelector('.gen-options').addEventListener('click', e => {
@@ -4427,12 +5264,6 @@
     if (b.dataset.target === 'contentFilter') {
       document.getElementById('contentFilter').value = v;
       onContentFilterChange();
-    } else if (b.dataset.target === 'timeMode') {
-      document.getElementById('timeMode').value = v;
-      generateBalancedArena();
-    } else if (b.dataset.target === 'timeLimit') {
-      document.getElementById('timeLimit').value = v;
-      onTimeLimitChange();
     } else if (b.dataset.target === 'rounds') {
       document.getElementById('roundMode').value = v === 'random' ? 'random' : 'manual';
       if (v !== 'random') document.getElementById('roundCounts').value = v;
@@ -4451,7 +5282,7 @@
   });
 
   // Roving tabindex means only the selected option is in the tab order, so
-  // arrow keys have to move the selection — otherwise the other five
+  // arrow keys have to move the selection — otherwise the other two
   // intensities become unreachable by keyboard.
   document.getElementById('intensityPicker').addEventListener('keydown', e => {
     const dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1
@@ -4481,6 +5312,42 @@
     });
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => renderHistory());
+
+  // Theme picker: applies a palette and remembers it for this browser.
+  function syncThemePicker() {
+    const cur = document.documentElement.getAttribute('data-palette') || 'nukage';
+    document.querySelectorAll('.theme-swatch').forEach(b => {
+      const on = b.dataset.palette === cur;
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+    });
+  }
+  function setPalette(name) {
+    document.documentElement.setAttribute('data-palette', name);
+    try { localStorage.setItem('ripatorium-palette', name); } catch (e) { /* not remembered */ }
+    syncThemePicker();
+  }
+  document.querySelectorAll('.theme-swatch').forEach(b => {
+    b.addEventListener('click', () => setPalette(b.dataset.palette));
+  });
+
+  // Spawn the Horde: a one-beat flash when it fires.
+  const spawnBtn = document.querySelector('.btn-action');
+  if (spawnBtn) spawnBtn.addEventListener('click', () => {
+    spawnBtn.classList.add('flash');
+    setTimeout(() => spawnBtn.classList.remove('flash'), 140);
+  });
+  document.querySelector('.theme-picker').addEventListener('keydown', e => {
+    const dir = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ? -1 : 0;
+    if (!dir) return;
+    e.preventDefault();
+    const sw = [...document.querySelectorAll('.theme-swatch')];
+    const i = sw.findIndex(b => b.getAttribute('aria-checked') === 'true');
+    const next = sw[(i + dir + sw.length) % sw.length];
+    setPalette(next.dataset.palette);
+    next.focus();
+  });
+  syncThemePicker();
 
   window.onload = function () {
     // Read the demons-shown preference first: a shared link skips
