@@ -13,7 +13,7 @@
     // Order: a ?palette= link, then the player's saved choice from the
     // theme picker, then Nukage.
     var PALETTES = ['nukage', 'rust', 'hellfire', 'techbase', 'bloodmoon', 'arcade'];
-    var pal = 'rust';
+    var pal = 'nukage';
     try {
       var fromUrl = new URLSearchParams(location.search).get('palette');
       var saved = localStorage.getItem('ripatorium-palette');
@@ -2675,7 +2675,12 @@
     const shareMap = {
       easy: 0.34, balanced: 0.39, sweaty: 0.45,
       nightmare: 0.49, ultranightmare: 0.63, slaughterhouse: 0.73,
-      normal: 0.43, praetor: 0.57
+      // Praetor lowered 0.57 -> 0.45 (2026-11-11): at 0.57 a 1-round
+      // campaign always rounded to 2 waves, and longer ones always filled
+      // the multi-wave cap, so the count never varied. (The count is now
+      // drawn directly in pickMultiWaveRounds; this share only ranks
+      // which rounds get the repeat waves.)
+      normal: 0.43, praetor: 0.45
     };
     const share = (shareMap[difficultyKey] || 0.55) + rand() * 0.16 - 0.06;
     return Math.max(totalRounds, Math.min(ceiling, Math.round(ceiling * share)));
@@ -2760,6 +2765,33 @@
     }
 
     return floors;
+  }
+
+  // How many rounds run more than one wave (Prerit, 2026-11-11). Praetor
+  // was landing on 2 waves in nearly every round of a 4-5 round campaign,
+  // which read as repetitive, so the count is capped — at most ONE
+  // multi-wave round in a 1-3 round campaign, TWO in a 4-5 round one —
+  // and drawn UNIFORMLY, the same on Normal and Praetor:
+  //   1-3 rounds: none 1/2, one 1/2
+  //   4-5 rounds: none 1/3, one 1/3, two 1/3
+  // The respawn budget no longer decides how many; it only ranks which
+  // rounds get them (most-allocated first, ties at random), so the
+  // campaign arc still biases where the repeat waves fall. Every other
+  // round runs a single wave and respawnPressure gives it the full-size
+  // roster instead of the second-wave trim.
+  function maxMultiWaveRounds(totalRounds) {
+    return totalRounds >= 4 ? 2 : 1;
+  }
+
+  function pickMultiWaveRounds(allocation) {
+    const count = Math.floor(rand() * (maxMultiWaveRounds(allocation.length) + 1));
+    const ranked = allocation
+      .map((w, i) => ({ i, w, tie: rand() }))
+      .sort((a, b) => (b.w - a.w) || (a.tie - b.tie));
+    ranked.forEach((x, rank) => {
+      allocation[x.i] = rank < count ? Math.max(2, x.w) : 1;
+    });
+    return allocation;
   }
 
   function shuffleArray(array) {
@@ -3735,10 +3767,6 @@
     const allHeavy = [...enemyData.heavy, ...dlcPool.filter(e => e.role === "heavy")];
     const allSuperHeavy = [...enemyData.superheavy, ...dlcPool.filter(e => e.role === "superheavy")];
 
-    // Continuous Spawning means enemies replace losses without waiting for
-    // a wave to clear — genuinely harder at the same headcount, so rounds
-    // get trimmed caps to compensate rather than being priced at zero.
-    const continuousCapFactor = continuousOn ? 0.85 : 1.0;
 
     let previousRoundFamilies = new Set();
     let twoBackFamilies = new Set();
@@ -3761,6 +3789,10 @@
     const respawnAllocation = slaughterMode
       ? slaughterWaves()
       : distributeRespawnBudget(totalRounds, campaignRespawnBudget, difficultyKey);
+    // Repeat waves stay an accent: none or one multi-wave round in a 1-3
+    // round campaign, none to two in a 4-5 round one, each count equally
+    // likely (see pickMultiWaveRounds).
+    if (!slaughterMode) pickMultiWaveRounds(respawnAllocation);
     // Normal: the finale never draws fewer waves than the round before it
     // that drew the most. A 1-wave finale after a 2-wave peak was what
     // made Normal campaigns end on a whimper. Swapping keeps the campaign's
@@ -3775,6 +3807,19 @@
         respawnAllocation[last] = t;
       }
     }
+
+    // Short campaigns (1-3 rounds) with a repeat-wave round always run
+    // Continuous Spawning, so the second wave arrives without a lull. It
+    // is still rolled above, so the RNG stream ahead of here is unchanged.
+    if (!slaughterMode && totalRounds <= 3 && respawnAllocation.some(w => w > 1)) {
+      continuousOn = true;
+      document.getElementById('continuous').value = "On";
+    }
+
+    // Continuous Spawning means enemies replace losses without waiting for
+    // a wave to clear — genuinely harder at the same headcount, so rounds
+    // get trimmed caps to compensate rather than being priced at zero.
+    const continuousCapFactor = continuousOn ? 0.85 : 1.0;
 
     for (let r = 1; r <= totalRounds; r++) {
 
@@ -4746,7 +4791,12 @@
   //      memory instead of ping-ponging between two sets.
   // 18 = Berserk rolled before the rounds and the horde scales with it
   //      (Once / Respawn / Endless); changing Berserk rebuilds the fight.
-  const GENERATOR_VERSION = 18;
+  // 19 = at most one multi-wave round in 1-3 round campaigns and two in
+  //      4-5 round ones; a 1-3 round campaign with a multi-wave round
+  //      always runs Continuous Spawning. Praetor's wave-budget share
+  //      lowered 0.57 -> 0.45. The number of multi-wave rounds is drawn
+  //      uniformly (1-3 rounds: 0 or 1; 4-5 rounds: 0, 1 or 2).
+  const GENERATOR_VERSION = 19;
   // Width of the version field in a share code (see packShareCode).
   const GENERATOR_VERSION_SPAN = 128;
 
